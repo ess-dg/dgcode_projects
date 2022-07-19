@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+#############################################################
+#Define geometry:
+import G4SimPlaneScatter.GeoPlane as GP
+geo = GP.create()
+
+#############################################################
+#Define particle generation:
+import G4StdGenerators.FlexGen as Gen
+import Utils.NeutronMath
+gen = Gen.create()
+gen.particleName = 'neutron'
+gen.fixed_energy_eV = Utils.NeutronMath.neutron_angstrom_to_eV(2.5)
+
+#############################################################
+#Framework setup
+import G4Launcher
+launcher = G4Launcher(geo,gen)
+launcher.setOutput('plane','FULL')#request full Griff output by default, in file named plane.griff
+launcher.go()

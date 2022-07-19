@@ -1,0 +1,9 @@
+package(USEPKG G4Interfaces)
+
+######################################################################
+
+
+Package containing geometry and scripts for simulations dedicated to
+simulations of a neutron passing through a single plane.
+
+Primary author: thomas.kittelmann@ess.eu

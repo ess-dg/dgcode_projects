@@ -1,0 +1,11 @@
+package(USEPKG GriffAnaUtils SimpleHists)
+
+######################################################################
+
+
+Package providing scripts for analysis of PlaneScatter simulations.
+
+The analysis in app_simple is created as a very simple example of how to perform
+a Griff analysis (it might not be very meaningful).
+
+Primary author: thomas.kittelmann@ess.eu
