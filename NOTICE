@@ -1,0 +1,23 @@
+DGCode Projects : A project library for the DGCode coding framework for detector simulations
+
+Copyright 2012-2022 DGCode Projects developers
+
+This software was mainly developed at the European Spallation Source ERIC (ESS)
+and the Technical University of Denmark (DTU). This work was supported in part
+by the European Union's Horizon 2020 research and innovation programme under
+grant agreement No 676548 (the BrightnESS project).
+
+All DGCode Projects files are distributed under the Apache 2.0 license, available 
+at http://www.apache.org/licenses/LICENSE-2.0, as well as in the LICENSE file 
+
+Beside complying with the Apache 2.0 license, a proper scientific conduct is
+expected when producing any scientific results with code from the repository.
+Regarding the issue of acknowledging the authors of the code, please contact
+the primary author(s) indicated in the pkg.info files of the used project
+packages, as well as the respective code contributors.
+
+Contribution to this repository constitutes full acceptance of the contributed
+code being distributed under the Apache 2.0 license. It is solely the
+contributor's responsibility to make sure that their code complies with
+distribution under the Apache 2.0 license. The maintainers of the repository are
+not liable for any authorship or licence issues spawning from contributed code.
