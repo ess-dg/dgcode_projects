@@ -20,13 +20,13 @@ export DGCODE_INSTALL_DIR="auto"
 
 #List paths to directories containing packages you want to be built along with
 #the Framework and Project packages. (This may be useful for e.g., dependencies
-#in large legacy repositories) 
+#in large legacy repositories)
 export DGCODE_EXTRA_PKG_PATH=""
 
 #Enable package selection option (-p or --project)
 export DGCODE_ENABLE_PROJECTS_PKG_SELECTION_FLAG=true
 
-#Source optional script to adjust configurations. (This may be useful for e.g., 
+#Source optional script to adjust configurations. (This may be useful for e.g.,
 #override the above listed configurations in collective repositories where this
 #file is version controlled - and should not be edited -, but the optional
 #script is gitignored, and expected to hold users own configurations)
