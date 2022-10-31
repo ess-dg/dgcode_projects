@@ -20,7 +20,7 @@ export DGCODE_INSTALL_DIR="auto"
 
 #List paths to directories containing packages you want to be built along with
 #the Framework and Project packages. (This may be useful for e.g., dependencies
-#in large legacy repositories)
+#in large legacy repositories, or for perhaps adding the dgcode_val repo)
 export DGCODE_EXTRA_PKG_PATH=""
 
 #Enable package selection option (-p or --project)
@@ -29,10 +29,15 @@ export DGCODE_ENABLE_PROJECTS_PKG_SELECTION_FLAG=true
 #Source optional script to adjust configurations. (This may be useful for e.g.,
 #override the above listed configurations in collective repositories where this
 #file is version controlled - and should not be edited -, but the optional
-#script is gitignored, and expected to hold users own configurations)
-if [ -f $DGCODE_PROJECTS_DIR/bootstrap_extraconf.sh ]; then
-    source $DGCODE_PROJECTS_DIR/bootstrap_extraconf.sh
+#script is gitignored, and expected to hold users own configurations) To get
+#started on a bootstrap_extraconf.sh file you can copy an empty skeleton which
+#you can afterwards edit:
+#
+#    cp bootstrap_extraconf_skeleton.sh bootstrap_extraconf.sh
+#
+if [ -f "$DGCODE_PROJECTS_DIR"/bootstrap_extraconf.sh ]; then
+    source "$DGCODE_PROJECTS_DIR"/bootstrap_extraconf.sh
 fi
 
 #Finish up by sourcing the main bootstrap.sh file from the dgcode framework:
-. $DGCODE_FMWK_DIR/bootstrap.sh
+. "$DGCODE_FMWK_DIR"/bootstrap.sh
