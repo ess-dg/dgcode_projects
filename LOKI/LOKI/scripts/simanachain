@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+import G4Utils.chain
+G4Utils.chain.chain('ess_loki_sim','ess_loki_ana','REDUCED')
+

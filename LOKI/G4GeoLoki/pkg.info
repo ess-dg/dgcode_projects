@@ -1,0 +1,8 @@
+package(USEPKG G4Interfaces)
+
+######################################################################
+
+
+Package providing LOKI/BCS bank geometries.
+
+Primary authors: milan.klausz@ess.eu

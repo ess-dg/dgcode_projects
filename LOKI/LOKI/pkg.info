@@ -1,0 +1,8 @@
+package(USEPKG ScanUtils GriffAnaUtils SimpleHists PyAnaUtils MCPL G4GeoLoki GriffB10Common)
+
+######################################################################
+
+
+Package providing scripts for simulation and analysis of LOKI/BCS simulations.
+
+Primary author: milan.klausz@ess.eu

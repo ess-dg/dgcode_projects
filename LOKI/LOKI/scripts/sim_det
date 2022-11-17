@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import G4GeoLoki.GeoBCSBanks as GEO
+import G4Launcher
+
+geo = GEO.create()
+launcher = G4Launcher()
+launcher.setGeo(geo)
+
+launcher.addParameterString('event_gen','')
+launcher.addParameterString('mcplDirectory','')
+
+if launcher.getParameterString('event_gen')=='mcpl':
+    import G4MCPLPlugins.MCPLGen as Gen
+    gen = Gen.create()
+    #gen.input_file = 'MCPLTests/reffile_1.mcpl'
+    #gen.input_file = 'sample8_coh_noTransmission.mcpl.gz'
+    gen.input_file = launcher.getParameterString('mcplDirectory') + 'testbcs.mcpl'
+    gen.dz_meter = 0.2
+else:
+    import G4StdGenerators.FlexGen as Gen
+    gen = Gen.create()
+    gen.particleName = 'neutron'
+    gen.neutron_wavelength_aangstrom = 3.0
+    gen.momdir_spherical = True
+    gen.randomize_polarangle = True
+    gen.random_min_polarangle_deg = 0 #47.99
+    gen.random_max_polarangle_deg = 48 #48 #16.0
+    gen.randomize_azimuthalangle = True
+    gen.random_min_azimuthalangle_deg = 0 #20.0
+    gen.random_max_azimuthalangle_deg = 360.0 #60
+launcher.setGen(gen)
+
+griff_output_volumes = ["CountingGas","Converter"]
+import G4CollectFilters.StepFilterVolume
+f = G4CollectFilters.StepFilterVolume.create()
+f.volumeList = griff_output_volumes
+launcher.setFilter(f)
+launcher.setOutput('lokibcs_CountingGas_Converter','REDUCED')
+
+#launch:
+launcher.go()

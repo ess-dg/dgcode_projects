@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ess_g4geoloki_writepixelfile --rearDetectorDistance=5 --strawPixelNumber=2 -t

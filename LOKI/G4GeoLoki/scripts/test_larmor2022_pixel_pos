@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ess_g4geoloki_writepixelfile --larmor2022experiment --strawPixelNumber=2 -t
