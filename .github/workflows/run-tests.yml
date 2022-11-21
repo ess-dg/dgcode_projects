@@ -2,11 +2,15 @@ name: Call test workflow
 
 on:
   push:
-    branches: [ main ]
   schedule:
     - cron: '30 23 * * 0'  # 23:30 every Sunday
   workflow_dispatch:
 
 jobs:
-  userTests:
-    uses:  mctools/dgcode_actions/.github/workflows/run_user_tests.yml@main
+  use-test-workflow:
+    uses: mctools/dgcode_actions/.github/workflows/run_tests.yml@main
+    with:
+      pkg-repo: ess-dg/dgcode_projects
+      pkg-repo-branch: '${{ github.ref_name }}'
+      dgcode-branch: main
+      setup-choice: defaults
