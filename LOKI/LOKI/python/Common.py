@@ -11,7 +11,8 @@ def launch(geo):
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterBoolean('masking_only',False)
     launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #All MCPL_output components are positioned at 0.2 m distance from the sample
-    launcher.addParameterString('mcplDirectory','')    
+    launcher.addParameterString('mcplDirectory','')
+    launcher.addParameterString('input_file', '')
     launcher.addParameterDouble("gen_x_offset_meters", 0.005) #5 mm offset for rear bank at Larmor experiment
 
     launcher.addParameterInt("analysis_straw_pixel_number", 0) # zero means using default pixel number 
@@ -25,10 +26,19 @@ def launch(geo):
     if launcher.getParameterString('event_gen')=='mcpl':
         import G4MCPLPlugins.MCPLGen as Gen
         gen = Gen.create()
-        #gen.input_file = 'testbcs.mcpl' # use input_file argument to set the full path to the file
-        gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters') #translate z coordinates by McStas Sample-MCPL_output distance
+        if(launcher.getParameterString('input_file')):
+          gen.input_file = launcher.getParameterString('input_file')
+        else:
+          gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
+
+        import MCPL        
+        tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
+        if( 'sample_mcpl_distance_m' in tmp_myfile.blobs ):
+          gen.dz_meter = float(tmp_myfile.blobs['sample_mcpl_distance_m'])
+        else:
+          gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')#translate z coordinates by McStas Sample-MCPL_output distance
         gen.dx_meter = launcher.getParameterDouble('gen_x_offset_meters')
-        gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
+
 
         gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
         def overrideGenDzForLarmor2022Experiment(): # Fixed gen dz value for larmor2022experiment
