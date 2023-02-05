@@ -36,7 +36,7 @@ int main(int argc, char**argv) {
 
   double sourceSampleDistance = 0*Units::m;
   if (gen.getName()=="G4MCPLPlugins/MCPLGen" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") { // . changed to /
-    sourceSampleDistance = 23.5966*Units::m; //changed from 22.5, might change //23.5966 from McStas mcdisplay-webgl
+    sourceSampleDistance = 23.5706*Units::m; //23.5706 from McStas mcdisplay-webgl
   }
 
   setup->dump();
