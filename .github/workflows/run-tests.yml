@@ -13,4 +13,4 @@ jobs:
       pkg-repo: ess-dg/dgcode_projects
       pkg-repo-branch: '${{ github.ref_name }}'
       dgcode-branch: main
-      setup-choice: defaults
+      platform-choice: defaults
