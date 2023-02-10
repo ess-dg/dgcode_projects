@@ -40,7 +40,14 @@ int getPixelId(int tubeId, int strawId, double positionX) {
 }
 
 int main(int argc, char**argv) {
-  const bool createDetectionMcplFile = true;
+  bool createDetectionMcplFile = true;
+  std::string tmp;
+  for (int i=1;i<argc;++i) {
+    tmp=argv[i];
+    if (tmp=="--nodetfile" ) {
+      createDetectionMcplFile = false;
+    }
+  }
   
   Core::catch_fpe();
   GriffDataReader dr(argc,argv);
