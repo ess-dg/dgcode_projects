@@ -87,12 +87,14 @@ int main(int argc, char**argv) {
   auto userData = setup->userData();
   PixelatedBanks* banks;
   const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
+  int strawPixelNumber = 0;
   if(userData.count("analysis_straw_pixel_number")){
-    const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
+    strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
     banks = new PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
   }
   else{ // use default rear bank pixel number
     banks = new PixelatedBanks(sampleDetectorDistance);
+    strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
   }
 
   bool oldTubeNumbering = false;
@@ -102,21 +104,13 @@ int main(int argc, char**argv) {
 
   const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7; 
 
-  //float xmin = -53;
   const double ymin = -53; //20+1 tube in negative direction
-  //int tubeNr = 40 + 2; // 40 plus 1-1 empty space on both ends to make the plot nice
-  //int binsx = 1060;
   const int binsy = 1060/2;
   const int binsz = 160;
   int thetabins = 550/2;
   const double trueThetaMax = 55;
-  //float thetamax = 9.0;
-  //float dthetamin = -5; //-0.35
-  //float dthetamax = 5; //3 
-  //int dthetabins = 1000;
   const double zmin = (sampleDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
   const double zmax = (sampleDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
-  //int zbins = 160;
 
   auto h_neutron_xy_conv = hc.book2D("Neutron xy (conv)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_conv");
        h_neutron_xy_conv->setXLabel("-x [mm]");
@@ -157,17 +151,21 @@ int main(int argc, char**argv) {
        h_neutron_bank_theta_hit->setYLabel("Bank id");
 
   const int numberOfPixels = banks->getTotalNumberOfPixels();
-  printf("Number of pixels: %d\n", numberOfPixels);
+  const int numberOfStraws = numberOfPixels/strawPixelNumber;
+  printf("Total number of pixels: %d\n", numberOfPixels);
+  printf("Number of pixels per straw: %d\n", strawPixelNumber);
+  printf("Number of straws: %d\n", numberOfStraws);
+  
   // auto h_neutron_pixel_hit_count = hc.book1D("Number of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_count");
   //      h_neutron_pixel_hit_count->setXLabel("Pixel ID");
   // auto h_neutron_pixel_hit_weight = hc.book1D("Sum weight of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_weight");
   //      h_neutron_pixel_hit_weight->setXLabel("Pixel ID");
-  auto h_neutron_pixel_hit = hc.book2D("Sum weight of hits in pixels (hit)", 256, 0, 256, numberOfPixels/256, 0, numberOfPixels/256, "h_neutron_pixel_hit");
+  auto h_neutron_pixel_hit = hc.book2D("Sum weight of hits in pixels (hit)", strawPixelNumber, 0, strawPixelNumber, numberOfStraws, 0, numberOfStraws, "h_neutron_pixel_hit");
        h_neutron_pixel_hit->setXLabel("Pixel ID along straw");
        h_neutron_pixel_hit->setYLabel("Straw ID");
 
-  const int numberOfPixels_rear = banks->getNumberOfPixels(0);
-  auto h_neutron_pixel_rear_hit = hc.book2D("Sum weight of hits in pixels of rear bank (hit)", 256, 0, 256, numberOfPixels_rear/256, 0, numberOfPixels_rear/256, "h_neutron_pixel_rear_hit");
+  const int numberOfStrawsInRearBank = banks->getNumberOfPixels(0) / strawPixelNumber;
+  auto h_neutron_pixel_rear_hit = hc.book2D("Sum weight of hits in pixels of rear bank (hit)", strawPixelNumber, 0, strawPixelNumber, numberOfStrawsInRearBank, 0, numberOfStrawsInRearBank, "h_neutron_pixel_rear_hit");
        h_neutron_pixel_rear_hit->setXLabel("Pixel ID along straw");
        h_neutron_pixel_rear_hit->setYLabel("Straw ID");
 
@@ -247,11 +245,6 @@ int main(int argc, char**argv) {
   auto count_neutrons_abs_BoronMask = neutron_ending_counters->addCounter("count_neutrons_abs_BoronMask");
   auto count_neutrons_abs_Gas = neutron_ending_counters->addCounter("count_neutrons_abs_Gas");
   auto count_neutrons_end_World = neutron_ending_counters->addCounter("count_neutrons_end_World");
-
-  if (numberOfPixels != 1605632) {
-    printf("Error: Wrong pixel number for this analysis\n");
-    return 1;
-  } 
 
   while (dr.loopEvents()) {
     while (auto neutron = primary_neutrons.next()) {
@@ -386,14 +379,14 @@ int main(int argc, char**argv) {
           const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, position_hit[0], position_hit[1]);
           //h_neutron_pixel_hit_count->fill(pixelId, 1);
           //h_neutron_pixel_hit_weight->fill(pixelId, hit.eventHitWeight());
-          h_neutron_pixel_hit->fill(pixelId%256, std::floor(pixelId/256), hit.eventHitWeight());
+          h_neutron_pixel_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
 
           
           h_neutron_bankPanelHitCounter->fill(bankId_conv, panelNumber_conv, hit.eventHitWeight());
           h_neutron_panelHitCounter->fill(panelNumber_conv, hit.eventHitWeight());
 
           if (bankId_conv == 0) {
-            h_neutron_pixel_rear_hit->fill(pixelId%256, std::floor(pixelId/256), hit.eventHitWeight());
+            h_neutron_pixel_rear_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
           }
 
           //TODO should implement method (in PixelatedBanks class) to get positionOnWire_hit coordinate. Ask Judit, how it is done in real data reduction.

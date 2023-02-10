@@ -37,12 +37,20 @@ int main(int argc, char **argv) {
 
   SimpleHists::HistCollection hc;
 
-  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
-  const int strawPixelNumber = 256;
-  printf("HARDCODED rear bank pixel number for analysis: %d\n", strawPixelNumber);
+  auto userData = setup->userData();
+  PixelatedBanks* banks;
+  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
+  int strawPixelNumber = 0;
+  if(userData.count("analysis_straw_pixel_number")){
+    strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
+    banks = new PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
+  }
+  else{ // use default rear bank pixel number
+    banks = new PixelatedBanks(sampleDetectorDistance);
+    strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
+  }
 
-  PixelatedBanks banks = PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
-  const int numberOfPixels = banks.getTotalNumberOfPixels();
+  const int numberOfPixels = banks->getTotalNumberOfPixels();
 
   auto h_neutron_pixel_geantino = hc.book2D("Show pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_neutron_pixel_geantino");
   h_neutron_pixel_geantino->setXLabel("Pixel ID along straw");
@@ -55,11 +63,6 @@ int main(int argc, char **argv) {
   auto h_neutron_counters = hc.bookCounts("General neutron counters", "neutron_counters");
   auto countTestGeantino = h_neutron_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_neutron_counters->addCounter("geantino_in_Mask");
-
-  if (numberOfPixels != 1605632) {
-    printf("Error: Wrong pixel number for this analysis\n");
-    return 1;
-  } 
 
   const int indexOffset = 11;
   MaskFileCreator masking("maskFile.xml", numberOfPixels, indexOffset);
@@ -82,7 +85,7 @@ int main(int argc, char **argv) {
           const int bankId_conv = seg->volumeCopyNumber(5);
 
           auto step = seg->lastStep();
-          const int pixelId = banks.getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY());
+          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY());
 
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
             h_neutron_pixel_geantino_masking->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
