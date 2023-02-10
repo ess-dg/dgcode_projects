@@ -1,0 +1,380 @@
+#!/usr/bin/env python3
+
+from __future__ import print_function
+import os, matplotlib
+#matplotlib.use('agg')
+#import PhysValTS.tns_style
+from PyAna import *
+plt.enable_tex_fonts()
+
+from PyAna import *
+import SimpleHists as sh
+from SimpleHists.plotutils import *
+from matplotlib.colors import LogNorm
+import PyAnaUtils.divide as divide
+import sys, os
+import math as m
+from matplotlib.widgets import Slider
+from matplotlib import gridspec
+import BCS.BCSplotUtils as BCSplt
+import argparse
+from scipy.ndimage import convolve1d
+
+plt.rc('xtick', labelsize=34)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=34)    # fontsize of the tick labels
+plt.rcParams['xtick.major.size'] = 12
+plt.rcParams['xtick.major.width'] = 1
+plt.rcParams['xtick.minor.size'] = 2
+plt.rcParams['xtick.minor.width'] = 1
+plt.rcParams['ytick.major.size'] = 12
+plt.rcParams['ytick.major.width'] = 1
+plt.rcParams['ytick.minor.size'] = 5
+plt.rcParams['ytick.minor.width'] = 1
+plt.rcParams['axes.linewidth'] = 2
+
+def _defcolmap(x):
+    a,b=0.15,0.9
+    return plt.cm.spectral(a + x * (b-a))
+
+def _col(cmap,i,n):
+    assert i<n
+    return cmap(i/(n-1.0)) if n>1 else cmap(1.0)
+
+cmap = _defcolmap
+
+parser = argparse.ArgumentParser(description = 'Script to analyse the BCS rate results')
+parser.add_argument('-fn', '--fileName', nargs = '*', help = 'Input file name')
+#parser.add_argument('-hn', '--histName', nargs = '*', help = 'Name of histograms to plot.(hardcoded list if not given')
+parser.add_argument('-sl', '--signalLimits', action = 'store_true', help = 'use signal limits for bin size')
+parser.add_argument('-d', '--dummy', action = 'store_true', help = 'use dummy intensity')
+parser.add_argument('-q', '--qHist', action = 'store_true', help = 'use Q histogram')
+parser.add_argument('-pdf', '--pdfOutput', action = 'store_true', help = 'create pdf from figure')
+args = parser.parse_args()
+
+# ////////////////////////////////////////////////////////////////
+
+if(args.qHist):
+  hc = sh.HistCollection(args.fileName[0])
+
+  allIntensity = hc.hist('neutron_Q_hit')
+  signalIntensity = hc.hist('neutron_Q_signalOnly_hit')
+
+  histDataN, histErrorN, histAxisN, titleTextN, labelN = BCSplt.disassembleHist1d(allIntensity)
+  histDataSignal, histErrorSignal, histAxisSignal, titleTextSignal, labelSignal = BCSplt.disassembleHist1d(signalIntensity)
+
+
+  x4 = [ x/1000 for x in range(23,40)]
+  y4 = [ 370000/(0.023**(-4)) * x**(-4) for x in x4] #7/...
+
+  BCSplt.setPlottingParameters(multiplicationFactor = 1)
+  plt.rc('legend', fontsize=24)    # legend fontsize
+  fig = matplotlib.pyplot.gcf()
+  fig.set_size_inches(10, 8)
+
+  print(len(histAxisN), len(histDataN), len(histErrorN))
+
+  plt.errorbar(histAxisN, histDataN, yerr=histErrorN, fmt='r--', markersize=9, linewidth=4, label='Signal + background') #,
+  plt.errorbar(histAxisSignal, histDataSignal, yerr=histErrorSignal, fmt='--', markersize=9, linewidth=4, label='Signal')
+  #plt.plot(x2p4, y2p4, '-', linewidth=4,  label=r'y$\sim$x$^{-2.4}$')
+  #plt.plot(x9, y9, '-', linewidth=4,  label=r'y$\sim$x$^{-9}$')
+  #plt.plot(x4, y4, 'c-', linewidth=4,  label=r'y$\sim$x$^{-4}$')
+  plt.legend( frameon=False)
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.ylabel('Intensity')
+  plt.xlabel(r'Q [\AA$^{-1}$]')
+  plt.xlim([0.01, 1])
+  plt.ylim([1e0, 1e6])
+  plt.tight_layout(pad=0.3, w_pad=0.2, h_pad=0.1)
+  if(args.pdfOutput):
+    plt.savefig('Config 1 I(r).pdf')
+  else:
+    plt.show()
+
+
+elif(not args.dummy):
+  hc = sh.HistCollection(args.fileName[0])
+  #signalIntensity = hc.hist('neutron_xy_hit')#
+  signalIntensity = hc.hist('neutron_xy_signalOnly_hit')
+  allIntensity = hc.hist('neutron_xy_hit')
+
+  signalIntensityData, signalIntensityAxisX, signalIntensityAxisY, signalTitleText, signalLabelX, signalLabelY = BCSplt.disassembleHist2d(signalIntensity)
+  allIntensityData, allIntensityAxisX, allIntensityAxisY, allTitle, allLabelX, allLabelY = BCSplt.disassembleHist2d(allIntensity)
+
+  print(signalIntensityData.size)
+  print(allIntensityData.size)
+  print(sum(sum(signalIntensityData)))
+  print(sum(sum(allIntensityData)))
+
+
+  xBins = signalIntensityAxisX.size
+  yBins = signalIntensityAxisY.size
+
+  signalIntensityAxisX/= 100
+  signalIntensityAxisY/= 100
+
+  wavelength = 1.8
+  distance = 5
+  beamstopRadius = 0.02 #2 cm radius
+
+  #rArray = np.concatenate((np.logspace(m.log10(beamstopRadius), m.log10(0.2), 20, endpoint=False), np.logspace(m.log10(0.2), m.log10(0.8), 40, endpoint=True)))
+  rArray = np.array([x/100 for x in range(80)])
+  print(rArray)
+
+  dr = 0.01
+  I_r = np.zeros(rArray.size)
+  I_r_convolved = np.zeros(rArray.size)
+  I_r_timesR4 = np.zeros(rArray.size)
+  I_r_timesR4_convolved = np.zeros(rArray.size)
+
+
+  pixelCount = np.zeros(rArray.size) #np.zeros(10 + m.ceil( (m.sqrt(signalIntensityAxisX[-1]**2 + signalIntensityAxisY[-1]**2)/0.01 )))
+
+  def getRIndex(r):
+    for index, item in enumerate(rArray):
+      if item < r and r <= rArray[index+1]:
+        return index
+
+  for i in range(xBins):
+      for j in range(yBins):
+        r = m.sqrt(signalIntensityAxisX[i]**2 + signalIntensityAxisY[j]**2)
+        if(r < beamstopRadius):
+          continue
+
+        rIndex = getRIndex(r)
+
+        I_r[rIndex] += signalIntensityData[i,j]
+        I_r_timesR4[rIndex] += signalIntensityData[i,j] * (r**4)
+
+        I_r_convolved[rIndex] += allIntensityData[i,j]
+        I_r_timesR4_convolved[rIndex] +=  allIntensityData[i,j] * (r**4)
+        pixelCount[rIndex] += + 1
+
+  for rIndex in range(rArray.size):
+    #qArray[rIndex] = 4*3.1415/wavelength*m.sin(m.atan((rIndex+0.5)*dr/distance)/2)
+    #rArray4[rIndex] = ((rIndex+0.5)*dr)**4
+    if(pixelCount[rIndex] != 0):
+      I_r[rIndex] /= pixelCount[rIndex]
+      I_r_timesR4[rIndex] /= pixelCount[rIndex]
+      I_r_convolved[rIndex] /= pixelCount[rIndex]
+      I_r_timesR4_convolved[rIndex] /= pixelCount[rIndex]
+
+  #print(sum(I_r))
+  #print(sum(I_r_convolved))
+  #print()
+
+  #x4 = range(25,50)
+  #y4 = [ 21/(31**(-2.4)) * x**(-2.4) for x in x4]
+
+  #config1
+  x2p4 = [ x/100 for x in range(26,50)]
+  y2p4 = [ 41/(0.25**(-2.4)) * x**(-2.4) for x in x2p4] #7/...
+  x9 = [ x/100 for x in range(51,55)]
+  y9 = [ 12/(0.49**(-9)) * x**(-9) for x in x9] #7/...
+  x4 = [ x/100 for x in range(60,68)]
+  y4 = [ 4.5/(0.58**(-4)) * x**(-4) for x in x4] #7/...
+
+  # #config3
+  # x2 = range(25,50)
+  # y2 = [ 1.5/(25**(-2.4)) * x**(-2.4) for x in x2] #7/...
+  # x9 = range(49,60)
+  # y9 = [ .35/(49**(-9)) * x**(-9) for x in x9] #7/...
+
+  BCSplt.setPlottingParameters(multiplicationFactor = 1)
+  fig = matplotlib.pyplot.gcf()
+  fig.set_size_inches(14, 8)
+
+  #plt.plot(qArray, I_r, 'o--', linewidth=2, label='original')
+  #plt.plot(qArray, I_r_convolved, 'ro--', linewidth=2, label='convolved')
+  plt.plot(rArray, I_r, 'o--', markersize=9, linewidth=4, label='Signal')
+  plt.plot(rArray, I_r_convolved, 'r*--', markersize=9, linewidth=4, label='Signal + background')
+  plt.plot(x2p4, y2p4, '-', linewidth=4,  label=r'y$\sim$x$^{-2.4}$')
+  plt.plot(x9, y9, '-', linewidth=4,  label=r'y$\sim$x$^{-9}$')
+  plt.plot(x4, y4, 'c-', linewidth=4,  label=r'y$\sim$x$^{-4}$')
+  plt.legend( frameon=False)
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.ylabel('Intensity')
+  plt.xlabel('r [m]')
+  plt.xlim([0.01, 1])
+  plt.ylim([0.1, 1000])
+  if(args.pdfOutput):
+    plt.tight_layout(pad=0.3, w_pad=0.2, h_pad=0.1)
+    plt.savefig('Config 1 I(r).pdf')
+  else:
+    plt.show()
+
+
+  # plt.plot(rArray4, I_r_timesR4, 'o--', linewidth=2, label='original')
+  # plt.plot(rArray4, I_r_timesR4_convolved, 'r*--', linewidth=2, label='convolved')
+  # plt.legend( frameon=False)
+  # plt.ylabel(r'Intensity * r$^4$')
+  # plt.xlabel(r'r$^4$')
+  # plt.show()
+
+
+else:
+  hc = sh.HistCollection(args.fileName[0])
+  if(args.signalLimits):
+    xMaskHistName = 'neutron_dx_mask1p75cm_hit'
+    yMaskHistName = 'neutron_dy_mask0p8cm_hit'
+    #yMaskHistName = 'neutron_dy_mask0p75cm_hit'
+  else:
+    xMaskHistName = 'neutron_dx_mask1cm_hit'
+    yMaskHistName = 'neutron_dy_mask1cm_hit'
+  xMaskHist = hc.hist(xMaskHistName)
+  yMaskHist = hc.hist(yMaskHistName)
+
+  nBins = xMaskHist.getNBins()
+  xMask = numpy.array([xMaskHist.getBinContent(i) for i in range(nBins)])
+  nBins = yMaskHist.getNBins()
+  yMask = numpy.array([yMaskHist.getBinContent(i) for i in range(nBins)])
+
+  xMask /= xMask.sum() #make sum=1.0
+  yMask /= yMask.sum() #make sum=1.0
+
+  if(args.signalLimits):
+    dx = 1.75
+    dy = 0.8 #0.75
+  else:
+    dx = 1.0
+    dy = 1.0
+
+  xMax = m.ceil(100/dx)*dx
+  yMax = m.ceil(100/dy)*dy
+  if(int(yMax/dy)%2 == 1):
+    yMax = (m.ceil(100/dy)+1)*dy
+  xBins = int(xMax/dx)
+  yBins = int(yMax/dy)
+  xCenter = xMax / 2.0
+  yCenter = yMax / 2.0
+
+  beamstopRadius = 0.02 #2 cm radius
+
+  def getDistanceFromCenter(i,j):
+    return m.sqrt(((i+0.5)*dx - xCenter)**2 + ((j+0.5)*dy - yCenter)**2)/100
+
+  def createDetectorIntensity(xBins, yBins, beamstopRadius):
+    intensity = 1
+    detectorIntensity = np.zeros((xBins, yBins))
+    for i in range(xBins):
+      for j in range(yBins):
+        r = getDistanceFromCenter(i,j)
+        if(r < beamstopRadius):
+          continue
+        detectorIntensity[i,j] = intensity * (r**(-4))
+    return detectorIntensity
+
+  detectorIntensity = createDetectorIntensity(xBins, yBins, beamstopRadius)
+
+  #xMask = np.zeros(125)
+  #xMask[62] = 1.0
+  xMaskCenterBin = m.floor(xMask.size/2)
+  print('xMaskCenter: ', xMask[xMaskCenterBin])
+  yMaskCenterBin = m.floor(yMask.size/2)
+  print('xMaskCenter: ', yMask[yMaskCenterBin])
+
+  detectorIntensity_convolved = convolve1d( detectorIntensity, weights=xMask, axis=0, mode='constant', cval=0.0, origin=0)
+  detectorIntensity_convolved = convolve1d( detectorIntensity_convolved, weights=yMask, axis=1, mode='constant', cval=0.0, origin=0)
+
+  #rArray = np.logspace(m.log(beamstopRadius), m.log(10*(m.sqrt(xCenter**2 + yCenter**2))/100), 80)
+  rArray = np.logspace(m.log10(beamstopRadius*0.9), m.log10(0.8), 21)
+  print(rArray, beamstopRadius, 10*(m.sqrt(xCenter**2 + yCenter**2))/100)
+
+  I_r = np.zeros(rArray.size)
+  I_r_convolved = np.zeros(rArray.size)
+  I_r_timesR4 = np.zeros(rArray.size)
+  I_r_timesR4_convolved = np.zeros(rArray.size)
+
+  wavelength = 1.8
+  distance = 5
+
+  sumPixelCounted = 0
+  #dr = 0.01
+  qArray = np.zeros(I_r.size)
+  for rIndex in range(rArray.size-1):
+    pixelCount = 0
+    qArray[rIndex] = 4*3.1415/wavelength*m.sin(m.atan( ((rArray[rIndex]+rArray[rIndex+1])/2)  /distance)/2)
+    for i in range(xBins):
+      for j in range(yBins):
+        r = getDistanceFromCenter(i,j)
+        if(r < beamstopRadius):
+          continue
+        if( rArray[rIndex] < r and r < rArray[rIndex+1] ):
+          I_r[rIndex] += detectorIntensity[i,j]
+          I_r_timesR4[rIndex] += detectorIntensity[i,j] * (r**4)
+          I_r_convolved[rIndex] += detectorIntensity_convolved[i,j]
+          I_r_timesR4_convolved[rIndex] +=  detectorIntensity_convolved[i,j] * (r**4)
+          pixelCount = pixelCount + 1
+
+    if(pixelCount != 0):
+      I_r[rIndex] /= pixelCount
+      I_r_timesR4[rIndex] /= pixelCount
+      I_r_convolved[rIndex] /= pixelCount
+      I_r_timesR4_convolved[rIndex] /= pixelCount
+      sumPixelCounted = sumPixelCounted + pixelCount
+
+  #if(sumPixelCounted != xBins*yBins): #safety check..could be assure
+  #  print('problem:', sumPixelCounted, xBins*yBins)
+
+
+
+  #print(I_r)
+  BCSplt.setPlottingParameters(multiplicationFactor = 1)
+  fig = matplotlib.pyplot.gcf()
+  plt.rc('legend', fontsize=24)    # legend fontsize
+  fig.set_size_inches(10, 8)
+
+
+  plt.plot(rArray, I_r, 'o--', markersize=9, linewidth=4, label=r'I$\sim$r$^{-4}$')
+  plt.plot(rArray, I_r_convolved, 'ro--', markersize=9, linewidth=4, label=r'I$\sim$r$^{-4}$ + scattering')
+  plt.legend( frameon=False)
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.xlim([0.01, 1])
+  plt.ylabel('Intensity')
+  plt.xlabel('r [m]')
+  plt.xlim([0.01, 1])
+  if(args.pdfOutput):
+    plt.tight_layout(pad=0.3, w_pad=0.2, h_pad=0.1)
+    plt.savefig('dummy.pdf')
+  else:
+    plt.show()
+
+
+  plt.plot(qArray, I_r, 'o--', markersize=9, linewidth=4, label='Original')
+  plt.plot(qArray, I_r_convolved, 'ro--', markersize=9, linewidth=4, label='convolved')
+  plt.legend( frameon=False)
+  plt.xscale('log')
+  plt.yscale('log')
+  plt.ylabel('Intensity')
+  plt.xlabel(r'Q [1/\AA]')
+  #plt.show()
+
+  # plt.plot(I_r_timesR4, 'o--', linewidth=2, label='original')
+  # plt.plot(I_r_timesR4_convolved, 'ro--', linewidth=2, label='convolved')
+  # plt.legend( frameon=False)
+  # plt.ylabel(r'Intensity * r$^4$')
+  # plt.xlabel('r [cm]')
+  # plt.show()
+
+  # plt.plot(qArray, I_r_timesR4, 'o--', linewidth=2, label='original')
+  # plt.plot(qArray, I_r_timesR4_convolved, 'ro--', linewidth=2, label='convolved')
+  # plt.legend( frameon=False)
+  # plt.ylabel(r'Intensity * r$^4$')
+  # plt.xlabel(r'Q [1/\AA]')
+  # plt.show()
+  #plt.xlabel(r'$\lambda$(\AA)')
+
+
+
+#R1=0.03/2
+#R2=0.01/2
+#L1=3
+#L2=5
+#
+#def calcBeamSize(R1,R2,L1,L2):
+#                ''' Returns beam radius in m'''
+#                return R2 + (R1+R2)*L2/L1
+#
+#print(calcBeamSize(R1,R2,L1,L2))

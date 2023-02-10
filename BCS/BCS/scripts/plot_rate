@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+
+from __future__ import print_function
+import os, matplotlib
+#matplotlib.use('agg')
+#import PhysValTS.tns_style
+from PyAna import *
+plt.enable_tex_fonts()
+
+from PyAna import *
+import SimpleHists as sh
+from SimpleHists.plotutils import *
+from matplotlib.colors import LogNorm
+import PyAnaUtils.divide as divide
+import sys, os
+import math as m
+from matplotlib.widgets import Slider
+from matplotlib import gridspec
+import BCS.BCSplotUtils as BCSplt
+import argparse
+
+
+
+def _defcolmap(x):
+    a,b=0.15,0.9
+    return plt.cm.spectral(a + x * (b-a))
+
+def _col(cmap,i,n):
+    assert i<n
+    return cmap(i/(n-1.0)) if n>1 else cmap(1.0)
+
+cmap = _defcolmap
+
+parser = argparse.ArgumentParser(description = 'Script to analyse the BCS rate results')
+parser.add_argument('-f', '--fileName', nargs = '*', help = 'Input file name')
+parser.add_argument('-hn', '--histName', nargs = '*', help = 'Name of histograms to plot.(hardcoded list if not given')
+parser.add_argument('-ol', '--overlay', action = 'store_true', help = 'Ovarlay histograms (listed in histName) of shist files (listed in fileName)')
+args = parser.parse_args()
+
+# ////////////////////////////////////////////////////////////////
+
+if (not args.overlay):
+     for fileNameIndex in range(0, len(args.fileName)): #for every given shistFile
+        hc = sh.HistCollection(args.fileName[fileNameIndex])
+
+        if(args.histName): #if user specified the list of histograms to plot
+            for histNameIndex in range(0, len(args.histName)):
+                hist2plot = hc.hist(args.histName[histNameIndex])
+                hist2plot.plot()
+        else: #if user hasn't specified the list of histograms to plot
+
+            my_h_st_global1 = hc.hist('h_st_global1')
+            my_h_st_global2 = hc.hist('h_st_global2')
+            my_hist_global = BCSplt.hist2d4BasicOperations(my_h_st_global1, '-', my_h_st_global2)
+            my_h_st_global_conv = hc.hist('h_st_global_conv')
+            my_h_st_global_hit = hc.hist('h_st_global_hit')
+
+
+            my_h_st_peak1 = hc.hist('h_st_peak1')
+            my_h_st_peak2 = hc.hist('h_st_peak2')
+            my_hist_peak = BCSplt.hist2d4BasicOperations(my_h_st_peak1, '-', my_h_st_peak2)
+            my_h_st_peak_conv = hc.hist('h_st_peak_conv')
+            my_h_st_peak_hit = hc.hist('h_st_peak_hit')
+
+
+            my_h_st_peak_div1 = hc.hist('h_st_peak_div1')
+            my_h_st_peak_div2 = hc.hist('h_st_peak_div2')
+            my_hist_peak_div = BCSplt.hist2d4BasicOperations(my_h_st_peak_div1, '-', my_h_st_peak_div2)
+            my_h_st_peak_div_conv = hc.hist('h_st_peak_div_conv')
+            my_h_st_peak_div_hit = hc.hist('h_st_peak_div_hit')
+
+            my_h_st_peak_hit_firstPanelDifferentTof = hc.hist('h_st_peak_hit_firstPanelDifferentTof')
+            my_h_st_peak_div_hit_firstPanelDifferentTof = hc.hist('h_st_peak_div_hit_firstPanelDifferentTof')
+
+            my_h_local_peak_incident_firstPanelDifferentTof = hc.hist('h_local_peak_incident_firstPanelDifferentTof')
+            my_h_local_peak_div_incident_firstPanelDifferentTof = hc.hist('h_local_peak_div_incident_firstPanelDifferentTof')
+            my_h_new_local_average_incident = hc.hist('h_new_local_average_incident')
+            my_h_new_local_peak_incident = hc.hist('h_new_local_peak_incident')
+            my_neutron_tof = hc.hist('neutron_tof')
+            my_neutron_tof_hit = hc.hist('neutron_tof_hit')
+
+            matplotlib.rcParams.update({'font.size': 24})
+
+       #     BCSplt.overlayConvDetEfficiency(args.fileName[0],'incident_neutron_lambda', 'converted_true_lambda', 'detected_true_lambda')
+
+       #     maxValue = BCSplt.newVisualizeRate(my_h_new_local_average_incident, 'Local average Incident Rate [Hz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Neutrons/straw/s')
+            #print( 'my_h_new_local_average_incident  = %d [Hz]' %maxValue)
+
+       #     maxValue = BCSplt.newVisualizeRate(my_h_new_local_peak_incident, 'Local peak Incident Rate [kHz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Neutrons/straw/ms')
+
+
+       #     maxValue = BCSplt.newVisualizeRate(my_h_new_local_peak_incident, 'Local peak Incident Rate [kHz]_zoom', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Neutrons/straw/ms', plotFull = 0)
+
+       #     maxValue = BCSplt.newVisualizeRate(my_h_st_peak_hit, 'Local peak Detection Rate [kHz]_zoom', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Neutrons/straw/ms', plotFull = 0)
+
+  #          maxValue = BCSplt.newVisualizeRate(my_hist_global, 'Local Average Incident rate without divergence [Hz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5)
+  #          print( 'Local Average Incident rate without divergence = %d [kHz]' %(maxValue/1000)) #maxValue/1000 conversion needed when time AVG values are used, not peak values
+
+   #         maxValue = BCSplt.newVisualizeRate(my_h_st_global_hit, 'Local Average Detection rate without divergence [Hz]',logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5)
+   #         print( 'Local Average Detection rate without divergence = %d [kHz]' %(maxValue/1000))
+
+
+   #         maxValue = BCSplt.newVisualizeRate(my_h_st_peak_hit_firstPanelDifferentTof, 'Local peak detection rate without divergence [kHz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 30)
+   #         print( 'MAX Local peak detection rate without divergence = %d [kHz]' %maxValue)
+            #BCSplt.newVisualizeRate(my_h_st_peak_hit, 'Instantaneous peak detection rate without divergence [kHz]',0)
+   #         maxValue = BCSplt.newVisualizeRate(my_h_st_peak_hit, 'Instantaneous peak detection rate without divergence [kHz]',1)
+   #         print( 'This should be the same: Instantaneous peak detection rate without divergence = %d [kHz]' %maxValue)
+
+
+   #         maxValue = BCSplt.newVisualizeRate(my_h_st_peak_div_hit_firstPanelDifferentTof, 'Local peak detection rate with divergence[kHz]',logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 30)
+   #         print( 'MAX Local peak detection rate with divergence = %d [kHz]' %maxValue)
+            #BCSplt.newVisualizeRate(my_h_st_peak_div_hit, 'Instantaneous peak detection rate with divergence [kHz]',0)
+   #         maxValue = BCSplt.newVisualizeRate(my_h_st_peak_div_hit, 'Instantaneous peak detection rate with divergence[kHz]',1)
+   #         print( 'This should be the same:Instantaneous peak detection rate with divergence = %d [kHz]' %maxValue)
+
+#////////////PaperResults
+            # averageValue = my_neutron_tof.getIntegral()
+            # print( 'Global Average incident rate (without divergence cut) = %d [Hz]' %averageValue)
+
+            # averageValue = my_h_st_global_hit.getIntegral()
+            # print( 'Global Average detection rate (without divergence cut) = %d [Hz]' %averageValue)
+
+            # maxValue = BCSplt.newVisualizeRate(my_h_new_local_average_incident, 'Local average incident rate [Hz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5)
+            # print( 'MAX Local Average incident rate (without divergence cut) = %d [Hz]' %maxValue)
+
+            # maxValue = BCSplt.newVisualizeRate(my_h_st_global_hit, 'Local Average Detection rate without divergence [Hz]',logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5)
+            # print( 'MAX Local Average Detection rate (without divergence cut) = %d [kHz]' %(maxValue/1000))
+
+
+            # maxValue = my_neutron_tof.getMaxContent()
+            # print( 'MAX Global peak incident rate (without divergence cut) = %d [kHz]' %(maxValue/14))
+
+            # maxValue = my_neutron_tof_hit.getMaxContent()
+            # print( 'MAX Global peak detection rate (without divergence cut) = %d [kHz]' %(maxValue/14))
+
+
+   #         maxValue = BCSplt.newVisualizeRate(my_h_local_peak_incident_firstPanelDifferentTof, 'Local peak Incident Rate [kHz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 30)
+   #         print( 'MAX Local peak incident rate without divergence cut = %d [kHz]' %maxValue)
+
+   #        maxValue = BCSplt.newVisualizeRate(my_h_st_peak_hit_firstPanelDifferentTof, 'Local peak detection rate without divergence [kHz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 30)
+   #         print( 'MAX Local peak detection rate (without divergencecut) = %d [kHz]' %maxValue)
+
+          #  maxValue = BCSplt.newVisualizeRate(my_h_local_peak_div_incident_firstPanelDifferentTof, 'Local peak Div Incident Rate [kHz]', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 30)
+          #  print( 'MAX Local peak incident rate with divergence cut = %d [kHz]' %maxValue)
+
+  #/////////////
+
+
+            #BCSplt.newVisualizeRate(my_hist_peak, 'Instantaneous peak incident rate without divergence [kHz]',0)
+   #         maxValue = BCSplt.newVisualizeRate(my_hist_peak, 'Instantaneous peak incident rate without divergence [kHz]',1)
+   #         print( '***Instantaneous peak incident rate without divergence = %d [kHz]' %maxValue)
+
+            #BCSplt.newVisualizeRate(my_hist_peak_div, 'Instantaneous peak incident rate with divergence [kHz]',0)
+   #         maxValue = BCSplt.newVisualizeRate(my_hist_peak_div, 'Instantaneous peak incident rate with divergence [kHz]',1)
+   #         print( 'Instantaneous peak incident rate with divergence = %d [kHz]' %maxValue)
+
+            #visualizePeakHit.plot() #peak detection rate
+            #fig = matplotlib.pyplot.gcf()
+            #fig.set_size_inches(18.5, 10.5)
+            #fig.savefig('test2png.png', dpi=100)
+
+
+            # my_hist_convRate=BCSplt.hist2d4BasicOperations(my_hist_conv,my_hist_global,'/')
+            my_hist_hitEfficiency_average = BCSplt.hist2d4BasicOperations(my_h_st_global_hit, '/', my_h_new_local_average_incident)
+            #my_hist_hitEfficiency_peak=BCSplt.hist2d4BasicOperations(my_h_st_peak_hit, my_hist_peak,'/')
+            my_hist_hitEfficiency_peak = BCSplt.hist2d4BasicOperations(my_h_st_peak_hit, '/', my_h_new_local_average_incident)
+
+            my_hist_convEfficiency_global = BCSplt.hist2d4BasicOperations(my_h_st_global_conv, '/', my_hist_global)
+            my_hist_convEfficiency_peak_div = BCSplt.hist2d4BasicOperations(my_h_st_peak_div_conv, '/', my_hist_peak_div)
+
+
+            maxValue = BCSplt.newVisualizeRate(my_hist_hitEfficiency_average, 'Efficiency_Average_Detection',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency')
+            #print( 'Local Average Efficiency = %f ' %maxValue)
+            maxValue = BCSplt.newVisualizeRate(my_hist_hitEfficiency_peak, 'Efficiency_Peak_Detection',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency')
+            #print( 'Local Peak Efficiency = %f ' %maxValue)
+
+
+
+
+   #         print('Global peak incident rate')
+   #         BCSplt.sumHitForPanels(my_hist_peak_div)
+
+   #         print('Global peak detection rate')
+   #         BCSplt.sumHitForPanels(my_h_st_peak_div_hit)
+
+
+            ### Ploting ###
+            ###visualizeGlobalIncident = BCSplt.visualizeRate(my_dummy_5meter, my_hist_global, 'Incident neutron rate [Hz]')
+            #visualizeGlobalIncident.plot() #incudent rate
+
+            ###visualizeGlobalHit = BCSplt.visualizeRate(my_dummy_5meter, my_h_st_global_hit, 'Detection rate [1/s]')
+           # visualizeGlobalHit.plot() #detection rate
+
+            ###visualizePeakIncident = BCSplt.visualizeRate(my_dummy_5meter, my_hist_peak, 'Peak incident rate [1/s]')
+           # visualizePeakIncident.plot() #peak incident rate
+
+            ###visualizePeakHit = BCSplt.visualizeRate(my_dummy_5meter, my_h_st_peak_hit, 'Peak detection rate [1/s]')
+            # visualizePeakHit.plot() #peak detection rate
+
+
+
+            ###visualieGlobalConvEfficiency = BCSplt.visualizeRate(my_dummy_5meter, my_hist_convEfficiency_global, 'Conversion efficiency [%]')
+           # visualieGlobalConvEfficiency.plot()
+
+            ###visualieGlobalHitEfficiency = BCSplt.visualizeRate(my_dummy_5meter, my_hist_hitEfficiency_global, '10-15 Angstrom Detection efficiency [%]') #########################
+            #visualieGlobalHitEfficiency.plot()
+
+            ###visualiePeakDivlConvEfficiency = BCSplt.visualizeRate(my_dummy_5meter, my_hist_convEfficiency_peak_div, 'Peak div conversion efficiency [%]')
+
+            #visualiePeakDivlConvEfficiency.plot()
+
+            #visualiePeakDivlHitEfficiency=BCSplt.visualizeRate(my_dummy_5meter, my_hist_hitEfficiency_peak_div, 'Peak div detection efficiency [%]') ##################
+            ###visualiePeakDivlHitEfficiency = BCSplt.visualizeRate(my_dummy_5meter, my_hist_hitEfficiency_peak_div, 'Peak detection efficiency [%]') ##################
+            #visualiePeakDivlHitEfficiency.plot()
+            BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_tof', isRow=False, TitleText='h_panel_tof') ##################
+            #BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_tof_hit', isRow=False, TitleText='Neutron TOF distribution in panels') ##################
+            #BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_lambda_hit', isRow=False, TitleText='Neutron wavelength distribution in panels') ##################
+
+            panelLambdaList = BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_lambda', isRow=False, TitleText='h_panel_lambda')
+            #BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_tof', isRow=False, TitleText='h_panel_tof') ##################
+
+            panelLambdaHitList = BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_lambda_hit', isRow=False, TitleText='h_panel_lambda_hit')
+
+           # BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_segment_length_Converter', isRow=False, TitleText='h_panel_segment_length_Converter')
+
+            #BCSplt.OverlayDivisionAllRowOrCol(args.fileName[0], 'h_panel_lambda_hit', 'h_panel_lambda', isRow=False, TitleText='panel_efficiency')
+
+
+            #print('Global average hit rate (full pulse)~')
+            #globalHitList = np.array(BCSplt.sumHitForPanels(my_h_st_global_hit))
+
+            #print('Global incident rate (full pulse)~')
+            #globalIncidentList = np.array(BCSplt.sumHitForPanels(my_hist_global))
+
+            # print "Incident /n hit for panel1-5"
+            # for i in range(5):
+            #     #print("Panel "+str(i)+" inc = "+str(panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins())))
+            #     #print("Panel "+str(i)+" hit = "+str(panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins())))
+            #     print(panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()))
+            #     print(panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins()))
+
+            # #  listValues=np.array([panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins()) / panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()) for i in range(5)])
+            # # listValues=np.array([globalHitList[i]/globalIncidentList[i] for i in range(len(globalIncidentList))])
+            # #  BCSplt.plotHistogramFromList(listValues)
+
+
+            # print "Panel Efficiency for panel1-5"
+            # for i in range(5):
+            #     print(panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins())/panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()))
+            # efficiencyListValues=np.array([panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins())/panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()) for i in range(5)])
+            # BCSplt.plotHistogramFromList(efficiencyListValues, yLabelText='Efficiency', yLimits=[0.28,0.36])
+
+
+            # panelPathLengthConverter = BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_debugger', isRow=False, TitleText='h_panel_segment_length_Converter')
+            # print "AVG Converter Pathlength for panel1-5"
+            # for i in range(5):
+            #     print(str(panelPathLengthConverter[i].getBinSum(1,panelPathLengthConverter[i].getNBins())/panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins())))
+            # pathLengthConverterListValues=np.array([panelPathLengthConverter[i].getBinSum(1,panelPathLengthConverter[i].getNBins())/panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()) for i in range(5)])
+            # BCSplt.plotHistogramFromList(pathLengthConverterListValues, yLabelText='AVG converter pathlegth ['+r'$\mu$'+'m]', yLimits=[1.5,2.1])
+
+
+          #  panelDebuggerList = BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_debugger', isRow=False, TitleText='h_panel_debugger')
+            #panelLambdaHitList = BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_panel_lambda_hit', isRow=False, TitleText='h_panel_lambda_hit')
+          #  print "panel_debugger"
+          #  for i in range(5):
+                #print("Panel "+str(i)+" inc = "+str(panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins())))
+                #print("Panel "+str(i)+" hit = "+str(panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins())))
+          #      print(panelDebuggerList[i].getBinSum(1,panelDebuggerList[i].getNBins()))
+                #print(panelLambdaHitList[i].getBinSum(1,panelLambdaHitList[i].getNBins()))
+
+            #listValues=np.array([panelDebuggerList[i].getBinSum(1,panelDebuggerList[i].getNBins()) / panelLambdaList[i].getBinSum(1,panelLambdaList[i].getNBins()) for i in range(5)])
+            #BCSplt.plotHistogramFromList(listValues)
+
+
+elif len(args.fileName)==1 and args.overlay : #not in use
+
+    if(args.histName):
+        for i in range(0, len(args.histName)):
+            BCSplt.overlayThem(args.fileName,args.histName[i])
+    else: #plot all listed here
+
+
+        # BCSplt.CheckBox(args.fileName,'neutron_dth_conv')
+        BCSplt.LegendSelector(args.fileName, 'neutron_theta_incident')
+
+        # BCSplt.overlayThem(args.fileName,'neutron_dth_conv')
+        # BCSplt.overlayThem(args.fileName,'neutron_dth_hit')
+        # BCSplt.overlayThem(args.fileName,'neutron_dQ_conv')
+        # BCSplt.overlayThem(args.fileName,'neutron_dQ_hit')
+        # BCSplt.overlayThem(args.fileName,'neutron_dlambda_hit')
+
+        # BCSplt.overlayThem(args.fileName,'neutron_dthetaovertheta_hit')
+        # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_conv')
+        # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_hit')
+        # BCSplt.overlayThem(args.fileName,'neutron_dlambdaoverlambda_hit')
+
+
+        # my_hist_convRate=BCSplt.hist2d4BasicOperations(my_hist_conv,my_hist_global,'/')
+        my_hist_hitEfficiency_global = BCSplt.hist2d4BasicOperations(my_h_st_global_hit, '/', my_h_new_local_average_incident)
+        my_hist_hitEfficiency_peak = BCSplt.hist2d4BasicOperations(my_h_st_peak_hit, '/', my_h_new_local_peak_incident)
+        #my_hist_hitEfficiency_peak_div = BCSplt.hist2d4BasicOperations(my_h_st_peak_div_hit, '/', my_hist_peak_div)
+
+        BCSplt.analyse2D(args.fileName[0],'h_panel_lambda')
+
+        #my_hist_hitEfficiency_global.plot()
+        #my_hist_hitEfficiency_peak.plot()
+        #  my_hist_hitEfficiency_peak_div.plot()
+        # my_hist_covhitRate=BCSplt.hist2d4BasicOperations(my_hist_hit,my_hist_conv,'/')
+
+        #my_hist_visualizeIncident=BCSplt.visualizeRate(my_dummy_5meter,my_hist_global)
+        # my_hist_visualizeIncident.plot()
+
+        #my_hist_visualizeHit=BCSplt.visualizeRate(my_dummy_5meter,my_h_st_global_hit)
+        # my_hist_visualizeHit.plot()
+
+        #my_hist_visualizeRate=BCSplt.visualizeRate(my_dumMy_5meter,my_hist_hitEfficiency_global)
+        # my_hist_visualizeRate.plot('cmap=jet')
+
+
+        #BCSplt.overlayThem(args.fileName,args.histName[i])
+        #BCSplt. CheckBox(args.fileName,'neutron_tof')
+
+
+elif len(args.fileName)>1 and args.overlay :
+
+    if(args.histName):
+        for i in range(0, len(args.histName)):
+            BCSplt.overlayThem(args.fileName, args.histName[i])
+    else: #plot all listed here
+
+
+       # BCSplt.CheckBox(args.fileName,'neutron_dth_conv')
+        BCSplt.LegendSelector(args.fileName, 'neutron_theta_incident')
+
+        print('DEBUG breaking')
+
+
+       # BCSplt.overlayThem(args.fileName,'neutron_dth_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dth_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQ_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQ_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dlambda_hit')
+
+       # BCSplt.overlayThem(args.fileName,'neutron_dthetaovertheta_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dlambdaoverlambda_hit')

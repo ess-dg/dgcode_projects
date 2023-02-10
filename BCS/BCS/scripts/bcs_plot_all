@@ -1,0 +1,813 @@
+#!/usr/bin/env python3
+
+import os, matplotlib
+#matplotlib.use('agg')
+#os.environ["DISPLAY"] = ''
+
+#import PhysValTS.tns_style
+#from PyAna import *
+#plt.enable_tex_fonts()
+
+from PyAna import *
+import SimpleHists as sh
+from SimpleHists.plotutils import *
+from matplotlib.colors import LogNorm
+from SimpleHistsUtils.cmphists import cmphists as shu_cmphists
+import PyAnaUtils.divide as divide
+import sys, os
+import math as m
+from matplotlib.widgets import Slider
+from matplotlib import gridspec
+import BCS.BCSplotUtils as BCSplt
+import BCS.plotUtils2 as BCSplt2
+import argparse
+
+
+import matplotlib.colors as colors
+from matplotlib import colors as mcolors #added lated, might cause problems
+from cycler import cycler
+
+def setPlottingParameters(multiplicationFactor = 1):
+    #plt.rcParams["figure.figsize"] = (13,9.75)
+    plt.rcParams['lines.linewidth'] = 4
+    plt.rcParams['axes.linewidth'] = 1.5
+
+
+    #plt.rcParams['font.size']= 10
+    #plt.rcParams['axes.titlesize']= 2
+    plt.enable_tex_fonts()
+
+    SMALL_SIZE = 30 * multiplicationFactor #25 * multiplicationFactor
+    LARGE_SIZE = 34 * multiplicationFactor #30 * multiplicationFactor
+    plt.rc('font', size=LARGE_SIZE)          # controls default text sizes
+    plt.rc('axes', titlesize=LARGE_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=LARGE_SIZE)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=22)    # legend fontsize
+    #plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+    #plt.tight_layout()
+    plt.rc('legend',**{'fontsize':20})
+
+
+def _defcolmap(x):
+    a, b = 0.15, 0.9
+    return plt.cm.spectral(a + x * (b-a))
+
+def _col(cmap, i, n):
+    assert i<n
+    return cmap(i / (n - 1.0)) if n > 1 else cmap(1.0)
+
+cmap = _defcolmap
+
+parser = argparse.ArgumentParser(description = 'TODO write')
+parser.add_argument('-fn', '--fileName',nargs = '*', help = 'Input file name')
+parser.add_argument('-hn', '--histName', nargs = '*', help = 'Name of histograms to plot.(Plot all if not given')
+parser.add_argument('-ol', '--overlay', action = 'store_true', help = 'Ovarlay histograms (listed in histName) of shist files (listed in fileName)')
+parser.add_argument('-r', '--rate', action = 'store_true', help = 'Proper rate visualization moved to separate script: plot_rate')
+parser.add_argument('-fs', '--fracScat', action = 'store_true', help = 'Plot Fraction Scattering')
+parser.add_argument('-t', '--test', action = 'store_true', help = 'Test new things')
+parser.add_argument('-c', '--center', action = 'store_true', help = 'Plot center for figGaussian function')
+parser.add_argument('-f', '--fit', action = 'store_true', help = 'Fit Gaussian function')
+parser.add_argument('-m', '--materialAbsorption', action = 'store_true', help = 'Plot absorption in materials')
+parser.add_argument('-e', '--efficiency', action = 'store_true', help = 'Plot efficiency of panels or if all simulation has 1 panel plot efficiency of tubes in that panel.')
+parser.add_argument('-pdf', '--createPDF', action = 'store_true', help = 'export figures as pdf (might not work everywhere)')
+parser.add_argument('-dcr', '--dcr', action = 'store_true', help = 'plot DCR for different energy tresholds based on the energy deposition histogram')
+parser.add_argument('-p', '--phs', action = 'store_true', help = 'plot pulse-height spectra for thesis')
+parser.add_argument('-l', '--log', action = 'store_true', help = 'plot with log scale (only for pulse-height spectra yet)')
+args = parser.parse_args()
+
+
+# ////////////////////////////////////////////////////////////////
+if args.test :
+    #BCSplt.plotActivity()
+    #print 'Exit here', sys.exit()
+
+    #BCSplt.plotHardCodedChart() #Panel detection contribution
+    #BCSplt.plotHardCodedConvLayerThicknessEfficiency()
+    #BCSplt.plotHardCodedPanelEfficiency(createPDF=1) #cummulative panel efficiency
+    #BCSplt.plotPathLengthDistribution(args.fileName[0], createPDF=args.createPDF)
+    #print 'Exit here', sys.exit()
+
+
+    if args.materialAbsorption: #yeah it's not a nice solution...
+        for fileName in args.fileName:
+            BCSplt.plotSignalChart(fileName, createPDF=args.createPDF)
+        print('Exit here', sys.exit())
+
+    #for fileNameIndex in range(0, len(args.fileName)):
+    #print args.fileName
+    if args.histName:
+        #BCSplt.fitGaussianTWO(args.fileName, args.histName, createPDF=1, normalise=0, plotFit=args.fit, plotLimits=1, plotCenter=args.center)
+        #BCSplt.fitGaussianEKIN(args.fileName, args.histName, createPDF=1, normalise=0, plotFit=0, plotLimits=0, plotCenter=args.center)
+        BCSplt.fitGaussian(args.fileName, args.histName, createPDF=1, normalise=0, plotFit=args.fit, plotLimits=1, plotCenter=args.center)
+    else:
+
+
+        BCSplt2.plotHardCodedEfficiencyValidation(args.createPDF)
+
+
+        #BCSplt.fitGaussian(args.fileName, ['neutron_dth_hit'], createPDF=1, normalise=0)
+        #BCSplt.fitGaussian(args.fileName, ['neutron_dth_hit', 'neutron_dth_noSmearing_hit', 'neutron_dth_conv'], createPDF=1, normalise=0)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dth_noSmearing_hit', createPDF=1)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dphi_hit', createPDF=1, plotFit=1, plotCenter=0, plotLimits=1, normalise=0)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dtof_hit', createPDF=1, plotFit=1, plotCenter=0, plotLimits=1, normalise=0)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dQ_hit', createPDF=1, plotFit=1, plotCenter=0, plotLimits=1, normalise=0)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dx_hit', createPDF=1, plotFit=1, plotCenter=1, plotLimits=1, normalise=0,   overlayHistName='neutron_dx_noSmearing_hit')
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dx_conv', createPDF=1, plotFit=1, plotCenter=1, plotLimits=1, normalise=0,   overlayHistName='neutron_dx_noSmearing_hit')
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dx_noSmearing_hit', createPDF=1)
+
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dy_hit', createPDF=1, plotFit=0, plotCenter=1, plotLimits=1)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dlambda_hit', createPDF=1, plotFit=0, plotCenter=1, plotLimits=0)
+        #BCSplt.fitGaussian(args.fileName[fileNameIndex], 'neutron_dlambda_noSmearing_hit', createPDF=1, plotFit=0, plotCenter=1, plotLimits=1)
+
+        #BCSplt.overlayConvDetEfficiency(args.fileName[0],'incident_neutron_lambda', 'converted_true_lambda', 'detected_true_lambda')
+
+        ##BCSplt.detectionToConversionRatio(args.fileName[0],'incident_neutron_lambda', 'converted_true_lambda', 'detected_true_lambda')
+
+
+    #hc = sh.HistCollection(args.fileName[0])
+
+    ##
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dth_hit', createPDF=args.createPDF)
+    ##
+
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dphi_hit')
+    #BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dx_hit', norm=1, logScale=1)
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dx_hit')
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dy_hit')
+
+    #BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dtof_conv')
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dtof_conv')
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dtof_hit')
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dlambda_hit')
+    #BCSplt.fitGaussian(args.fileName[0], 'neutron_dQ_hit')
+
+    ######### Overlay dlambda_conv and hit ###################################################
+    #BCSplt.overlayHistogramsInOneFileCmpHist(args.fileName[0], ['neutron_dlambda_conv','neutron_dlambda_hit'])
+
+    ######### Overlay dtof_conv and hit ###################################################
+    #BCSplt.overlayHistogramsInOneFileCmpHist(args.fileName[0], ['neutron_tof_conv','neutron_tofProjected_conv','neutron_tof_hit','neutron_tofProjected_hit'])
+
+    ######### Overlay dtof_conv and hit ###################################################
+    #BCSplt.overlayHistogramsInOneFileCmpHist(args.fileName[0], ['neutron_dtof_conv','neutron_dtof_hit'])
+
+elif(args.phs):  #Pulse-height plots for the thesis
+
+    if args.log:
+        BCSplt2.pulseHeightSpectraLog(args.fileName[0], args.createPDF)
+    else:
+        BCSplt2.pulseHeightSpectra(args.fileName[0], args.createPDF)
+
+elif(args.dcr):
+
+
+
+    maxThreshold = 200
+    maxThresholdIndex = int(maxThreshold/10)
+
+
+
+    #fileNames = ['ang0p6_panel5_withAlCu_neutron2e7.shist',
+    #             'ang1p8_panel5_withAlCu_neutron2e7.shist',
+    #             'ang3_panel5_withAlCu_neutron2e7.shist',
+    #             'ang5_panel5_withAlCu_neutron2e7.shist',
+    #             'ang11_panel5_withAlCu_neutron2e7.shist']
+
+    fileNames = ['OLDSIM_NEWANA_ang0p6_panel5_withAlCu_neutron2e7.shist',
+                 'OLDSIM_NEWANA_ang1p8_panel5_withAlCu_neutron2e7.shist',
+                 'OLDSIM_NEWANA_ang3_panel5_withAlCu_neutron2e7.shist',
+                 'OLDSIM_NEWANA_ang5_panel5_withAlCu_neutron2e7.shist',
+                 'OLDSIM_NEWANA_ang11_panel5_withAlCu_neutron2e7.shist']
+
+    legendList = ['$\lambda$=0.6 {\AA}','$\lambda$=1.8 {\AA}', '$\lambda$=3 {\AA}', '$\lambda$=5 {\AA}', '$\lambda$=11 {\AA}']
+
+
+
+    fig = plt.figure()
+    fig.set_size_inches(8, 6)
+    setPlottingParameters(0.7)
+    plt.tight_layout()
+
+    colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
+    plt.rc('axes', prop_cycle=(cycler('color', [colors['darkred'], colors['orangered'],  colors['darkgreen'], colors['cyan'], colors['navy']]))) #for 5 wavelength
+
+    mSize=10
+    lWidth=4
+
+
+    for fileNameIndex in range(len(fileNames)):
+        hc = sh.HistCollection(fileNames[fileNameIndex])
+
+        my_neutron_z_conv = hc.hist('neutron_z_conv')
+        my_neutron_z_hit = hc.hist('neutron_z_hit')
+        #my_edep = hc.hist('energyDeposition')
+        my_edep = hc.hist('energyDeposition')
+        #my_edep.plot()
+        nrOfConverted = my_neutron_z_conv.getIntegral()
+        #nrOfHit = my_neutron_z_hit.getIntegral()
+        #print('number of converted: ', nrOfConverted)
+        #print('number of hit: ', nrOfHit)
+        #print('DCR (original)', nrOfHit/nrOfConverted)
+        allEdep = my_edep.getIntegral()
+        #print('DCR max', allEdep/nrOfConverted)
+        edepHits = allEdep
+        hitsFromEdep = list()
+
+
+
+        for i in range(maxThresholdIndex):
+            edepHits -= my_edep.getBinContent(i)
+            hitsFromEdep.append(edepHits/nrOfConverted*100)
+            print('DCR ', (i+1)*10, ' keV: ', hitsFromEdep[i])
+
+
+        xAxisValues = np.arange(10, maxThreshold+5, step=10)
+
+        plt.plot(xAxisValues, hitsFromEdep, 'o--', linewidth=lWidth, markersize=mSize)
+
+
+
+
+
+    #plt.errorbar(xAxisValues, values0p6, yerr=errors0p6, fmt='o--', linewidth=lWidth, markersize=mSize)
+    #plt.errorbar(xAxisValues, values1p8, yerr=errors1p8, fmt='o--', linewidth=lWidth, markersize=mSize)
+    #plt.errorbar(xAxisValues, values3, yerr=errors3, fmt='o--', linewidth=lWidth, markersize=mSize)
+    #plt.errorbar(xAxisValues, values5, yerr=errors5, fmt='o--', linewidth=lWidth, markersize=mSize)
+    #plt.errorbar(xAxisValues, values11, yerr=errors11, fmt='o--', linewidth=lWidth, markersize=mSize)
+
+    #plt.legend(legendList, frameon=False, loc='upper left', bbox_to_anchor=(0, 1.03))
+    plt.legend(legendList, frameon=False, loc='best')
+    plt.ylabel('Detection to conversion ratio [\%]')
+    plt.grid()
+
+    yAxisMin = 62
+    yAxisMax = 78.5
+    xAxisMin = 0.0
+    xAxisMax = maxThreshold+10
+
+    plt.xlabel('Engergy threshold [keV]')
+    plt.axis([xAxisMin, xAxisMax, yAxisMin, yAxisMax])
+
+    plt.xticks(np.arange(0, maxThreshold+10, step=20))
+    plt.yticks(np.arange(62, 79, step=2))
+
+    plt.plot([xAxisMin, xAxisMax], [78, 78], colors['magenta'], linewidth=4) #, label=limitsLabel)
+
+    plt.tight_layout(pad=0.3, w_pad=0.2, h_pad=0.1)
+
+    if args.createPDF:
+        plt.savefig('dcrThresholdDependence.pdf')
+    else:
+        plt.savefig('dcrThresholdDependence.png')
+    plt.show()
+
+
+
+
+elif(args.fracScat):
+
+    #BCSplt.plotAbsorptionChart(args.fileName, plotSignal=0, createPDF=args.createPDF)
+    BCSplt.plotAbsorptionChart(args.fileName, plotSignal=1, createPDF=args.createPDF)
+    #BCSplt.fractionalScatteringPlot(args.fileName, createPDF=args.createPDF);
+    #BCSplt.fractionalScatteringPanelNrPlot(args.fileName, createPDF=args.createPDF);
+
+elif(args.materialAbsorption):
+
+    ######### Overlay Absorption in Al and Cu ########################################################
+    BCSplt.materialAbsorptionOverlay(args.fileName, createPDF=args.createPDF)
+    ##################################################################################################
+
+elif (args.efficiency):
+
+    #temp=sh.HistCollection(args.fileName[0])
+    #temp2=temp.hist('neutron_yz_hit')
+    #[histData, histAxisX, histAxisY, titleText, labelX, labelY] = BCSplt.disassembleHist2d(temp2)
+    #temp3=BCSplt.hist2DFromData(np.transpose(histData), histAxisY, histAxisX, titleText, labelY, labelX, histComment=None)
+    #temp3.plot()
+
+
+
+    hc_dict = dict()
+    histListEnter = list()
+    histListHit = list()
+
+    histListPanelEnter = list()
+    histListPanelHit = list()
+
+    histLegend = list()
+    numberOfPanelsList = list()
+
+    # panelHitContent = list()
+    # panelAllContent = list()
+    # panelEfficiency = list()
+
+    safetyCheck=sh.HistCollection(args.fileName[0])
+    safetyCheckNeutronNumber=safetyCheck.hist('neutron_Q').getIntegral()
+    print('Number of neutrons in the simulations: '+ str(safetyCheckNeutronNumber))
+
+    for i in range(len(args.fileName)):
+        hc_dict[i] = sh.HistCollection(args.fileName[i])
+
+        histListPanelEnter.append(hc_dict[i].hist('panel_neutronNr_all'))
+        histListPanelHit.append(hc_dict[i].hist('panel_neutronNr_hit'))
+
+        HitContent=list()
+        for j in range(0,histListPanelHit[i].getNBins()): #Get all values from 'neutron_z_hit' histogram
+            HitContent.append(histListPanelHit[i].getBinContent(j))
+
+        numberOfPanelsList.append(np.count_nonzero(HitContent))
+
+        if(hc_dict[i].hist('neutron_Q').getIntegral()!=safetyCheckNeutronNumber):
+            print('ERROR!: Neutron number in '+args.fileName[i]+' file doesn\'t match the one in '+args.fileName[0]+' file. ( '+str(hc_dict[i].hist('neutron_Q').getIntegral())+'!='+str(safetyCheckNeutronNumber)+')')
+        #possibly add later for double check
+        # for j in range(0,numberOfPanels):
+        #     panelHitContent[j]=my_panel_neutronNr_hit.getBinContent(j)
+        #     panelAllContent[j]=my_panel_neutronNr_all.getBinContent(j)
+        #     panelEfficiency[j]=panelHitContent[j]/panelAllContent[j]
+
+        ## Only for duble-check
+        ## my_neutron_z_hit = hc_dict[i].hist('neutron_z_hit') #TODO change 0 to i
+        ## zHitBins=my_neutron_z_hit.getNBins()
+        ## zHitContent=[None]*zHitBins
+        ## for i in range(0,zHitBins): #Get all values from 'neutron_z_hit' histogram
+        ##     zHitContent[i]=my_neutron_z_hit.getBinContent(i)
+        ##
+        ## zBinLimits=[0, 118, 208, 298, 388, zHitBins] #HARDCODED
+        ## zHitPanelIntegral=[0,0,0,0,0] # assuming 5 panels, later check and trim the list
+        ## for j in range(0,5):
+        ##     zHitPanelIntegral[j]=sum(zHitContent[zBinLimits[i]:zBinLimits[i+1]])
+        ##
+        ## numberOfPanels[i]=np.count_nonzero(zHitPanelIntegral) # assuming there is at least one hit in all panels..
+        ## print(numberOfPanels)
+
+
+    ## TODO make a plot of hits in panels instead
+    ##zHitPanelIntegral=zHitPanelIntegral[:numberOfPanels]
+    ##print('Integral number of hits per panel: '+str(zHitPanelIntegral)+' (Total number of hits='+str(sum(zHitPanelIntegral))+')')
+
+    if False:  #all( temp == 1 for temp in numberOfPanelsList ): ############### first panel Tube efficiency ############### maybe another flag wold be better
+
+        for i in range(len(args.fileName)):
+            histListEnter.append(hc_dict[i].hist('neutron_y_firstEnter'))
+            histListHit.append(hc_dict[i].hist('neutron_y_hit_4efficiency'))
+
+        fig,axes = plt.subplots()
+        handles, labels = axes.get_legend_handles_labels()
+        axes.legend(handles, labels)
+        axes.set_xlabel('y [cm]')
+        axes.set_ylabel('Efficiency (%)')
+        #epsilon_conv = my_neutron_true_theta_conv.getIntegral() / my_neutron_true_theta.getIntegral()
+        #epsilon_hit = my_neutron_y_hit_4effciency.getIntegral() / my_neutron_y_firstEnter.getIntegral()
+        axes.set_title('Efficiency of the panels')
+
+        for i in range(len(args.fileName)):
+            divide.plot_histogram_division(histListHit[i], histListEnter[i]
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+
+        plt.legend(args.fileName,numpoints = 1)
+        plt.show()
+
+    else: ############### Panel efficiency/ HitNumber/ spectrum ###############
+
+        ####### Cummulative Panel efficiency #######
+        print ('START - Cummulative Panel efficiency')
+        sumHit = 0
+
+        for i in range(len(args.fileName)):
+            for j in range(5):
+
+                sumHit += histListPanelHit[i].getBinContent(j)
+                print( "{0:.2f}".format(sumHit/safetyCheckNeutronNumber*100))
+
+        legendList = [args.fileName[i]+'(Global efficiency: '+"{0:.4f}".format(histListPanelHit[i].getIntegral()/2e8)+')' for i in range(len(args.fileName))]
+        print('END - Cummulative Panel efficieny')
+
+        ####### Relative Panel hit numbers #######
+        print('START - Relative Panel hit numbers')
+
+        for i in range(len(args.fileName)):
+            for j in range(5):
+
+                panelHit = histListPanelHit[i].getBinContent(j)
+                print("{0:.2f}".format(panelHit/sumHit*100))
+
+        legendList = [args.fileName[i]+'(Global efficiency: '+"{0:.4f}".format(histListPanelHit[i].getIntegral()/2e8)+')' for i in range(len(args.fileName))]
+        print('END - Relative Panel hit numbers')
+
+        ####### Panel efficiency #######
+
+        fig,axes = plt.subplots()
+        handles, labels = axes.get_legend_handles_labels()
+        axes.legend(handles, labels)
+        labels = ['1', '2', '3', '4', '5']
+        plt.xticks([0.4, 1.2, 2.0, 2.8, 3.6], labels)
+        axes.set_ylabel('Panel efficiency (%)') #TODO print global efficiency
+
+        for i in range(len(args.fileName)):
+            divide.plot_histogram_division(histListPanelHit[i], histListPanelEnter[i]
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+
+        legendList = [args.fileName[i]+'(Global efficiency: '+"{0:.4f}".format(histListPanelHit[i].getIntegral()/2e8)+')' for i in range(len(args.fileName))]
+        plt.legend(legendList, numpoints = 1)
+        plt.show()
+
+        ####### Panel HitNumber #######
+
+        #titleText = 'Number of hits in detector panels'
+        legendList = [args.fileName[i]+'(Sum hits: '+str(histListPanelHit[i].getIntegral())+')' for i in range(len(args.fileName))]
+
+        #BCSplt.overlayThemHist1DList(histListPanelHit, titleText, legendList)#overlay the spectrum of the 'panelNr'-th panel of all files
+
+        legendList = list()
+        for i in range(len(args.fileName)):
+
+            HitContent=[histListPanelHit[i].getBinContent(j) for j in range(5)]
+            AllContent=[histListPanelEnter[i].getBinContent(j) for j in range(5)]
+
+            plt.plot(range(numberOfPanelsList[i]),HitContent[:numberOfPanelsList[i]], 'o-')#, range(5),AllContent, 'o-', )
+            plt.plot(range(numberOfPanelsList[i]),AllContent[:numberOfPanelsList[i]], 'o-', )
+            legendList.append(args.fileName[i]+' - Hits'+'(Sum hits: '+str(histListPanelHit[i].getIntegral())+')')
+            legendList.append(args.fileName[i]+' - Entering neutrons')
+
+        plt.legend(legendList, numpoints = 1)
+        plt.title('Number of hits and entering neutrons in panels')
+        plt.xlabel('Panel number')
+        plt.ylabel('Count')
+
+        labels = ['1', '2', '3', '4', '5']
+        plt.xticks(range(5), labels)
+
+        plt.show()
+
+
+            #plt.plot(range(numberOfPanels[i]),panelEfficiency[i], 'ro')
+            #plt.show()
+
+
+        ####### Spectrum of panels #######
+        spectrum = list()
+        for i in range(len(args.fileName)):
+            #spectrum.append(BCSplt.OverlayAllRowOrCol(args.fileName[i],'panel_lambda', isRow=False, TitleText='Neutron wavelength distribution in panels', plots=False)) #Use this if you don't need specturm per file
+            spectrum.append(BCSplt.OverlayAllRowOrCol(args.fileName[i],'panel_lambda', isRow=False, TitleText='Neutron wavelength distribution in panels for '+args.fileName[i], plots=True))
+
+
+
+        panelNr = 0
+        titleText = 'Spectrum of panel '+str(panelNr+1)
+        legendList = args.fileName
+        BCSplt.overlayThemHist1DList([spectrum[i][panelNr] for i in range(len(args.fileName))], titleText, legendList)#overlay the spectrum of the 'panelNr'-th panel of all files
+
+
+        #TODO get values fol all and plot spectrums for the different panels to see the effect of the farther panels
+
+elif not (args.overlay or args.rate or args.test):
+    for fileNameIndex in range(0, len(args.fileName)):
+        hc = sh.HistCollection(args.fileName[fileNameIndex])
+
+        if(args.histName):
+            for histNameIndex in range(0, len(args.histName)):
+                hist2plot = hc.hist(args.histName[histNameIndex])
+                hist2plot.plot()
+
+        else: #plot all listed below
+
+            my_neutron_true_theta = hc.hist('neutron_true_theta')
+            my_neutron_true_theta_conv = hc.hist('neutron_true_theta_conv')
+            my_neutron_true_theta_hit = hc.hist('neutron_true_theta_hit')
+
+            my_neutron_true_phi = hc.hist('neutron_true_phi')
+            my_neutron_true_phi_conv = hc.hist('neutron_true_phi_conv')
+            my_neutron_true_phi_hit = hc.hist('neutron_true_phi_hit')
+
+
+            my_neutron_xy_conv = hc.hist('neutron_xy_conv')
+            ##my_neutron_xy_conv = hc2.hist('neutron_xy_conv')
+
+            my_neutron_dthetavstheta_conv = hc.hist('neutron_dthetavstheta_conv')
+            my_neutron_dthetavstheta_hit = hc.hist('neutron_dthetavstheta_hit')
+
+            my_neutron_yz_conv = hc.hist('neutron_yz_conv')
+            my_neutron_yz_hit = hc.hist('neutron_yz_hit')
+            my_neutron_dthetavsz_conv = hc.hist('neutron_dthetavsz_conv')
+            my_neutron_dthetavsz_hit = hc.hist('neutron_dthetavsz_hit')
+            my_neutron_phivstheta_hit = hc.hist('neutron_phivstheta_hit')
+            my_neutron_x_conv = hc.hist('neutron_x_conv')
+            my_neutron_x_hit = hc.hist('neutron_x_hit')
+            my_neutron_y_conv = hc.hist('neutron_y_conv')
+            my_neutron_y_hit = hc.hist('neutron_y_hit')
+            my_neutron_z_conv = hc.hist('neutron_z_conv')
+            my_neutron_z_hit = hc.hist('neutron_z_hit')
+            my_neutron_yz_conv = hc.hist('neutron_yz_conv')
+            my_neutron_xy_hit = hc.hist('neutron_xy_hit')
+            my_neutron_dth_hit = hc.hist('neutron_dth_hit')
+
+
+            #BCSplt.analyse2D(args.fileName[0], 'neutron_dthetavstheta_hit', 100, 1500) #(500,3000)
+            #break
+
+            #BCSplt.analyse2D(args.fileName,'neutron_dthetavstheta_conv')
+            #BCSplt.analyse2D(args.fileName,'neutron_dthetavstheta_hit')
+
+
+            #.getBinSum(int bin1, int bin2 TODO)
+            zConvBins = my_neutron_z_conv.getNBins()
+            zConvContent = [None] * zConvBins
+            for i in range(0, zConvBins):
+                zConvContent[i] = my_neutron_z_conv.getBinContent(i)
+
+            zBinLimits = [0, 118, 208, 298, 388, zConvBins]
+            zConvPanelIntegral = [0, 0, 0, 0, 0]
+            for i in range(0, 5):
+                zConvPanelIntegral[i] = sum(zConvContent[zBinLimits[i]:zBinLimits[i+1]])
+
+
+            zHitBins = my_neutron_z_hit.getNBins()
+            zHitContent = [None] * zHitBins
+            for i in range(0, zHitBins):
+                zHitContent[i] = my_neutron_z_hit.getBinContent(i)
+
+            zBinLimits = [0, 118, 208, 298, 388, zHitBins]
+            zHitPanelIntegral = [0, 0, 0, 0, 0]
+            for i in range(0, 5):
+                zHitPanelIntegral[i] = sum(zHitContent[zBinLimits[i]:zBinLimits[i+1]])
+
+            print('Integral number of conversions per panel: ' + str(zConvPanelIntegral) + ' (Total number of conversions=' + str(sum(zConvPanelIntegral)))
+            print('Integral number of hits per panel: ' + str(zHitPanelIntegral) + ' (Total number of conversions=' + str(sum(zHitPanelIntegral)))
+
+            if zConvBins != zHitBins:
+                print('zConvBins not= zHitBins! Probably problem with hardcoded limits' + str(zConvBins) + ' ' + str(zHitBins))
+            if sum(zConvPanelIntegral) != sum(zConvContent):
+                print('sum(zConvPanelIntegral) not= sum(zConvContent) ! Probably problem with hardcoded limits')
+            if sum(zHitPanelIntegral) != sum(zHitContent):
+                print('sum(zHitPanelIntegral) not= sum(zHitContent) ! Probably problem with hardcoded limits')
+
+
+            my_neutron_yz_conv.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_yz_hit.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_dthetavstheta_conv.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_dthetavstheta_hit.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_dthetavsz_conv.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_dthetavsz_hit.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_phivstheta_hit.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_x_conv.plot()
+            my_neutron_x_hit.plot()
+            my_neutron_y_conv.plot()
+            my_neutron_y_hit.plot()
+            my_neutron_xy_conv.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_xy_hit.plot(cmap = 'dynamic_rbcmap')
+            my_neutron_dth_hit.plot()
+
+
+
+            #my_neutron_dthetavstheta_hit = hc.hist('neutron_dthetavstheta_hit')
+            #my_neutron_dthetavstheta_hit.plot()
+
+            # //////////////////////////////////// Neutron conversion efficiency vs theta ///////////////////////////
+
+            fig,axes = plt.subplots()
+            handles, labels = axes.get_legend_handles_labels()
+            axes.legend(handles, labels)
+            axes.set_xlabel('Theta (degrees)')
+            axes.set_ylabel('Efficiency (%)')
+            epsilon_conv = my_neutron_true_theta_conv.getIntegral() / my_neutron_true_theta.getIntegral()
+            epsilon_hit = my_neutron_true_theta_hit.getIntegral() / my_neutron_true_theta.getIntegral()
+            axes.set_title('Neutron conversion efficiency vs theta (/epsilon_conv= ' + "{0:.4f}".format(epsilon_conv) + ', /epsilon_hit=' + "{0:.4f}".format(epsilon_hit) + ')')
+
+            divide.plot_histogram_division(my_neutron_true_theta_conv, my_neutron_true_theta
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+            divide.plot_histogram_division(my_neutron_true_theta_hit, my_neutron_true_theta
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+            plt.legend(['Conversion', 'Hit'],numpoints = 1)
+
+            legend=['Generator', 'Converted', 'Hit']
+            my_neutron_true_theta.overlay([my_neutron_true_theta_conv, my_neutron_true_theta_hit]
+                                          , legend
+                                          , title = 'Neutron true theta'
+                                          , xlabel = 'Theta [degree]'
+                                          , ylabel = 'Count'
+                                          , errors = True
+            )
+
+
+            # //////////////////////////////////// Neutron conversion efficiency vs phi //////////////////////////
+
+            fig,axes = plt.subplots()
+            handles, labels = axes.get_legend_handles_labels()
+            axes.legend(handles, labels)
+            axes.set_xlabel('Phi (degrees)')
+            axes.set_ylabel('Efficiency (%)')
+            axes.set_title('Neutron conversion efficiency vs phi (/epsilon_conv= ' + "{0:.4f}".format(epsilon_conv) + ', /epsilon_hit=' + "{0:.4f}".format(epsilon_hit) + ')')
+
+            divide.plot_histogram_division(my_neutron_true_phi_conv, my_neutron_true_phi
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+            divide.plot_histogram_division(my_neutron_true_phi_hit, my_neutron_true_phi
+                                           , scale = 100.0
+                                           , axes = axes
+                                           , style = False
+            )
+            plt.legend(['Conversion', 'Hit'],numpoints = 1)
+
+
+            legend=['Generator', 'Converted', 'Hit']
+            my_neutron_true_phi.overlay([my_neutron_true_phi_conv, my_neutron_true_phi_hit]
+                                        , legend
+                                        , title = 'Neutron true phi'
+                                        , xlabel = 'Phi [degree]'
+                                        , ylabel = 'Count'
+                                        , errors = True
+            )
+
+            plt.show()
+
+elif len(args.fileName) > 1 and args.overlay :
+
+    if(args.histName):
+        for i in range(0, len(args.histName)):
+            BCSplt.overlayThem(args.fileName, args.histName[i])
+    else: #plot all listed here
+
+
+
+       # BCSplt.CheckBox(args.fileName,'neutron_dth_conv')
+        BCSplt.LegendSelector(args.fileName, 'neutron_dth_hit')
+
+        print('DEBUG breaking')
+
+
+       # BCSplt.overlayThem(args.fileName,'neutron_dth_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dth_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQ_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQ_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dlambda_hit')
+
+       # BCSplt.overlayThem(args.fileName,'neutron_dthetaovertheta_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_conv')
+       # BCSplt.overlayThem(args.fileName,'neutron_dQoverQ_hit')
+       # BCSplt.overlayThem(args.fileName,'neutron_dlambdaoverlambda_hit')
+elif args.rate :
+    hc = sh.HistCollection(args.fileName[0])
+    #hc = sh.HistCollection(args.fileName)
+
+
+    ######### Check if wire positions are inside of the circly of conversion positions ################
+    #my_h_neutron_yz_conv = hc.hist('neutron_yz_conv')
+    #my_h_neutron_yz_hit = hc.hist('neutron_yz_hit')
+    #my_hist_yz_hitAndConv = BCSplt.hist2d4BasicOperations(my_h_neutron_yz_conv, '+', my_h_neutron_yz_hit)
+    #my_hist_yz_hitAndConv.plot()
+    ##################################################################################################
+
+
+    #################################### Efficiency ###################################################
+    my_h_st_global_hit = hc.hist('h_st_global_hit')
+    my_h_new_local_average_incident = hc.hist('h_new_local_average_incident')
+    my_h_st_global_conv = hc.hist('h_st_global_conv')
+
+    my_h_st_global1 = hc.hist('h_st_global1')
+    my_h_st_global2 = hc.hist('h_st_global2')
+    my_hist_global = BCSplt.hist2d4BasicOperations(my_h_st_global1, '-', my_h_st_global2)
+
+
+    # my_hist_convRate=BCSplt.hist2d4BasicOperations(my_hist_conv,my_hist_global,'/')
+    my_hist_hitEfficiency_average = BCSplt.hist2d4BasicOperations(my_h_st_global_hit, '/', my_h_new_local_average_incident)
+    my_hist_convEfficiency_global = BCSplt.hist2d4BasicOperations(my_h_st_global_conv, '/', my_hist_global)
+
+    ### ideal detection point demonstration
+   # maxValue = BCSplt.newVisualizeRate(my_hist_hitEfficiency_average, 'Efficiency_Average_Detection',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency', createPDF=args.createPDF,plotFull = 0 )
+   # print 'Exit here', sys.exit()
+
+    maxValue = BCSplt.newVisualizeRate(my_hist_hitEfficiency_average, 'Efficiency_Average_Detection',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency', createPDF=args.createPDF)
+    print( 'my_hist_hitEfficiency_average = %f ' %maxValue)
+  #  maxValue = BCSplt.newVisualizeRate(my_hist_convEfficiency_global, 'my_hist_convEfficiency_global',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency')
+  #  print( 'my_hist_convEfficiency_global = %f ' %maxValue)
+
+    #Geantino
+    my_geantino_global1 = hc.hist('h_geantino_global1')
+    my_geantino_global2 = hc.hist('h_geantino_global2')
+    my_geantino_global = BCSplt.hist2d4BasicOperations(my_geantino_global1, '-', my_geantino_global2)
+    maxValue = BCSplt.newVisualizeRate(my_geantino_global, 'Geantio',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency', createPDF=args.createPDF)
+    my_geantno_hitEfficiency = BCSplt.hist2d4BasicOperations(my_h_st_global_hit, '/', my_geantino_global)
+    maxValue = BCSplt.newVisualizeRate(my_geantno_hitEfficiency, 'Efficiency_Geantino_Detection',logaritmicalPlot = 0, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Detection efficiency', createPDF=args.createPDF)
+    print( 'my_geantno_hitEfficiency = %f ' %maxValue)
+    ##################################################################################################
+    print( 'Exit here', sys.exit())
+
+    ######### Overlay cummulative dx of all files ###################################################
+    BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dx_hit', norm=1, logScale=1)
+
+    ######### Overlay cummulative dx of all files ###################################################
+    BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dy_hit', norm=1, logScale=1)
+
+    ######### Overlay cummulative dth of all files ###################################################
+    BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dth_hit', norm=1, logScale=1)
+    ##################################################################################################
+
+    ######### Overlay cummulative dtof of all files ###################################################
+    BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dtof_conv')
+    ##################################################################################################
+
+    ######### Overlay cummulative dphi of all files ###################################################
+    BCSplt.overlayThemCmpHist(args.fileName, 'neutron_dphi_hit')
+    ##################################################################################################
+
+    ######## dtheta of different panels AND dtheta of panel1 with different number of panels #########
+    # spectrum = list()
+    # for i in range(len(args.fileName)):
+    #     #spectrum.append(BCSplt.OverlayAllRowOrCol(args.fileName[i],'panel_lambda', isRow=False, TitleText='Neutron wavelength distribution in panels', plots=False)) #Use this if you don't need specturm per file
+    #     spectrum.append(BCSplt.OverlayAllRowOrCol(args.fileName[i],'neutron_dthetavsPanel_hit', isRow=False, TitleText='Neutron neutron_dtheta in panels for '+args.fileName[i], plots=True))
+
+    # panelNr = 0
+    # titleText = 'neutron_dtheta in panel '+str(panelNr+1)
+    # legendList = args.fileName
+    # histList = [spectrum[i][panelNr] for i in range(len(args.fileName))]
+    # legendList=[args.fileName[i] + '(Integral = '+ str(histList[i].getIntegral()) + ')' for i in range(len(histList))]
+    # BCSplt.overlayThemHist1DList(histList, titleText, legendList)#overlay the spectrum of the 'panelNr'-th panel of all files
+    # ####
+    ##############################################################################################
+
+
+
+
+    ######### Flowers...from hits without rates ########################################################
+    #h_st_countingGas_hit = hc.hist('h_st_countingGas_hit')
+    #BCSplt.newVisualizeRate(h_st_countingGas_hit, 'Number of detection events', logaritmicalPlot = 1, numberOfTubes = 40, numberOfPanels = 5, colorbarLabelText='Neutrons')
+    ##################################################################################################
+
+    ######### dThetavsLambdConv ########################################################
+    #BCSplt.OverlayAllRowOrCol(args.fileName[0],'h_neutron_dthetavsConvLambda_hit', isRow=False, TitleText='Neutron neutron_dtheta in panels for '+args.fileName[0], plots=True)
+
+#     my_h_st_global1 = hc.hist('h_st_global1')
+#     my_h_st_global2 = hc.hist('h_st_global2')
+#     my_hist_global = BCSplt.hist2d4BasicOperations(my_h_st_global1, '-', my_h_st_global2)
+#     my_h_st_global_conv = hc.hist('h_st_global_conv')
+#     my_h_st_global_hit = hc.hist('h_st_global_hit')
+
+
+#     my_h_st_peak1= hc.hist('h_st_peak1')
+#     my_h_st_peak2= hc.hist('h_st_peak2')
+#     my_hist_peak = BCSplt.hist2d4BasicOperations(my_h_st_peak1, '-', my_h_st_peak2)
+#     my_h_st_peak_conv = hc.hist('h_st_peak_conv')
+#     my_h_st_peak_hit = hc.hist('h_st_peak_hit')
+
+
+#     my_h_st_peak_div1 = hc.hist('h_st_peak_div1')
+#     my_h_st_peak_div2 = hc.hist('h_st_peak_div2')
+#     my_hist_peak_div = BCSplt.hist2d4BasicOperations(my_h_st_peak_div1, '-', my_h_st_peak_div2)
+#     my_h_st_peak_div_conv = hc.hist('h_st_peak_div_conv')
+#     my_h_st_peak_div_hit = hc.hist('h_st_peak_div_hit')
+
+#     # my_dummy_5meter= sh.HistCollection(r"~/myfirststuff/DummyHist.shist").hist('my_Dummy_hist') #hardcoded
+#     newSH = sh.HistCollection("DummyHist.shist")
+#     my_dummy_5meter = newSH.hist('my_Dummy_hist') #hardcoded
+
+#     my_hist_global.plot()
+#    # my_h_st_global_hit.plot()
+
+#     #my_hist_peak.plot()
+#     #my_h_st_peak_hit.plot()
+
+#  #   my_hist_peak_div.plot()
+# #    my_h_st_peak_div_hit.plot()
+
+#    # my_hist_convRate=BCSplt.hist2d4BasicOperations(my_hist_conv,my_hist_global,'/')
+#     my_hist_hitEfficiency_global = BCSplt.hist2d4BasicOperations(my_h_st_global_hit, '/', my_hist_global)
+#     my_hist_hitEfficiency_peak = BCSplt.hist2d4BasicOperations(my_h_st_peak_hit, '/', my_hist_peak)
+#     my_hist_hitEfficiency_peak_div = BCSplt.hist2d4BasicOperations(my_h_st_peak_div_hit, '/', my_hist_peak_div)
+
+#    # BCSplt.analyse2D(args.fileName[0], 'h_panel_lambda')
+
+#     my_hist_hitEfficiency_global.plot()
+#     #my_hist_hitEfficiency_peak.plot()
+#     #  my_hist_hitEfficiency_peak_div.plot()
+#     # my_hist_covhitRate=BCSplt.hist2d4BasicOperations(my_hist_hit,my_hist_conv,'/')
+
+#     #my_hist_visualizeIncident=BCSplt.visualizeRate(my_dummy_5meter,my_hist_global)
+#    # my_hist_visualizeIncident.plot()
+
+#     #my_hist_visualizeHit=BCSplt.visualizeRate(my_dummy_5meter,my_h_st_global_hit)
+#    # my_hist_visualizeHit.plot()
+
+#     #my_hist_visualizeRate=BCSplt.visualizeRate(my_dumMy_5meter,my_hist_hitEfficiency_global)
+#     # my_hist_visualizeRate.plot('cmap=jet')
+
+
+#     #BCSplt.overlayThem(args.fileName,args.histName[i])
+    #BCSplt. CheckBox(args.fileName,'neutron_tof')
+else:
+    print("Could't find matching option")
+    print(len(args.fileName))

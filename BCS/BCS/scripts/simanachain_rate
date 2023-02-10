@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+import G4Utils.chain
+G4Utils.chain.chain('ess_bcs_sim','ess_bcs_rate','REDUCED')

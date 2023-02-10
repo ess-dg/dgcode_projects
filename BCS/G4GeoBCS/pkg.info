@@ -1,0 +1,7 @@
+package(USEPKG G4Interfaces)
+
+######################################################################
+
+Package containing geometries for the boron coated straws (BCS) simulation project
+
+Primary author(s): Milan.Klausz@ess.se
