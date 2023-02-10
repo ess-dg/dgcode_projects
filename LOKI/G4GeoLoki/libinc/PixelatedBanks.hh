@@ -16,8 +16,8 @@ public:
 
   static int getTubeLayerId(const int bankId, const int tubeId, const bool oldTubeNumbering);
 
-protected:  
-  static int getBankPixelOffset(const int bankId); 
+protected:
+  static int getBankPixelOffset(const int bankId);
 
 private:
   static int numberOfPixelsInStraw[9];

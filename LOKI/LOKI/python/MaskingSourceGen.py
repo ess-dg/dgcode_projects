@@ -24,8 +24,8 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         print(f"Total number of pixels: {self.totalNumberOfPixels}")
 
     def generate_event(self,gun):
-        self._i += 1        
-        # Source position - 
+        self._i += 1
+        # Source position -
         sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *Units.m + self.gen_x_offset_meters *Units.m
         sourcePositionY = self.gen_y_width_meters *(self.rand()-0.5) *Units.m
         sourcePositionZ = 0.0
@@ -33,10 +33,9 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
 
         # Direction - toward the centre of a pixel
         #bank pixel limits: 0, 401408, 516096, 602112, 716800, 802816, 1003520, 1232896, 1376256, 1605632
-        pixelId = ((self._i + 0) % self.totalNumberOfPixels) 
-        
+        pixelId = ((self._i + 0) % self.totalNumberOfPixels)
+
         pixelCentreX, pixelCentreY, pixelCentreZ = self.aimHelper.getPixelCentrePositionsForMasking(pixelId, self.geo_old_tube_numbering, self.geo_larmor_2022_experiment)
 
         gun.set_direction(pixelCentreX - sourcePositionX, pixelCentreY - sourcePositionY, pixelCentreZ - sourcePositionZ)
         #gun.set_direction(pixelCentreX - sourcePositionX +3*(2*self.rand()-1), pixelCentreY - sourcePositionY+3*(2*self.rand()-1), pixelCentreZ - sourcePositionZ+3*(2*self.rand()-1))
-

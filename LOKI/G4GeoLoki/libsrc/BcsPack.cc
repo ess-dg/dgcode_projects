@@ -15,35 +15,35 @@ const double BcsPack::packBoxIdleLengthOnOneEnd = 111.50 *Units::mm;
 const double BcsPack::tubeCentreDistanceFromPackFront = 36.50 *Units::mm;
 
 
-double BcsPack::getHorizontalTubeDistanceInPack() { 
-  return tubeGridParallelogramBase; 
+double BcsPack::getHorizontalTubeDistanceInPack() {
+  return tubeGridParallelogramBase;
 }
 
 double BcsPack::getVerticalTubeDistanceInPack() {  //28.40*cos(13.45 degree)=27.62
-  return tubeGridParallelogramSide * std::cos(tubeGridParallelogramAngle); 
+  return tubeGridParallelogramSide * std::cos(tubeGridParallelogramAngle);
 }
 
 double BcsPack::getTubeGridParallelogramAngle() {
-  return tubeGridParallelogramAngle; 
+  return tubeGridParallelogramAngle;
 }
-double BcsPack::getTubeRotation() { //compensated for the rotation of the packs 
-  return tubeRotationAngle - tubeGridParallelogramAngle; 
-}
-
-
-double BcsPack::getTopRowOffsetInPack() { 
-  return tubeGridParallelogramSide * std::sin(tubeGridParallelogramAngle); 
+double BcsPack::getTubeRotation() { //compensated for the rotation of the packs
+  return tubeRotationAngle - tubeGridParallelogramAngle;
 }
 
-double BcsPack::getHorizontalTubeCentreOffsetInPack() { 
+
+double BcsPack::getTopRowOffsetInPack() {
+  return tubeGridParallelogramSide * std::sin(tubeGridParallelogramAngle);
+}
+
+double BcsPack::getHorizontalTubeCentreOffsetInPack() {
   return -0.5*packBoxWidth + tubeCentreDistanceFromPackFront;
 }
 
 double BcsPack::getTubeGridParallelogramSide() {
-  return tubeGridParallelogramSide; 
+  return tubeGridParallelogramSide;
 }
 double BcsPack::getTubeCentreDistanceFromPackFront() {
-  return tubeCentreDistanceFromPackFront; 
+  return tubeCentreDistanceFromPackFront;
 }
 
 
@@ -63,8 +63,8 @@ double BcsPack::getPackBoxIdleLengthOnOneEnd() {
 double BcsPack::getHorizontalTubeOffset(const int inPackTubeId) {
   assert(0 <= inPackTubeId && inPackTubeId <= 7);
   const int inRowTubeId = inPackTubeId %4;
-  return getHorizontalTubeCentreOffsetInPack() + 
-         inRowTubeId * getHorizontalTubeDistanceInPack() + 
+  return getHorizontalTubeCentreOffsetInPack() +
+         inRowTubeId * getHorizontalTubeDistanceInPack() +
          (inPackTubeId < 4 ? getTopRowOffsetInPack() : 0.0);
 }
 double BcsPack::getVerticalTubeOffset(const int inPackTubeId) {
@@ -89,8 +89,8 @@ const double BcsPack::B4CPanelPartHeight[3] = { // all in mm
     3.20, // 2 - bottom part
 };
 
-double BcsPack::getB4CLengthOverStrawOnOneEnd() { 
-  return B4CLengthOverStrawOnOneEnd; 
+double BcsPack::getB4CLengthOverStrawOnOneEnd() {
+  return B4CLengthOverStrawOnOneEnd;
 }
 
 double BcsPack::getB4CPartThickness(const int partId){
@@ -98,12 +98,12 @@ double BcsPack::getB4CPartThickness(const int partId){
   return B4CPanelPartThickness[partId] *Units::mm;
 }
 
-double BcsPack::getB4CPartHeight(const int partId) { 
+double BcsPack::getB4CPartHeight(const int partId) {
   assert(0 <= partId && partId <= 2);
   return B4CPanelPartHeight[partId] *Units::mm;
 }
 
-double BcsPack::getB4CPartHorizontalOffset(const int partId) { 
+double BcsPack::getB4CPartHorizontalOffset(const int partId) {
   assert(0 <= partId && partId <= 2);
   if(partId == 0) {
     return getHorizontalTubeCentreOffsetInPack() + 3.0* tubeGridParallelogramBase + B4CDistanceFromLastTubeCentre + 0.5* getB4CPartThickness(0);
@@ -116,7 +116,7 @@ double BcsPack::getB4CPartHorizontalOffset(const int partId) {
   }
 }
 
-double BcsPack::getB4CPartVerticalOffset(const int partId) { 
+double BcsPack::getB4CPartVerticalOffset(const int partId) {
   assert(0 <= partId && partId <= 2);
   if(partId == 0) {
     return 0.5* getB4CPartHeight(2);

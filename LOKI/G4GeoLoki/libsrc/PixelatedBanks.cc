@@ -6,7 +6,7 @@
 #include <cassert>
 
 PixelatedBanks::PixelatedBanks(double rearBankDistance)
-  : BcsBanks(rearBankDistance) 
+  : BcsBanks(rearBankDistance)
 {
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber)
@@ -25,7 +25,6 @@ PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, in
 }
 
 int PixelatedBanks::numberOfPixelsInStraw[9] = { // number of pixels along the straws
-    //16384, // 0 - rear (used for CalibSlitSourceGen) 
     256, // 0 - rear
     256,  // 1 - mid top
     256, // 2 - mid left

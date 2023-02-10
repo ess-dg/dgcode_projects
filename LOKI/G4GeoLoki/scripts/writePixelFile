@@ -42,7 +42,7 @@ with open(fileName, "w") as pixelFile:
     pixelCentreZ = pixelCentreZ + ssd *1000 #Larmor SSD is 25.61 (source to sample distance)
 
     pixelFile.write( f"{pixelId}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}" )
-    if(pixelId != numberOfPixels-1): 
+    if(pixelId != numberOfPixels-1):
       pixelFile.write('\n')
 
 

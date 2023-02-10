@@ -8,7 +8,7 @@ class DetectionFileCreator {
 public:
   DetectionFileCreator(const char* fileName);
   ~DetectionFileCreator();
-   
+
   void addDetectionEvent(const int pixelId, const double tof);
 
 private:

@@ -12,7 +12,7 @@ public:
   static double getSize(const int bankId, const int maskId, const int axisIndex);
   static double getPosition(const int bankId, const int maskId, const int axisIndex);
   static double getRotation(const int bankId, const int maskId);
-  
+
   /// triangular masks ///
   static double getHalfSizeOfTriangularMask(const int maskId, const int axisIndex);
   static double getCutPointOfTriangularMask(const int maskId, const int axisIndex);
@@ -22,12 +22,12 @@ public:
 
 private:
   /// regular rectangular masks ///
-  static double getBoronMaskParameter(const int bankId, const int maskId, const int parameterIndex); 
+  static double getBoronMaskParameter(const int bankId, const int maskId, const int parameterIndex);
   const static std::array<std::array<double, 7>, 6> rearBoronMasks;
   const static std::array<std::array<double, 7>, 8> midVerticalBoronMasks;
   const static std::array<std::array<double, 7>, 8> midHorizontalBoronMasks;
   const static std::array<std::array<double, 7>, 8> frontTopBoronMasks;
-  const static std::array<std::array<double, 7>, 8> frontBottomBoronMasks; 
+  const static std::array<std::array<double, 7>, 8> frontBottomBoronMasks;
   const static std::array<std::array<double, 7>, 8> frontVerticalBoronMasks;
 
   /// triangular masks ///

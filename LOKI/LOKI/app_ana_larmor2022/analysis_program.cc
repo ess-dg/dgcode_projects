@@ -42,13 +42,13 @@ int main(int argc, char**argv) {
       createDetectionMcplFile = false;
     }
   }
-  
+
   Core::catch_fpe();
   GriffDataReader dr(argc,argv);
 
   auto setup = dr.setup();
   auto &geo = setup->geo();
-  
+
   if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
@@ -81,16 +81,16 @@ int main(int argc, char**argv) {
   primary_neutrons.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
   GriffAnaUtils::SegmentIterator segments_bank(&dr);
-  segments_bank.addFilter(new GriffAnaUtils::SegmentFilter_Volume("Bank"));  
+  segments_bank.addFilter(new GriffAnaUtils::SegmentFilter_Volume("Bank"));
   segments_bank.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_bank.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  GriffAnaUtils::SegmentIterator segments_TubeWall(&dr); 
+  GriffAnaUtils::SegmentIterator segments_TubeWall(&dr);
   segments_TubeWall.addFilter(new GriffAnaUtils::SegmentFilter_Volume("TubeWall"));
   segments_TubeWall.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_TubeWall.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  GriffAnaUtils::SegmentIterator segments_StrawWall(&dr); 
+  GriffAnaUtils::SegmentIterator segments_StrawWall(&dr);
   segments_StrawWall.addFilter(new GriffAnaUtils::SegmentFilter_Volume("StrawWall"));
   segments_StrawWall.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_StrawWall.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
@@ -117,7 +117,7 @@ int main(int argc, char**argv) {
     oldTubeNumbering = true;
   }
 
-  const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7; 
+  const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7;
 
   const double ymin = -53; //20+1 tube in negative direction
   const int binsy = 1060/2;
@@ -139,7 +139,7 @@ int main(int argc, char**argv) {
   auto h_neutron_xy_conv = hc.book2D("Neutron xy (conv)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_conv");
        h_neutron_xy_conv->setXLabel("-x [mm]");
        h_neutron_xy_conv->setYLabel("y [mm]");
-  
+
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");
        h_neutron_xy_hit->setXLabel("-x [mm]");
        h_neutron_xy_hit->setYLabel("y [mm]");
@@ -202,19 +202,19 @@ int main(int argc, char**argv) {
   auto h_layer_incident_lambda = hc.book2D("Incident wavelength for layers", 4, 0, 4, 325, 0, 14, "layer_incident_lambda");
        h_layer_incident_lambda->setXLabel("Layer id");
        h_layer_incident_lambda->setYLabel("Wavelength [angstrom]");
-  
+
   auto h_layer_incident_lambda_true = hc.book2D("Incident true wavelength for layers", 4, 0, 4, 325, 0, 14, "layer_incident_lambda_true");
        h_layer_incident_lambda_true->setXLabel("Layer id");
        h_layer_incident_lambda_true->setYLabel("Wavelength [angstrom]");
-  
+
   auto h_layer_first_incident_lambda = hc.book2D("Incident wavelength for layers (first enter only)", 4, 0, 4, 325, 0, 14, "layer_first_incident_lambda");
        h_layer_first_incident_lambda->setXLabel("Layer id");
        h_layer_first_incident_lambda->setYLabel("Wavelength [angstrom]");
-  
+
   auto h_layer_first_incident_lambda_true = hc.book2D("Incident true wavelength for layers (first enter only)", 4, 0, 4, 325, 0, 14, "layer_first_incident_lambda_true");
        h_layer_first_incident_lambda_true->setXLabel("Layer id");
        h_layer_first_incident_lambda_true->setYLabel("Wavelength [angstrom]");
-  
+
   auto h_straw_incident_lambda_true = hc.book2D("Incident true wavelength for straws", numberOfStraws, 0, numberOfStraws, 325, 0, 14, "straw_incident_lambda_true");
        h_straw_incident_lambda_true->setXLabel("Straw id");
        h_straw_incident_lambda_true->setYLabel("Wavelength [angstrom]");
@@ -244,7 +244,7 @@ int main(int argc, char**argv) {
   const double xBankEnterLimit = (xWidthVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   const double yBankEnterLimit = (yHeightVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   //std::cout<<"\n ***** \n xBankEnterLimit: " << xBankEnterLimit << "\n yBankEnterLimit: "<< yBankEnterLimit<< "\n ****** \n";
-  
+
   double tmp_x_offset_meters = gen.hasParameterDouble("x_offset_meters") ? gen.getParameterDouble("x_offset_meters") *Units::m : 0.0;
   double tmp_dx_meter = gen.hasParameterDouble("dx_meter") ? gen.getParameterDouble("dx_meter") *Units::m : 0.0;
   if(tmp_x_offset_meters && tmp_dx_meter){
@@ -253,7 +253,7 @@ int main(int argc, char**argv) {
   }
   const double xBeamOffset = tmp_x_offset_meters ? tmp_x_offset_meters :tmp_dx_meter;
 
-  while (dr.loopEvents()) {  
+  while (dr.loopEvents()) {
     while (auto neutron = primary_neutrons.next()) {
       count_initial_neutrons += 1;
 
@@ -268,7 +268,7 @@ int main(int argc, char**argv) {
       const double ekinMcpl = segBegin->startEKin();
       const double lambdaInitial = Utils::neutronEKinToWavelength(ekinMcpl) / Units::angstrom;
       h_mcpl_lambda_true->fill(lambdaInitial, neutron->weight());
-      
+
       double lambdaMcplCalculated = 0.0;
       if (gen.getName()=="G4MCPLPlugins/MCPLGen"){ //works only for non-zero initial TOF
         const double velocityMcplCalculated = (sourceGeneratorDistance / Units::m) / (stepFirst->preTime() / Units::s);
@@ -311,7 +311,7 @@ int main(int argc, char**argv) {
         const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), sourceGeneratorDistance);
         const double actualLambda = Utils::neutronEKinToWavelength(actualEkin)/Units::angstrom;
 
-        if(layerId != previousLayerId && actualEkin) { 
+        if(layerId != previousLayerId && actualEkin) {
           previousLayerId = layerId;
           h_layer_incident_lambda_true->fill(layerId, actualLambda, neutron->weight());
           h_layer_incident_lambda->fill(layerId, lambda_calculated, neutron->weight());
@@ -336,7 +336,7 @@ int main(int argc, char**argv) {
         const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), sourceGeneratorDistance);
         const double actualLambda = Utils::neutronEKinToWavelength(actualEkin)/Units::angstrom;
 
-        if(globalStrawId != previousStrawId && actualEkin) { 
+        if(globalStrawId != previousStrawId && actualEkin) {
           previousStrawId = globalStrawId;
           h_straw_incident_lambda_true->fill(globalStrawId, actualLambda, neutron->weight());
           h_straw_incident_lambda->fill(globalStrawId, lambda_calculated, neutron->weight());
@@ -420,7 +420,7 @@ int main(int argc, char**argv) {
             h_layer3_lambda_hit->fill(lambda_hit_calculated, hit.eventHitWeight());
             h_layer3_lambda_true_hit->fill(actualLambda, hit.eventHitWeight());
           }
-          
+
           const int globalStrawId = tubeId_conv * 7 + strawId_conv;
           h_straw_lambda_hit->fill(globalStrawId, lambda_hit_calculated, hit.eventHitWeight());
           h_straw_lambda_true_hit->fill(globalStrawId, actualLambda, hit.eventHitWeight());
@@ -437,5 +437,3 @@ int main(int argc, char**argv) {
   hc.saveToFile("bcsloki_sans", true);
   return 0;
 }
-
-

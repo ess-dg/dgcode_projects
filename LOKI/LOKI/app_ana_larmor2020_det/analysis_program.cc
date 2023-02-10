@@ -40,7 +40,7 @@ int getPixelId(int tubeId, int strawId, double positionX) {
 }
 
 int main(int argc, char**argv) {
-  
+
   Core::catch_fpe();
   GriffDataReader dr(argc,argv);
 
@@ -86,7 +86,7 @@ int main(int argc, char**argv) {
   auto h_neutron_Q_hit = hc.book1D("Neutron Q [1/angstrom] (hit)", 250, 0, 2, "neutron_Q_hit");
        h_neutron_Q_hit->setXLabel("Q [1/angstrom]");
 
-       
+
   auto h_neutron_counters = hc.bookCounts("General neutron counters","neutron_counters"); /////////////
   auto count_initial_neutrons = h_neutron_counters->addCounter("count_initial_neutrons");
   auto count_neutrons_hit = h_neutron_counters->addCounter("count_neutrons_hit");
@@ -150,7 +150,7 @@ int main(int argc, char**argv) {
           printf("%d \t %d\n", tubeId_gas, tubeId_conv);
           count_pixel_gas_vs_det_diff += 1;
           if(abs(pixelId_gas - pixelId_det)>1){
-            count_pixel_gas_vs_det_diff_more += 1;  
+            count_pixel_gas_vs_det_diff_more += 1;
           }
         }
 
@@ -187,5 +187,3 @@ int main(int argc, char**argv) {
 
   return 0;
 }
-
-

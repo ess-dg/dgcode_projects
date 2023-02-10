@@ -10,12 +10,12 @@ parser.add_argument('-fn', '--fileName',nargs = '*', help = 'Input file name')
 args = parser.parse_args()
 
 binList = np.linspace(0.0, 14.0, 326) #325 bins, 0, 14
-binned_data = np.zeros(325) 
+binned_data = np.zeros(325)
 
 readBlockLength = 100000000
 with mcpl.MCPLFile(args.fileName[0], blocklength=readBlockLength) as myfile:
   for p in myfile.particle_blocks:
-    wavelength = [nmath.neutron_meV_to_angstrom(e * 1e9) for e in p.ekin] # *1e9 to convert MeV to meV 
+    wavelength = [nmath.neutron_meV_to_angstrom(e * 1e9) for e in p.ekin] # *1e9 to convert MeV to meV
     binned_data = binned_data + np.histogram(wavelength, bins=binList, density=False)[0]
 
 np.savetxt("wavelength_hist.csv", binned_data, delimiter=",")

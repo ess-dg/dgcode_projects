@@ -7,7 +7,7 @@
 #include <cassert>
 
 BcsBanks::BcsBanks(double rearBankDistance, int numberOfBanks)
-  : m_rearBankDistance(rearBankDistance), 
+  : m_rearBankDistance(rearBankDistance),
     m_numberOfBanks(numberOfBanks)
 {
 }
@@ -46,7 +46,7 @@ const double BcsBanks::bankPositionAngle[9] = {
     6.5, // 2 - mid left
     9.7,  // 3 - mid bottom
     6.5, // 4 - mid right
-    32.20, // 5 - front top 
+    32.20, // 5 - front top
     25.6, // 6 - front left
     27.5, // 7 - front bottom
     25.6, // 8 - front right
@@ -58,7 +58,7 @@ const double BcsBanks::bankTiltAngle[9] = {
     92.0, // 2 - mid left
     94.0,  // 3 - mid bottom
     92.0, // 4 - mid right
-    104.7, // 5 - front top 
+    104.7, // 5 - front top
     105.0, // 6 - front left
     100.0, // 7 - front bottom //180-80=100
     105.0, // 8 - front right
@@ -107,7 +107,7 @@ double BcsBanks::calcBankPositionXY(const int bankId) {
   return intendedPosition + bankCentreOffsetXY;
 }
 
-const int BcsBanks::bankPosDir[9] = { 1, 1, 1, -1, -1, 1, 1, -1, -1}; 
+const int BcsBanks::bankPosDir[9] = { 1, 1, 1, -1, -1, 1, 1, -1, -1};
 
 const double BcsBanks::bankPosition[9][3] = {
     {0, 0, 0}, // 0 - rear !calculated in getBankPosition function!
@@ -121,7 +121,7 @@ const double BcsBanks::bankPosition[9][3] = {
     {calcBankPositionXY(8)*bankPosDir[3], 0, calcBankPositionZ(8)}, // 8 - front right
 };
 const double BcsBanks::bankPositionOffset[9][3] = {
-    {0.0, 0.0, 0.0}, // 0 - rear 
+    {0.0, 0.0, 0.0}, // 0 - rear
     {0.0, 0.0, 0.0},  // 1 - mid top
     {0.0, 0.0, 0.0}, // 2 - mid left
     {0.0, 0.0, 0.0},  // 3 - mid bottom
@@ -144,10 +144,10 @@ const double BcsBanks::bankSize[9][3] = { // x (width), y (height), z (depth)  /
 };
 
 const double BcsBanks::topmostPackHolderPositionInBankFromTopFront[9][2] = { // y (height from bank top(*)), z (depth from bank front) (*)rotation?
-    {117.26, 35.65}, //0 - rear  
+    {117.26, 35.65}, //0 - rear
     {77.12, 31.33},  // 1 - mid top (upside down)
     {77.38, 31.33}, // 2 - mid left (upside down)
-    {77.12, 31.33},  // 3 - mid bottom 
+    {77.12, 31.33},  // 3 - mid bottom
     {77.38, 31.33}, // 4 - mid right
     {77.94, 31.33}, // 5 - front top (upside down)
     {77.92, 31.33}, // 6 - front left (upside down)
@@ -158,11 +158,11 @@ const double BcsBanks::topmostPackHolderPositionInBankFromTopFront[9][2] = { // 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
  double BcsBanks::getPackRotation() {
-   return BcsPack::getTubeGridParallelogramAngle(); 
+   return BcsPack::getTubeGridParallelogramAngle();
  }
 
-double BcsBanks::getPackPackDistance() { 
-  return BcsPack::getTubeGridParallelogramSide() * 2; 
+double BcsBanks::getPackPackDistance() {
+  return BcsPack::getTubeGridParallelogramSide() * 2;
 }
 
 
@@ -182,24 +182,24 @@ int BcsBanks::getNumberOfTubes(const int bankId){
 
 double BcsBanks::getBankRotation(const int bankId, const int axisIndex) {
   assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2); 
-  return bankRotation[bankId][axisIndex]; 
+  assert(0 <= axisIndex && axisIndex <= 2);
+  return bankRotation[bankId][axisIndex];
 }
 
 double BcsBanks::getBankPosition(const int bankId, const int axisIndex) const {
   assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2); 
+  assert(0 <= axisIndex && axisIndex <= 2);
   if(bankId == 0){
     double rearBankPosition[] = {0, -detectorSystemCentreOffsetInBank(bankId, 1), this->m_rearBankDistance + detectorSystemCentreOffsetInBank(bankId, 2)};
     return rearBankPosition[axisIndex];
   }
   else{
     return bankPosition[bankId][axisIndex] + bankPositionOffset[bankId][axisIndex];
-  }  
+  }
 }
 double BcsBanks::getBankSize(const int bankId, const int axisIndex) {
   assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2); 
+  assert(0 <= axisIndex && axisIndex <= 2);
   return bankSize[bankId][axisIndex]+0.05 *Units::mm;
 }
 
@@ -215,14 +215,14 @@ double BcsBanks::packHolderToPackCentreCoordsInPack(const int axisIndex) {
 
 double BcsBanks::getTopmostPackPositionInBank(const int bankId, const int axisIndex) {
   assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2); 
+  assert(0 <= axisIndex && axisIndex <= 2);
   if(axisIndex == 0){ //x direction
     return 0;
   }
   else if(axisIndex == 1) { //y direction
   const double packHolderPositionYFromBankTop = topmostPackHolderPositionInBankFromTopFront[bankId][0];
   const double packHolderPositionY = 0.5* getBankSize(bankId, 1)  - packHolderPositionYFromBankTop;
-  
+
   const double positionOfPackCentreFromPackHolderY = packHolderToPackCentreCoordsInPack(2) *std::sin(getPackRotation()) - packHolderToPackCentreCoordsInPack(1) *std::cos(getPackRotation());
 
   return packHolderPositionY + positionOfPackCentreFromPackHolderY;
@@ -258,7 +258,7 @@ double BcsBanks::packHolderToFirstTubeCentreCoordsInPack(const int axisIndex) {
 }
 
 double BcsBanks::detectorSystemFrontDistanceFromBankFront(const int bankId) {
-  assert(0 <= bankId && bankId <= 8); 
+  assert(0 <= bankId && bankId <= 8);
   const double packHolderPositionZFromBankFront = topmostPackHolderPositionInBankFromTopFront[bankId][1];
   const double positionOfFirstTubeCentreFromPackHolderZ = packHolderToFirstTubeCentreCoordsInPack(2) *std::cos(getPackRotation()) + packHolderToFirstTubeCentreCoordsInPack(1) *std::sin(getPackRotation());
 
@@ -272,7 +272,7 @@ double BcsBanks::detectorSystemCentreDistanceFromBankTop(const int bankId) {
   const double distanceOfSecondRowTubeCentreFromPackHolderY = std::abs(packHolderToFirstTubeCentreCoordsInPack(2) * std::sin(getPackRotation()) - packHolderToFirstTubeCentreCoordsInPack(1) * std::cos(getPackRotation()));
   const double distanceOfFirstRowTubeCentreFromPackHolderY = distanceOfSecondRowTubeCentreFromPackHolderY - BcsPack::getTubeGridParallelogramSide();
   const double detectorSystemSizeY = (numberOfPacksInBank[bankId] * 2 - 1) * BcsPack::getTubeGridParallelogramSide(); // from top row centre to lowest row centre
-  
+
   const double distanceOfDetectorSystemCentreFromPackHolderY = distanceOfFirstRowTubeCentreFromPackHolderY + 0.5 * detectorSystemSizeY;
 
   return packHolderDistanceYFromBankTop + distanceOfDetectorSystemCentreFromPackHolderY;
@@ -320,11 +320,11 @@ double BcsBanks::getBoronMaskPosition(const int bankId, const int maskId, const 
   }
   else if(axisIndex == 1){  //y direction
     const double rotationCorrection = (1 - std::cos(rotation)) * 0.5*BoronMasks::getSize(bankId, maskId, 1) - std::sin(rotation) * 0.5* (-BoronMasks::getSize(bankId, maskId, 2));
-    return bankSizeHalf - (position + 0.5*thickness) + rotationCorrection; 
+    return bankSizeHalf - (position + 0.5*thickness) + rotationCorrection;
   }
   else{ //z direction
     const double rotationCorrection = (1 - std::cos(rotation)) * 0.5*(-BoronMasks::getSize(bankId, maskId, 2)) + std::sin(rotation) * 0.5*BoronMasks::getSize(bankId, maskId, 1);
-    return - bankSizeHalf + position + 0.5*thickness + rotationCorrection; 
+    return - bankSizeHalf + position + 0.5*thickness + rotationCorrection;
   }
 }
 
@@ -365,13 +365,13 @@ double BcsBanks::getTriangularBoronMaskPosition(const int maskId, const int axis
     return bankPositionOffset[bankId][axisIndex] + offsetAlongBCSTubes;
   }
   else if((axisIndex == 0 && isVertical(bankId)) || (axisIndex == 1 && !isVertical(bankId))) {
-    return getBankPosition(bankId,axisIndex) 
-           - (elevationFromBankCentre * std::sin(bankRot) *bankPosDir[bankId]) 
+    return getBankPosition(bankId,axisIndex)
+           - (elevationFromBankCentre * std::sin(bankRot) *bankPosDir[bankId])
            + (offsetPerpendicularToBCSTubes * std::cos(bankRot));
   }
   else{ //z direction
-    return getBankPosition(bankId, 2) 
-           - elevationFromBankCentre * std::cos(bankRot) 
+    return getBankPosition(bankId, 2)
+           - elevationFromBankCentre * std::cos(bankRot)
            - offsetPerpendicularToBCSTubes * std::sin(bankRot) *bankPosDir[bankId];
   }
  }

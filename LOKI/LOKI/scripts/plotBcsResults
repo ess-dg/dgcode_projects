@@ -120,7 +120,7 @@ if(args.test):
 
     if not normalise:
       values = histData[panelNumber, :] #TEMP ON
-    else: 
+    else:
       values = histData[panelNumber, :] / integralValue
 
     if(sum(values) > 0):
@@ -160,12 +160,12 @@ if(args.overlayIncidentLambda):
 
     if not normalise:
       values = histData[:,panelNumber]  #TEMP OFF
-    else: 
+    else:
       values = histData[:,panelNumber] / integralValue
 
     if(sum(values) > 0):
       labelText = 'Layer ' + str(int(float(panelNumber)+1)) + ' (' + str(round(integralValue/1e6, 2)) + ' MHz)' #TEMP OFF
-      ax.plot(histAxisX, values, 'o-', linewidth=5,  label = labelText) #TEMP OFF 
+      ax.plot(histAxisX, values, 'o-', linewidth=5,  label = labelText) #TEMP OFF
 
   ax.set_xlabel("Wavelength [{\AA}]")
   ax.set_ylabel("Neutron/s")
@@ -181,7 +181,7 @@ if(args.overlayIncidentLambda):
 
 if(args.overlayDetectionLambda):
   hc = sh.HistCollection(args.fileName[0])
-  hist2plot = hc.hist('panel_lambda_hit') 
+  hist2plot = hc.hist('panel_lambda_hit')
   [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
 
   BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
@@ -202,7 +202,7 @@ if(args.overlayDetectionLambda):
   ax.grid()
   plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
   plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
-  ax.set_xlim(1.5, 12.5) 
+  ax.set_xlim(1.5, 12.5)
   ax.legend(frameon=False)
 
   saveOrShowFig(plt, 'LayerLambdaDet')
@@ -221,7 +221,7 @@ elif(args.overlayBankLambda):
 
   hist2plot = hc.hist('bank_lambda_hit')
   [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
- 
+
   for bankNumber in range(9):
     print(bankNumber)
     values = histData[:,bankNumber]
@@ -239,8 +239,8 @@ elif(args.overlayBankLambda):
   plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
   plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
 
-  ax.set_xlim(0, 14.5) 
-  #ax.set_xlim(0.1, 2) 
+  ax.set_xlim(0, 14.5)
+  #ax.set_xlim(0.1, 2)
   #ax.set_yscale('log')
   #ax.set_xscale('log')
   ax.legend(frameon=False)
@@ -276,8 +276,8 @@ elif(args.overlayBankQ):
   ax.grid()
   plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
   plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
-  ax.set_xlim(-0.01, 1.75) 
-  #ax.set_xlim(0.1, 2) 
+  ax.set_xlim(-0.01, 1.75)
+  #ax.set_xlim(0.1, 2)
   ax.set_yscale('log')
   #ax.set_xscale('log')
   ax.legend(frameon=False)
@@ -318,7 +318,7 @@ elif(args.overlayBankTheta):
   ax.grid()
   plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
   plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
-  ax.set_xlim(-0.01, 51) 
+  ax.set_xlim(-0.01, 51)
   #ax.set_yscale('log')
   #ax.set_xscale('log')
   ax.legend(frameon=False, loc='upper right', bbox_to_anchor=(1.01, 1.02))
@@ -358,7 +358,7 @@ elif(args.efficiency):
     legends.append('$\lambda$='+str(wavelength)+' {\AA}')
     print(wavelength, values)
 
-  #legendList = ['$\lambda$=0.6 {\AA}','$\lambda$=1.8 {\AA}', '$\lambda$=3 {\AA}', '$\lambda$=5 {\AA}', '$\lambda$=11 {\AA}']   
+  #legendList = ['$\lambda$=0.6 {\AA}','$\lambda$=1.8 {\AA}', '$\lambda$=3 {\AA}', '$\lambda$=5 {\AA}', '$\lambda$=11 {\AA}']
   plt.legend(legends, frameon=False, loc='upper left', bbox_to_anchor=(0, 1.03))
   plt.ylabel('Detection efficiency [\%]')
 
@@ -397,7 +397,7 @@ elif(args.bankEfficiency):
     bankHit = sum(bankPanelHit.transpose())
 
     incidentNeutronNumberHist = hc.hist('neutron_bankIncidentCounter')
-    [incidentNeutronNumber, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(incidentNeutronNumberHist)    
+    [incidentNeutronNumber, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(incidentNeutronNumberHist)
 
 
     values = [bankHit[i]/incidentNeutronNumber[i]*100 for i in range(len(bankHit))]
@@ -424,7 +424,7 @@ elif(args.bankEfficiency):
 elif(args.efficiencyOverWavelength):
   #ess_loki_plotbcsresults -eow -fn rearBankRealSetup_samp18_20A_split1000_1e11_BS_new_merged.shist -fncsv wavelength_hist_larmor_postsample.csv -png
   #ess_loki_plotbcsresults -eow -nn -fn realSetupFloodSource_000000to199999.shist -png
-  incidentNeutronNumber = np.zeros(325) 
+  incidentNeutronNumber = np.zeros(325)
   if args.fileNameCsv:
     for fileName in args.fileNameCsv:
       incidentNeutronNumber = incidentNeutronNumber + np.genfromtxt(fileName, delimiter=',')
@@ -432,9 +432,9 @@ elif(args.efficiencyOverWavelength):
 
   hc = sh.HistCollection(args.fileName[0])
 
-  bankHit =  np.zeros(325) 
-  bankHitError =  np.zeros(325) 
-  binCenters =  np.zeros(325) 
+  bankHit =  np.zeros(325)
+  bankHitError =  np.zeros(325)
+  binCenters =  np.zeros(325)
   for i in range(4):
     # layer_hit_i = hc.hist(f"panel_lambda%s_hit"%i)
     layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
@@ -444,7 +444,7 @@ elif(args.efficiencyOverWavelength):
     binCenters = histAxis
 
   if not args.fileNameCsv:
-    layer_hit_i = hc.hist("incident_lambda_true") if args.trueWavelength else hc.hist("incident_lambda") 
+    layer_hit_i = hc.hist("incident_lambda_true") if args.trueWavelength else hc.hist("incident_lambda")
     [incidentNeutronNumber, incidentNeutronNumberError, _, _, _] = BCSplt.disassembleHist1d(layer_hit_i)
     incidentNeutronNumber = np.array(incidentNeutronNumber)
     incidentNeutronNumberError = np.array(incidentNeutronNumberError)
@@ -456,7 +456,7 @@ elif(args.efficiencyOverWavelength):
     #     numberOfBinsToFill = numberOfBinsToFill +1
     # incidentNeutronNumber = incidentNeutronNumber / numberOfBinsToFill
 
-  
+
   # values = [bankHit[i]/incidentNeutronNumber[i]*100 if incidentNeutronNumber[i] != 0 else 0 for i in range(len(bankHit)) ]
   # errors = [m.sqrt(bankHit[i])/incidentNeutronNumber[i]*100  if incidentNeutronNumber[i] != 0 else 0 for i in range(len(values))]
   values, errors = divide.divide(bankHit, bankHitError, incidentNeutronNumber, incidentNeutronNumberError)
@@ -515,10 +515,10 @@ elif(args.efficiencyOverWavelength):
     [histData_inc, _, histAxis] = BCSplt.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
     [histData, histAxisX, histAxisY, _, _, _] = BCSplt.disassembleHist2d(straw_lambda_hit)
     [histData_hit, _, _] = BCSplt.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
-    
+
     numberOfStraws = 28*8*7 #1568
     frontLayerIdEnd = 28*4*7
-    
+
     frontLayers = [sum(histData_inc[i,:]) for i in range(frontLayerIdEnd)]
     backLayers = [sum(histData_inc[i,:]) for i in range(frontLayerIdEnd, numberOfStraws)]
     frontLayers.sort()
@@ -526,11 +526,11 @@ elif(args.efficiencyOverWavelength):
     front5thValue = frontLayers[-5]
     back5thValue = backLayers[-5]
 
-    for i in range(numberOfStraws): 
+    for i in range(numberOfStraws):
       if((i < frontLayerIdEnd and sum(histData_inc[i,:]) < front5thValue) or (i >= frontLayerIdEnd and sum(histData_inc[i,:]) < back5thValue)):
         continue
       #print(i, sum(histData_inc[i,:]))
-      efficiency_i, error_i = divide.divide(np.array(histData_hit[i,:]), np.sqrt(np.array(histData_hit[i,:])), np.array(histData_inc[i,:]), np.sqrt(np.array(histData_inc[i,:]))) 
+      efficiency_i, error_i = divide.divide(np.array(histData_hit[i,:]), np.sqrt(np.array(histData_hit[i,:])), np.array(histData_inc[i,:]), np.sqrt(np.array(histData_inc[i,:])))
       ax.errorbar(histAxis, efficiency_i * 100, yerr=(error_i * 100), fmt='o--', linewidth=4, markersize=8 ,label=f'Straw {i}')
     # ax.errorbar(histAxis, values, yerr=errors, fmt='o--', linewidth=4, markersize=8, label='Global')
     #ax.errorbar(histAxis, values, yerr=errors, fmt='o--', linewidth=4, markersize=8)
@@ -593,8 +593,8 @@ elif(args.overlayTheta):
   plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
   plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
 
-  ax.set_xlim(-0.01, 51) 
-  #ax.set_xlim(0.1, 2) 
+  ax.set_xlim(-0.01, 51)
+  #ax.set_xlim(0.1, 2)
   #ax.set_yscale('log')
   #ax.set_xscale('log')
   ax.legend(frameon=False)
@@ -656,7 +656,7 @@ elif(args.absorption):
     escapeError = m.sqrt(world_endError**2 + world_onlyError**2)
     if noAvoid:
       escape = 1.0 - (detection + converter_abs + B4C_behind_abs + tubeWall_abs + strawWall_abs)
-      #escapeError todo... 
+      #escapeError todo...
 
     #absorption = converter_abs + tubeWall_hit + strawWall_hit
     #absorptionError = m.sqrt(converter_absError**2 + strawWall_hitError**2)
@@ -668,7 +668,7 @@ elif(args.absorption):
       print([detection*100, converter_abs*100, B4C_behind_abs*100, tubeWall_abs*100, strawWall_abs*100, escape*100])
       meanMatrix.append([detection*100, converter_abs*100, B4C_behind_abs*100, tubeWall_abs*100, strawWall_abs*100, escape*100])
       stdMatrix.append([detectionError*100, converter_absError*100, B4C_mask_absError*100, tubeWall_absError*100, strawWall_absError*100, escapeError*100])
-    else: 
+    else:
       legends = ('Detection', 'Abs in converter', 'Abs in B4C', 'Abs in Al', 'Abs in Cu', 'Escape', 'Abs in Masks', 'Avoid')
       print([detection*100, converter_abs*100, B4C_behind_abs*100, tubeWall_abs*100, strawWall_abs*100, escape*100, B4C_mask_abs*100,  world_only*100])
       meanMatrix.append([detection*100, converter_abs*100, B4C_behind_abs*100, tubeWall_abs*100, strawWall_abs*100, escape*100, B4C_mask_abs*100,  world_only*100])

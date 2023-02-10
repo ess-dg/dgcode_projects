@@ -129,7 +129,7 @@ int BoronMasks::getNumberOfBoronMasks(const int bankId) {
     return frontBottomBoronMasks.size();
   default:
     return 0;
-  } 
+  }
 }
 
 double BoronMasks::getSize(const int bankId, const int maskId, const int axisIndex) {
@@ -168,11 +168,11 @@ double BoronMasks::getCutPointOfTriangularMask(const int maskId, const int axisI
   return getTriangularBoronMaskParameter(maskId, 3 + axisIndex) *Units::mm;
 }
 double BoronMasks::getCutDirOfTriangularMask(const int maskId, const int axisIndex) {
-  assert(0 <= axisIndex && axisIndex <= 1); 
+  assert(0 <= axisIndex && axisIndex <= 1);
   return getTriangularBoronMaskParameter(maskId, 5 + axisIndex);
 }
 double BoronMasks::getBankIdOfTriangularMask(const int maskId) {
-  return getTriangularBoronMaskParameter(maskId, 7); 
+  return getTriangularBoronMaskParameter(maskId, 7);
 }
 double BoronMasks::getPosInBankOfTriangularMask(const int maskId, const int axisIndex) { //CentreDistanceFromBankCentre
   assert(0 <= axisIndex && axisIndex <= 1);

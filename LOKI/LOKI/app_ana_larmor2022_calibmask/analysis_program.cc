@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   if (geo.getName() != "G4GeoLoki/GeoBCSBanks" && geo.getName() != "G4GeoBCS/GeoLarmorBCSExperiment") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
-  }  
+  }
 
   setup->dump();
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   primary_geantinos.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(999));
 
   GriffAnaUtils::SegmentIterator segments_bank(&dr);
-  segments_bank.addFilter(new GriffAnaUtils::SegmentFilter_Volume("Bank"));  
+  segments_bank.addFilter(new GriffAnaUtils::SegmentFilter_Volume("Bank"));
 
   SimpleHists::HistCollection hc;
 
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   ///const double xBankEnterLimit = (xWidthVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   //const double yBankEnterLimit = (yHeightVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   ////std::cout<<"\n ***** \n xBankEnterLimit: " << xBankEnterLimit << "\n yBankEnterLimit: "<< yBankEnterLimit<< "\n ****** \n";
-  
+
   const double zVacuumTankEnd = sampleDetectorDistance - 90*Units::mm; // "The front of the Loki detector was 90 mm in front of the tank”
   const double zBankFront = sampleDetectorDistance - banks.detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
 

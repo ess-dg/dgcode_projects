@@ -30,7 +30,7 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         self.sourceSampleDistanceMeters = self.source_sample_distance_meters
         self.sourceMonitorDistanceMeters = self.source_monitor_distance_meters
         if self.geo_larmor_2022_experiment: #setting hardocded parameters for larmor 2022 experiment
-          self.sourceSampleDistanceMeters = 25.61 #Sample position in Larmor.instr 
+          self.sourceSampleDistanceMeters = 25.61 #Sample position in Larmor.instr
           self.sourceMonitorDistanceMeters = 25.57 #TOFpresamp McStas monitor in Larmor.instr
           self.coneOpeningDeg = math.acos(1-2/233)/math.pi*180
           print(f"Using predifined parameters for the Larmor-2022 experiment!/n/t source_sample_distance_meters: {self.sourceSampleDistanceMeters} m /n/t source_monitor_distance_meters: {self.sourceMonitorDistanceMeters} m /n/t cone_opening_deg: {self.coneOpeningDeg}")
@@ -48,7 +48,7 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         # Energy - uniform wavelength distribution between min and max parameters
         wavelength = (self.neutron_wavelength_min_aangstrom + self.rand()*(self.neutron_wavelength_max_aangstrom - self.neutron_wavelength_min_aangstrom))
         gun.set_energy(Utils.NeutronMath.neutronWavelengthToEKin(wavelength *Units.angstrom))
-        
+
         # Initial TOF - calculated from source_sample_distance and the sampled wavelength(velocity)
         velocity = Utils.NeutronMath.neutron_angstrom_to_meters_per_second(wavelength)
         gun.set_time(self.sourceSampleDistanceMeters / velocity *Units.second)

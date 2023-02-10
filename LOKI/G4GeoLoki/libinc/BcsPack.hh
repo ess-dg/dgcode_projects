@@ -50,7 +50,7 @@ private:
   const static double packBoxWidth;
   const static double packBoxHeight;
   const static double packBoxIdleLengthOnOneEnd;
-  const static double tubeCentreDistanceFromPackFront; //1st lower (closest) tube 
+  const static double tubeCentreDistanceFromPackFront; //1st lower (closest) tube
 
   const static double packHolderDistanceFromPackTop;
   const static double packHolderDistanceFromPackFront;

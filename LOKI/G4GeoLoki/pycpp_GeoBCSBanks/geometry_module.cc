@@ -9,7 +9,7 @@
 #include "G4Vector3D.hh"
 #include "G4SubtractionSolid.hh"
 #include <cmath>
-#include <string> 
+#include <string>
 #include <cassert>
 
 #include "G4GeoLoki/BcsBanks.hh"
@@ -35,8 +35,8 @@ private:
   int getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPacksForInvertedNumbering, int numberOfPacks);
 };
 
-// this line is necessary to be able to declare the geometry in the python simulation script 
-PYTHON_MODULE { GeoConstructPyExport::exportGeo<GeoBCS>("GeoBCSBanks"); } 
+// this line is necessary to be able to declare the geometry in the python simulation script
+PYTHON_MODULE { GeoConstructPyExport::exportGeo<GeoBCS>("GeoBCSBanks"); }
 
 ////////////////////////////////////////////
 // Implementation of our geometry module: //
@@ -50,11 +50,11 @@ GeoBCS::GeoBCS()
   addParameterBoolean("with_beamstop", false);
   addParameterBoolean("larmor_2022_experiment", false);
   addParameterBoolean("with_calibration_slits", false);
-  
+
   addParameterBoolean("old_tube_numbering", false);
-  
+
   addParameterString("world_material","G4_Vacuum");
-  addParameterString("B4C_panel_material","ESS_B4C:b10_enrichment=0.95"); 
+  addParameterString("B4C_panel_material","ESS_B4C:b10_enrichment=0.95");
 }
 
 G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLength){
@@ -65,7 +65,7 @@ G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLe
 
   auto lv_empty_tube = place(new G4Tubs("EmptyTube", 0., BcsTube::getTubeInnerRadius(), 0.5*strawLength, 0., 2*M_PI),
                              BcsTube::tubeInnerGas, 0,0,0, lv_tube, G4Colour(0,1,1),-2,0,0).logvol;
-  
+
   for (int cpNo = 0; cpNo <= 6; cpNo++){
     auto lv_straw_wall = place(new G4Tubs("StrawWall", 0, BcsTube::getStrawOuterRadius(), 0.5*strawLength, 0., 2 * M_PI),
                                BcsTube::strawWallMaterial, BcsTube::getStrawPositionX(cpNo), BcsTube::getStrawPositionY(cpNo), 0, lv_empty_tube, ORANGE, cpNo, 0, 0).logvol;
@@ -83,7 +83,7 @@ int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPa
   assert(0 <= inPackTubeId && inPackTubeId <= 7);
   const double rowNumber = packNumber + 0.5* ((int)inPackTubeId/4); // +0.5 for second row (inPackTubeId > 3)
   inPackTubeId %= 4;
-  
+
   const bool oldTubeNumbering = getParameterBoolean("old_tube_numbering");
   if(oldTubeNumbering){
     if(numberOfPacksForInvertedNumbering == 0){
@@ -98,7 +98,7 @@ int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPa
     if(numberOfPacksForInvertedNumbering == 0){
       return rowNumber * 2 + layerNr * numberOfPacks * 2;
     }
-    else{ 
+    else{
       return (numberOfPacks*2 - 1) - rowNumber*2 + layerNr * numberOfPacks * 2;
     }
   }
@@ -107,29 +107,29 @@ int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPa
 ///////////  CREATE PACK BOX LOGICAL VOLUME  //////////////////////////
 G4LogicalVolume *GeoBCS::createPackBoxLV(double strawLength, int packNumber, int numberOfPacksForInvertedNumbering, int numberOfPacks){
   auto lv_pack_box = new G4LogicalVolume(new G4Box("EmptyPackBox", 0.5*BcsPack::getPackBoxWidth(), 0.5*BcsPack::getPackBoxHeight(), 0.5 * strawLength + BcsPack::getPackBoxIdleLengthOnOneEnd()), BcsPack::packBoxFillMaterial, "EmptyPackBox");
-  
+
   /// Add 8 BCS detector tubes ///
-  auto lv_front_tube = createTubeLV(BcsTube::getFrontTubeConverterThickness(), strawLength); 
-  auto lv_back_tube = createTubeLV(BcsTube::getBackTubeConverterThickness(), strawLength); 
+  auto lv_front_tube = createTubeLV(BcsTube::getFrontTubeConverterThickness(), strawLength);
+  auto lv_back_tube = createTubeLV(BcsTube::getBackTubeConverterThickness(), strawLength);
   G4RotationMatrix* tubeRotationMatrix = new G4RotationMatrix(0, 0, BcsPack::getTubeRotation());
 
   for (int inPackTubeId = 0; inPackTubeId < 8; inPackTubeId++) {
-    place((inPackTubeId % 4 < 2) ? lv_front_tube : lv_back_tube, 
-          BcsPack::getHorizontalTubeOffset(inPackTubeId), BcsPack::getVerticalTubeOffset(inPackTubeId), 0, 
+    place((inPackTubeId % 4 < 2) ? lv_front_tube : lv_back_tube,
+          BcsPack::getHorizontalTubeOffset(inPackTubeId), BcsPack::getVerticalTubeOffset(inPackTubeId), 0,
           lv_pack_box, SILVER, getTubeVolumeNumber(packNumber, inPackTubeId, numberOfPacksForInvertedNumbering, numberOfPacks), 0, tubeRotationMatrix);
   }
   /// Add B4C panel behind detectors in 3 parts ///
   const double B4CLengthHalf = 0.5*strawLength + BcsPack::getB4CLengthOverStrawOnOneEnd();
 
   for (int partId = 0; partId < 3; partId++){
-    place(new G4Box("B4CPanel", 0.5*BcsPack::getB4CPartThickness(partId), 0.5*BcsPack::getB4CPartHeight(partId), B4CLengthHalf), 
-          BcsPack::B4CPanelMaterial, 
-          BcsPack::getB4CPartHorizontalOffset(partId), BcsPack::getB4CPartVerticalOffset(partId), 0, 
+    place(new G4Box("B4CPanel", 0.5*BcsPack::getB4CPartThickness(partId), 0.5*BcsPack::getB4CPartHeight(partId), B4CLengthHalf),
+          BcsPack::B4CPanelMaterial,
+          BcsPack::getB4CPartHorizontalOffset(partId), BcsPack::getB4CPartVerticalOffset(partId), 0,
           lv_pack_box, G4Colour(0, 1, 0), -2, 0, new G4RotationMatrix());
     }
   /// Add Al behing the B4C panel in 2 parts ///
   for (int partId = 0; partId < 2; partId++){
-    place(new G4Box("AlPanel", 0.5*BcsPack::getAlPartThickness(partId), 0.5*BcsPack::getAlPartHeight(partId), B4CLengthHalf), 
+    place(new G4Box("AlPanel", 0.5*BcsPack::getAlPartThickness(partId), 0.5*BcsPack::getAlPartHeight(partId), B4CLengthHalf),
           BcsPack::AlPanelMaterial,
           BcsPack::getAlPartHorizontalOffset(partId),  BcsPack::getAlPartVerticalOffset(partId), 0,
           lv_pack_box, SILVER, -2, 0, new G4RotationMatrix());
@@ -144,16 +144,16 @@ G4LogicalVolume *GeoBCS::createCalibrationMaskLV(CalibMasks::CalibMasksBase cali
   const double maskHeightHalf = 0.5*calibMask.getHeight();
   const double maskFullWidthHalf = 0.5*calibMask.getWidth();
 
-  auto lv_calibrationMask = new G4LogicalVolume(new G4Box("EmptyCalibMaskBox", maskThicknessHalf, maskHeightHalf, maskFullWidthHalf), 
+  auto lv_calibrationMask = new G4LogicalVolume(new G4Box("EmptyCalibMaskBox", maskThicknessHalf, maskHeightHalf, maskFullWidthHalf),
                                                  CalibMasks::maskBoxMaterial, "CalibMaskBox");
-  
+
   double offset = 0.0;
   int i = 0;
   const auto pattern = calibMask.getPattern();
   for(auto part = pattern.begin(); part != pattern.end(); part++,i++ ) {
     const double partWidth = *part;
-    if(i % 2 == 0) { //The pattern is: maskPart ,slit, maskPart, slit...  
-      place(new G4Box(maskName, maskThicknessHalf, maskHeightHalf, 0.5*partWidth), 
+    if(i % 2 == 0) { //The pattern is: maskPart ,slit, maskPart, slit...
+      place(new G4Box(maskName, maskThicknessHalf, maskHeightHalf, 0.5*partWidth),
           CalibMasks::maskMaterial,
           0., 0., -maskFullWidthHalf + offset + 0.5*partWidth,
           lv_calibrationMask, DARKPURPLE, -5, 0, new G4RotationMatrix());
@@ -169,8 +169,8 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   const double strawLength = banks->getStrawLengthByBankId(bankId);
 
   // const double pack_pack_distance = banks->getPackPackDistance();
-  const int numberOfPacks = banks->getNumberOfPacksByBankId(bankId); 
-  
+  const int numberOfPacks = banks->getNumberOfPacksByBankId(bankId);
+
   const double packRotation = banks->getPackRotation();
 
   const double bankSizeXHalf = 0.5* banks->getBankSize(bankId, 0);
@@ -181,23 +181,23 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
                                      BcsPack::packBoxFillMaterial, "Bank");
 
   // override lv_bank to subtract some empty part of front left and right banks where front top and bottom banks would overlap with them
-  if (bankId == 8 || bankId == 6) {  
+  if (bankId == 8 || bankId == 6) {
     auto fullBankBox = new G4Box("EmptyPanelBox", bankSizeZHalf, bankSizeYHalf, bankSizeXHalf);
     auto bankBoxCut = new G4Box("EmptyPanelBox", 15.0, 70.0, 60.0);
     auto bankBox = new G4SubtractionSolid("EmptyPanelBox", fullBankBox, bankBoxCut, 0, G4ThreeVector(-145.0, -42.0, -425.0));
-    
+
     lv_bank = new G4LogicalVolume(bankBox, BcsPack::packBoxFillMaterial, "Bank");
   }
 
-  int numberOfPacksForInvertedNumbering = 0; 
+  int numberOfPacksForInvertedNumbering = 0;
   if (banks->areTubesInverselyNumbered(bankId)){ //not very nice solution...
     numberOfPacksForInvertedNumbering = numberOfPacks;
   }
 
   for (int packNumber = 0; packNumber < numberOfPacks; ++packNumber){
-    auto lv_pack_box = createPackBoxLV(strawLength, packNumber, numberOfPacksForInvertedNumbering, numberOfPacks);         
-    place(lv_pack_box, 
-          banks->getPackPositionInBank(bankId, packNumber, 2), banks->getPackPositionInBank(bankId, packNumber, 1), banks->getPackPositionInBank(bankId, packNumber, 0), 
+    auto lv_pack_box = createPackBoxLV(strawLength, packNumber, numberOfPacksForInvertedNumbering, numberOfPacks);
+    place(lv_pack_box,
+          banks->getPackPositionInBank(bankId, packNumber, 2), banks->getPackPositionInBank(bankId, packNumber, 1), banks->getPackPositionInBank(bankId, packNumber, 0),
           lv_bank, G4Colour(0, 1, 1), -2, 0, new G4RotationMatrix(0, 0, packRotation));
   }
 
@@ -205,8 +205,8 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   for (int maskId = 0; maskId < numberOfBoronMasks; ++maskId){
     const std::string maskName = "BoronMask-"+std::to_string(bankId)+"-"+std::to_string(maskId);
     place(new G4Box(maskName, 0.5*BoronMasks::getSize(bankId, maskId, 2), 0.5*BoronMasks::getSize(bankId, maskId, 1), 0.5*BoronMasks::getSize(bankId, maskId, 0)),
-            BoronMasks::maskMaterial, 
-            banks->getBoronMaskPosition(bankId, maskId, 2), banks->getBoronMaskPosition(bankId, maskId, 1), banks->getBoronMaskPosition(bankId, maskId, 0), 
+            BoronMasks::maskMaterial,
+            banks->getBoronMaskPosition(bankId, maskId, 2), banks->getBoronMaskPosition(bankId, maskId, 1), banks->getBoronMaskPosition(bankId, maskId, 0),
             lv_bank, BLACK, -2, 0, new G4RotationMatrix(0, 0, BoronMasks::getRotation(bankId, maskId)));
   }
 
@@ -215,7 +215,7 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   if (bankId == 0 && withBeamstop) {
     const std::string maskName = "BoronMask-Beamstop";
     const double detBankFrontDistance = banks->detectorSystemFrontDistanceFromBankFront(bankId);
-    
+
     place(new G4Box(maskName, 0.5 * 1*Units::mm, 0.5 * 5*Units::cm, 0.5 * 5*Units::cm),
           BoronMasks::maskMaterial,
           -bankSizeZHalf + detBankFrontDistance - 5*Units::cm, 0, 0,
@@ -255,10 +255,10 @@ G4LogicalVolume *GeoBCS::createTriangularMaskLV(int maskId){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 G4VPhysicalVolume* GeoBCS::Construct(){
-  // this is where we put the entire geometry together, the private functions creating the logical volumes are meant to facilitate the code below  
+  // this is where we put the entire geometry together, the private functions creating the logical volumes are meant to facilitate the code below
   const double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
-  const bool rearBankOnly = getParameterBoolean("rear_detector_only"); 
+  const bool rearBankOnly = getParameterBoolean("rear_detector_only");
   const int numberOfBanks = rearBankOnly ? 1 : 9;
   banks = new BcsBanks(rear_detector_distance, numberOfBanks);
 
@@ -272,7 +272,7 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   auto pvWorld = worldvols.physvol;
 
   // Create and place detector banks
-  
+
   for (int bankId = 0; bankId < banks->getNumberOfBanks(); bankId++){
     auto lv_bank = createBankLV(bankId);
 
@@ -292,7 +292,7 @@ G4VPhysicalVolume* GeoBCS::Construct(){
       if (larmor2022experiment) { calibMaskName = "larmorCdCalibMask"; }
       const auto calibMask = CalibMasks::getCalibMask(calibMaskName);
       auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
-      
+
       place(lv_calibrationMask,
             banks->getCalibMaskPosition(calibMask, bankId, 0), banks->getCalibMaskPosition(calibMask, bankId, 1), banks->getCalibMaskPosition(calibMask, bankId, 2),
             lvWorld, PURPLE, -5, 0, rotation);
@@ -324,10 +324,10 @@ G4VPhysicalVolume* GeoBCS::Construct(){
 bool GeoBCS::validateParameters() {
   // you can apply conditions to control the sanity of the geometry parameters and warn the user of possible mistakes
   // a nice example: Projects/SingleCell/G4GeoSingleCell/libsrc/GeoB10SingleCell.cc
-  bool rearBankOnly = getParameterBoolean("rear_detector_only"); 
+  bool rearBankOnly = getParameterBoolean("rear_detector_only");
   double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
-  if(larmor2022experiment) { 
+  if(larmor2022experiment) {
     if (rearBankOnly == false) {
       printf("ERROR: Wrong rear_detector_only value for the larmor_2022_experiment! (It should be true)\n");
       return false;
@@ -343,4 +343,3 @@ bool GeoBCS::validateParameters() {
   }
   return true;
 }
-

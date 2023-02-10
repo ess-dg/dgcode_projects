@@ -48,7 +48,7 @@ int main(int argc, char**argv) {
       createDetectionMcplFile = false;
     }
   }
-  
+
   Core::catch_fpe();
   GriffDataReader dr(argc,argv);
 
@@ -76,18 +76,18 @@ int main(int argc, char**argv) {
   DetHitApproximation hit(&dr,1.2*Units::cm,120*Units::keV,"CountingGas" ); // defined for He3 gas
 
   GriffAnaUtils::SegmentIterator segments_gas(&dr);
-  segments_gas.addFilter(new GriffAnaUtils::SegmentFilter_Volume("CountingGas"));  
+  segments_gas.addFilter(new GriffAnaUtils::SegmentFilter_Volume("CountingGas"));
 
   GriffAnaUtils::TrackIterator primary_neutrons(&dr);
   primary_neutrons.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   primary_neutrons.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  GriffAnaUtils::SegmentIterator segments_World(&dr);   
+  GriffAnaUtils::SegmentIterator segments_World(&dr);
   segments_World.addFilter(new GriffAnaUtils::SegmentFilter_Volume("World"));
   segments_World.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_World.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  GriffAnaUtils::SegmentIterator segments_TubeWall(&dr); 
+  GriffAnaUtils::SegmentIterator segments_TubeWall(&dr);
   segments_TubeWall.addFilter(new GriffAnaUtils::SegmentFilter_Volume("TubeWall"));
   segments_TubeWall.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_TubeWall.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
@@ -113,7 +113,7 @@ int main(int argc, char**argv) {
   const double trueThetaMax = 15;
   //float thetamax = 9.0;
   //float dthetamin = -5; //-0.35
-  //float dthetamax = 5; //3 
+  //float dthetamax = 5; //3
   //int dthetabins = 1000;
   const double zmin = (sampleDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
   const double zmax = (sampleDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
@@ -122,7 +122,7 @@ int main(int argc, char**argv) {
   auto h_neutron_xy_conv = hc.book2D("Neutron xy (conv)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_conv");
        h_neutron_xy_conv->setXLabel("-x [mm]");
        h_neutron_xy_conv->setYLabel("y [mm]");
-  
+
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");
        h_neutron_xy_hit->setXLabel("-x [mm]");
        h_neutron_xy_hit->setYLabel("y [mm]");
@@ -152,7 +152,7 @@ int main(int argc, char**argv) {
 
   auto h_neutron_theta_hit = hc.book1D("Neutron theta (hit)", thetabins, 0, trueThetaMax, "neutron_theta_hit");
        h_neutron_theta_hit->setXLabel("Angle [degree]");
-  
+
   auto h_neutron_bank_theta_hit = hc.book2D("Neutron Theta for banks [degree](hit)", thetabins, 0, trueThetaMax, 9, 0, 9, "neutron_bank_theta_hit");
        h_neutron_bank_theta_hit->setXLabel("Theta [degree]");
        h_neutron_bank_theta_hit->setYLabel("Bank id");
@@ -164,7 +164,7 @@ int main(int argc, char**argv) {
   // auto h_neutron_pixel_hit_weight = hc.book1D("Sum weight of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_weight");
   //      h_neutron_pixel_hit_weight->setXLabel("Pixel ID");
 
-  
+
 
   auto h_neutron_pixel_hit = hc.book2D("Sum weight of hits in pixels (hit)", strawPixelNumber, 0, strawPixelNumber, strawNumber, 0, strawNumber, "h_neutron_pixel_hit");
        h_neutron_pixel_hit->setXLabel("Pixel ID along straw");
@@ -212,7 +212,7 @@ int main(int argc, char**argv) {
   auto h_bank_lambda = hc.book2D("Incident neutron wavelength for banks", 140, 0, 14, 9, 0, 9, "bank_lambda");
        h_bank_lambda->setXLabel("Wavelength [angstrom]");
        h_bank_lambda->setYLabel("Bank id");
-       
+
   auto h_bank_lambda_hit = hc.book2D("Neutron wavelength for banks (hit)", 140, 0, 14, 9, 0, 9, "bank_lambda_hit");
        h_bank_lambda_hit->setXLabel("Wavelength [angstrom]");
        h_bank_lambda_hit->setYLabel("Bank id");
@@ -225,9 +225,9 @@ int main(int argc, char**argv) {
   auto h_neutron_bank_Q_hit = hc.book2D("Neutron Q for banks [1/angstrom] (hit)", 250, 0, 2, 9, 0, 9, "neutron_bank_Q_hit");
        h_neutron_bank_Q_hit->setXLabel("Q [1/angstrom]");
        h_neutron_bank_Q_hit->setYLabel("Bank id");
-       
-       
-  
+
+
+
   auto h_neutron_counters = hc.bookCounts("General neutron counters","neutron_counters"); /////////////
   //auto count_entering_aluminium = h_neutron_counter->addCounter("count_entering_aluminium");
   auto count_initial_neutrons = h_neutron_counters->addCounter("count_initial_neutrons");
@@ -236,9 +236,9 @@ int main(int argc, char**argv) {
   auto count_neutrons_hit = h_neutron_counters->addCounter("count_neutrons_hit");
 
 
-  while (dr.loopEvents()) {  
-    
-    
+  while (dr.loopEvents()) {
+
+
     while (auto neutron = primary_neutrons.next()) {
       count_initial_neutrons += 1;
 
@@ -266,13 +266,13 @@ int main(int argc, char**argv) {
         ++seg_count_World;
         seg_length_World += segment->segmentLength();
         neutron_weight = segment->getTrack()->weight();
-        
+
         /*if (seg_count_World > 1) {
           auto step0 = segment->firstStep();
           double dir_init[3];
           Utils::normalise(step0->preMomentumArray(), dir_init);
           auto pos_init = step0->preGlobalArray();
-          
+
           if (dir_init[2] > 0) {
             //isBackScattered = 1;
 
@@ -326,7 +326,7 @@ int main(int argc, char**argv) {
 
           previousBankNumber = bankNumber;
           h_neutron_bankIncidentCounter->fill(bankNumber, neutron_weight);
-          
+
           const double actualEkin = tubeWallSegment->startEKin();
           const double actualLambda = Utils::neutronEKinToWavelength(actualEkin) / Units::angstrom;
           h_bank_lambda->fill(actualLambda, bankNumber, neutron_weight);
@@ -343,7 +343,7 @@ int main(int argc, char**argv) {
       auto segL = neutron->lastSegment();
       if (segL->volumeName()=="Converter") {
         count_neutrons_converted += 1;
-        
+
         auto stepL = segL->lastStep();
         const double position_conv[3] = {stepL->postGlobalX(), stepL->postGlobalY(), stepL->postGlobalZ()};
 
@@ -351,14 +351,14 @@ int main(int argc, char**argv) {
         Utils::subtract(stepL->postGlobalArray(), stepFirst->preGlobalArray(), dir_conv);
         const double theta_conv = Utils::theta(dir_conv)/Units::degree;
         h_neutron_theta_conv->fill(theta_conv, neutron->weight());
-            
+
         /// volumeCopyNumber() = CountingGas; volumeCopyNumber(1) = Converter; volumeCopyNumber(2) = straw wall; volumeCopyNumber(3) = EmptyTube;
         /// volumeCopyNumber(4) = TubeWall; volumeCopyNumber(5) = EmptyPackBox; volumeCopyNumber(6) = Bank; volumeCopyNumber(7) = World
         const int strawId_conv = segL->volumeCopyNumber(1);
         const int tubeId_conv = segL->volumeCopyNumber(3);
         const int bankId_conv = segL->volumeCopyNumber(5);
 
-        
+
 
         h_neutron_zy_conv->fill(position_conv[2]/Units::mm, position_conv[1]/Units::cm, neutron->weight());
         h_neutron_zy_big_conv->fill(position_conv[2]/Units::mm, position_conv[1]/Units::mm, neutron->weight());
@@ -374,7 +374,7 @@ int main(int argc, char**argv) {
         if (hit.eventHasHit()) {
           count_neutrons_hit += 1;
           const double position_hit[3] = {hit.eventHitPositionX(), hit.eventHitPositionY(), hit.eventHitPositionZ()};
- 
+
           h_neutron_zy_hit->fill(position_hit[2]/Units::mm, position_hit[1]/Units::cm, hit.eventHitWeight());
           h_neutron_xy_hit->fill(-position_hit[0]/Units::mm, position_hit[1]/Units::mm, hit.eventHitWeight());
 
@@ -386,7 +386,7 @@ int main(int argc, char**argv) {
           //h_neutron_pixel_hit_weight->fill(pixelId, hit.eventHitWeight());
           h_neutron_pixel_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
 
-          
+
           h_neutron_bankPanelHitCounter->fill(bankId_conv, panelNumber_conv, hit.eventHitWeight());
           h_neutron_panelHitCounter->fill(panelNumber_conv, hit.eventHitWeight());
 

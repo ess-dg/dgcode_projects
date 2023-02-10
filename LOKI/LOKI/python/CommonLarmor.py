@@ -7,7 +7,7 @@ def launch(geo):
     launcher.addParameterString('event_gen','')
     launcher.addParameterBoolean('gravity',False)
     launcher.addParameterBoolean('addgeantinoes',False)
-    launcher.addParameterString('mcplDirectory','')     
+    launcher.addParameterString('mcplDirectory','')
     launcher.addParameterDouble("sample_generator_distance_meters", 4.356)
     launcher.addParameterBoolean('det_only',False)
 
@@ -32,12 +32,12 @@ def launch(geo):
         gen.momdir_spherical = True
         gen.randomize_polarangle = True
         gen.random_min_polarangle_deg = 0.0
-        gen.random_max_polarangle_deg = 0.0001 #15# 5 #5.3 # 8.5 
+        gen.random_max_polarangle_deg = 0.0001 #15# 5 #5.3 # 8.5
         gen.randomize_azimuthalangle = True
         gen.random_min_azimuthalangle_deg = 0.0
         gen.random_max_azimuthalangle_deg = 360.0
         gen.fixed_x_meters = -0.040
-    
+
     launcher.setGen(gen)
 
     #filter:

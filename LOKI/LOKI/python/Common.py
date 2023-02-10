@@ -12,9 +12,9 @@ def launch(geo):
     launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
     launcher.addParameterString('mcplDirectory','')
     launcher.addParameterString('input_file', '')
-    launcher.addParameterDouble("gen_x_offset_meters", 0.0) 
+    launcher.addParameterDouble("gen_x_offset_meters", 0.0)
 
-    launcher.addParameterInt("analysis_straw_pixel_number", 0) # zero means using default pixel number 
+    launcher.addParameterInt("analysis_straw_pixel_number", 0) # zero means using default pixel number
     if(launcher.getParameterInt('analysis_straw_pixel_number')):
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
 
@@ -107,12 +107,12 @@ def launch(geo):
         # the next two lines (and the if-statement). More info at DGSW-305.
         #launcher.cmd_postinit('/process/eLoss/StepFunction 0.1 0.001 um')
         #launcher.cmd_postinit('/process/eLoss/minKinEnergy 10 eV')
-    
+
 
     if not launcher.getParameterBoolean('det_only'):
         launcher.setOutput('lokisim','REDUCED')
     elif not launcher.getParameterBoolean('masking_only'):
-        griff_output_volumes = ["Converter", "B4CPanel",  
+        griff_output_volumes = ["Converter", "B4CPanel",
         "BoronMask-triangular-7-3", "BoronMask-triangular-7-2", "BoronMask-triangular-5-0", "BoronMask-triangular-5-1",
         "BoronMask-8-0", "BoronMask-8-1", "BoronMask-8-2", "BoronMask-8-3",  "BoronMask-8-4", "BoronMask-8-5", "BoronMask-8-6", "BoronMask-8-7",
         "BoronMask-7-0", "BoronMask-7-1", "BoronMask-7-2", "BoronMask-7-3",  "BoronMask-7-4", "BoronMask-7-5", "BoronMask-7-6", "BoronMask-7-7",

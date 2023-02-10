@@ -2,7 +2,7 @@
 #include <fstream>
 #include<algorithm>
 
-MaskFileCreator::MaskFileCreator(const char* fileName, const int numberOfPixels, const int indexOffset): 
+MaskFileCreator::MaskFileCreator(const char* fileName, const int numberOfPixels, const int indexOffset):
   m_fileName(fileName),
   m_numberOfPixels(numberOfPixels),
   m_indexOffset(indexOffset),
@@ -65,7 +65,7 @@ void MaskFileCreator::checkAimingPixelCoverage() const {
     if(!m_enteredPixelsAimingCheck[i]) {
       nonEnteredPixels++;
     }
-  } 
+  }
   if (nonEnteredPixels) {
     std::cout<< "WARNING: " << nonEnteredPixels << "/" << m_numberOfPixels << " pixels were not hit by any of the geantinos!\n";
   }

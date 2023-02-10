@@ -5,13 +5,13 @@
 
 class BcsTube {
 public:
-    /// materials ///  
+    /// materials ///
   static G4Material* tubeWallMaterial;
   static G4Material* tubeInnerGas;
   static G4Material* strawWallMaterial;
   static G4Material* converterMaterial;
   static G4Material* countingGas;
-  
+
     /// straw ///
   static double getStrawOuterRadius();
   static double getStrawInnerRadius();

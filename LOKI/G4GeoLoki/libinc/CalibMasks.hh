@@ -26,7 +26,7 @@ public:
       const double m_thickness;
       const double m_height;
       const double m_leftTubeEndDistance;
-      const double m_elevationFromMaskFront = 0.0; 
+      const double m_elevationFromMaskFront = 0.0;
       const std::vector<double> m_pattern;
   };
   static CalibMasksBase getCalibMask(std::string name);

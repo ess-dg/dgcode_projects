@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
           auto step = seg->lastStep();
           const int pixelId = getPixelId(tubeId_conv, strawId_conv, step->postGlobalX());
-          
+
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
             h_neutron_pixel_geantino_masking->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
             masking.setPixelEntered(pixelId);

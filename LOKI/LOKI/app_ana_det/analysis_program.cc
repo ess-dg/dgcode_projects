@@ -19,7 +19,7 @@
 #endif
 
 int main(int argc, char**argv) {
-  
+
   Core::catch_fpe();
   GriffDataReader dr(argc,argv);
 
@@ -66,39 +66,39 @@ int main(int argc, char**argv) {
   else{ // use default rear bank pixel number
     banks = new PixelatedBanks(sampleDetectorDistance);
   }
- 
+
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");
        h_neutron_xy_hit->setXLabel("-x [mm]");
        h_neutron_xy_hit->setYLabel("y [mm]");
-  
+
   auto h_neutron_counters = hc.bookCounts("General neutron counters","neutron_counters"); /////////////
   //auto count_entering_aluminium = h_neutron_counter->addCounter("count_entering_aluminium");
   auto count_initial_neutrons = h_neutron_counters->addCounter("count_initial_neutrons");
   auto count_neutrons_hit = h_neutron_counters->addCounter("count_neutrons_hit");
- 
 
-  while (dr.loopEvents()) {  
-    
+
+  while (dr.loopEvents()) {
+
     while (auto neutron = primary_neutrons.next()) {
       count_initial_neutrons += 1;
 
       if (hit.eventHasHit()) {
         count_neutrons_hit += 1;
-        
+
         auto segL = neutron->lastSegment();
         /// volumeCopyNumber() = CountingGas; volumeCopyNumber(1) = Converter; volumeCopyNumber(2) = straw wall; volumeCopyNumber(3) = EmptyTube;
         /// volumeCopyNumber(4) = TubeWall; volumeCopyNumber(5) = EmptyPackBox; volumeCopyNumber(6) = Bank; volumeCopyNumber(7) = World
         const int strawId_conv = segL->volumeCopyNumber(1);
         const int tubeId_conv = segL->volumeCopyNumber(3);
         const int bankId_conv = segL->volumeCopyNumber(5);
-        
+
         h_neutron_xy_hit->fill(-hit.eventHitPositionX()/Units::mm, hit.eventHitPositionY()/Units::mm, hit.eventHitWeight());
 
         const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, hit.eventHitPositionX(), hit.eventHitPositionY());
-        
+
         mcplParticle->time = hit.eventHitTime()/Units::ms;
         mcplParticle->weight = hit.eventHitWeight();
-        mcplParticle->userflags = pixelId; 
+        mcplParticle->userflags = pixelId;
         mcplParticle->position[0] = 0; //not used
         mcplParticle->position[1] = 0; //not used
         mcplParticle->position[2] = 0; //not used
@@ -107,7 +107,7 @@ int main(int argc, char**argv) {
         mcplParticle->direction[2] = 1; //dummy
         mcplParticle->ekin = 0; //dummy
         mcplParticle->pdgcode = 0; //dummy
-        
+
         mcpl_add_particle(detMcpl, mcplParticle);
       } // end hit in event
 
@@ -116,12 +116,10 @@ int main(int argc, char**argv) {
   } //end of event loop
 
   //mcpl_close_outfile(f);
-  
+
   mcpl_close_outfile(detMcpl);
 
   hc.saveToFile("bcsloki_sans", true);
-    
+
   return 0;
 }
-
-

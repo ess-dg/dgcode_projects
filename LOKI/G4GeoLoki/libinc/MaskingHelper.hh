@@ -6,10 +6,10 @@
 
 class MaskingHelper : public PixelatedBanks {
 public:
-  using PixelatedBanks::PixelatedBanks; //inherit constructors of PixelatedBanks 
+  using PixelatedBanks::PixelatedBanks; //inherit constructors of PixelatedBanks
 
   py::object getPixelCentrePositionsForMasking(const int pixelId, const bool isOldPixelNumbering, const bool isLarmor2022Experiment) const;
-  
+
 private:
   static void coordinateRotation(double &x, double &y, const double angle);
   int getBankId(const int pixelId) const;

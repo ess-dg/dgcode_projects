@@ -31,4 +31,4 @@ void DetectionFileCreator::addDetectionEvent(const int pixelId, const double tof
   this->mcplParticle->userflags = pixelId;
   this->mcplParticle->time = tof;
   mcpl_add_particle(this->detMcpl, this->mcplParticle);
- }
+}

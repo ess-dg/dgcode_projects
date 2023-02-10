@@ -1,4 +1,3 @@
 #!/usr/bin/env python3
 import G4Utils.chain
 G4Utils.chain.chain('ess_loki_sim_larmor2020','ess_loki_ana_larmor2020_det','REDUCED')
-
