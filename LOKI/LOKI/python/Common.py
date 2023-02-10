@@ -4,16 +4,15 @@ def launch(geo):
     launcher = G4Launcher()
 
     launcher.addParameterBoolean('primary_only',False)
-#    launcher.addParameterBoolean('event_gen',False)
     launcher.addParameterString('event_gen','')
     launcher.addParameterBoolean('gravity',False)
     launcher.addParameterBoolean('addgeantinoes',False)
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterBoolean('masking_only',False)
-    launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #All MCPL_output components are positioned at 0.2 m distance from the sample
+    launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
     launcher.addParameterString('mcplDirectory','')
     launcher.addParameterString('input_file', '')
-    launcher.addParameterDouble("gen_x_offset_meters", 0.005) #5 mm offset for rear bank at Larmor experiment
+    launcher.addParameterDouble("gen_x_offset_meters", 0.0) 
 
     launcher.addParameterInt("analysis_straw_pixel_number", 0) # zero means using default pixel number 
     if(launcher.getParameterInt('analysis_straw_pixel_number')):
@@ -31,34 +30,21 @@ def launch(geo):
         else:
           gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
 
-        import MCPL        
+        import MCPL
         tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
-        if( 'sample_mcpl_distance_m' in tmp_myfile.blobs ):
+        for blobkey in tmp_myfile.blobs:
+          launcher.setUserData(blobkey, str(tmp_myfile.blobs[blobkey]))
+        if('sample_mcpl_distance_m' in tmp_myfile.blobs):
           gen.dz_meter = float(tmp_myfile.blobs['sample_mcpl_distance_m'])
         else:
           gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')#translate z coordinates by McStas Sample-MCPL_output distance
         gen.dx_meter = launcher.getParameterDouble('gen_x_offset_meters')
-
-
         gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
-        def overrideGenDzForLarmor2022Experiment(): # Fixed gen dz value for larmor2022experiment
-          larmor_2022_experiment = launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')
-          if larmor_2022_experiment:
-            launcher.getGen().dz_meter = 4.049 #note: intentionally 4.049, not 4.099
-            print("Generator dz overriden for Larmor2022 experiment setup. New value is 4.099 m.") 
-        launcher.addPrePreInitHook(overrideGenDzForLarmor2022Experiment) #(possibly) override gen dz after the geo.larmor_2022_experiment input parameter's value is available
-    elif launcher.getParameterString('event_gen')=='ascii':
-        raise ValueError("event_gen=ascii is no longer supported. Please use mcpl input instead")
-    elif launcher.getParameterString('event_gen')=='spheremodel':
-        from  LOKI.SansSphereGen import SansSphereGen as Gen
-        gen = Gen()
-    elif launcher.getParameterString('event_gen')=='isotheta':
-        from  LOKI.IsoThetaGen import IsoThetaGen as Gen
-        gen = Gen()
     elif launcher.getParameterString('event_gen')=='flood':
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
         gen = Gen()
         gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
+        gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
     elif launcher.getParameterString('event_gen')=='masking':
         from  LOKI.MaskingSourceGen import MaskingSourceGen as Gen
         gen = Gen()
@@ -66,6 +52,13 @@ def launch(geo):
         gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
         gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
         gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
+        gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
+    elif launcher.getParameterString('event_gen')=='spheremodel':
+        from  LOKI.SansSphereGen import SansSphereGen as Gen
+        gen = Gen()
+    elif launcher.getParameterString('event_gen')=='isotheta':
+        from  LOKI.IsoThetaGen import IsoThetaGen as Gen
+        gen = Gen()
     else:
         import G4StdGenerators.FlexGen as Gen
         gen = Gen.create()
@@ -80,6 +73,18 @@ def launch(geo):
         gen.random_min_azimuthalangle_deg = 0 #20.0
         gen.random_max_azimuthalangle_deg = 360.0 #60
     launcher.setGen(gen)
+
+    def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
+      if(launcher.getGen().hasParameterBoolean('geo_larmor_2022_experiment') and
+         launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
+        if(launcher.getGen().getName()=="G4MCPLPlugins/MCPLGen"): #event_gen=mcpl
+          assert launcher.getGen().dz_meter == 4.049, "sample_generator_distance_meters should be 4.049, or wrong sample_mcpl_distance_m value in the MCPL file" #note: intentionally 4.049, not 4.099
+          assert launcher.getGen().dx_meter == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+        elif(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
+          assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+        elif(launcher.getGen().getName()=="LOKI.MaskingSourceGen/MaskingSourceGen"): #event_gen=masking
+          assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+    launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
 
     #filter:
     if launcher.getParameterBoolean('primary_only'):

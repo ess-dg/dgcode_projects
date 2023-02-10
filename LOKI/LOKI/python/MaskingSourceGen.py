@@ -7,7 +7,7 @@ import G4GeoLoki.LokiMaskingHelper as Mask
 
 class MaskingSourceGen(G4CustomPyGen.GenBase):
     def declare_parameters(self):
-        self.addParameterDouble("gen_x_offset_millimeters", 0.0)
+        self.addParameterDouble("gen_x_offset_meters", 0.0)
         self.addParameterDouble("gen_x_width_meters", 0.0)
         self.addParameterDouble("gen_y_width_meters", 0.0)
         #self.addParameterDouble("z_width_meters", 0.001)
@@ -21,11 +21,12 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
 
         self.aimHelper = Mask.MaskingHelper(self.geo_rear_detector_distance_m *Units.m, self.aiming_straw_pixel_number)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
+        print(f"Total number of pixels: {self.totalNumberOfPixels}")
 
     def generate_event(self,gun):
         self._i += 1        
         # Source position - 
-        sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *Units.m + self.gen_x_offset_millimeters *Units.mm
+        sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *Units.m + self.gen_x_offset_meters *Units.m
         sourcePositionY = self.gen_y_width_meters *(self.rand()-0.5) *Units.m
         sourcePositionZ = 0.0
         gun.set_position(sourcePositionX, sourcePositionY, sourcePositionZ)
