@@ -1,5 +1,5 @@
-#ifndef GriffB10Common_MaskFileCreator_hh
-#define GriffB10Common_MaskFileCreator_hh
+#ifndef LOKI_MaskFileCreator_hh
+#define LOKI_MaskFileCreator_hh
 
 #include <iostream>
 #include <memory>
