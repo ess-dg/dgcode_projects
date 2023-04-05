@@ -43,8 +43,8 @@ def launch(geo):
     elif launcher.getParameterString('event_gen')=='flood':
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
         gen = Gen()
-        gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
+        gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
     elif launcher.getParameterString('event_gen')=='masking':
         from  LOKI.MaskingSourceGen import MaskingSourceGen as Gen
         gen = Gen()
@@ -82,8 +82,22 @@ def launch(geo):
           assert launcher.getGen().dx_meter == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
         elif(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
           assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+          launcher.getGen().source_sample_distance_meters = 25.61
+          launcher.getGen().source_monitor_distance_meters = 25.57
+          import math as m
+          launcher.getGen().cone_opening_deg = m.acos(1-2/233)/m.pi*180
+          launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
+          launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))
+          launcher.setUserData("neutron_wavelength_min_aangstrom", str(launcher.getGen().neutron_wavelength_min_aangstrom))
+          launcher.setUserData("neutron_wavelength_max_aangstrom", str(launcher.getGen().neutron_wavelength_max_aangstrom))
+          print(f"Using predifined parameters for the Larmor-2022 experiment!")
+          print(f'    source_sample_distance_meters: {launcher.getGen().source_sample_distance_meters}')
+          print(f'    source_monitor_distance_meters: {launcher.getGen().source_monitor_distance_meters}')
+          print(f'    cone_opening_deg: {launcher.getGen().cone_opening_deg}')
+
         elif(launcher.getGen().getName()=="LOKI.MaskingSourceGen/MaskingSourceGen"): #event_gen=masking
           assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+
     launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
 
     #filter:

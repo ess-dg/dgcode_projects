@@ -26,24 +26,6 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         gun.set_type('neutron')
         #gun.set_type('geantino')
 
-        self.coneOpeningDeg = self.cone_opening_deg
-        self.sourceSampleDistanceMeters = self.source_sample_distance_meters
-        self.sourceMonitorDistanceMeters = self.source_monitor_distance_meters
-        if self.geo_larmor_2022_experiment: #setting hardocded parameters for larmor 2022 experiment
-          self.sourceSampleDistanceMeters = 25.61 #Sample position in Larmor.instr
-          self.sourceMonitorDistanceMeters = 25.57 #TOFpresamp McStas monitor in Larmor.instr
-          self.coneOpeningDeg = math.acos(1-2/233)/math.pi*180
-          print(f"Using predifined parameters for the Larmor-2022 experiment!/n/t source_sample_distance_meters: {self.sourceSampleDistanceMeters} m /n/t source_monitor_distance_meters: {self.sourceMonitorDistanceMeters} m /n/t cone_opening_deg: {self.coneOpeningDeg}")
-
-        solid_angle_factor = (1 - math.cos(self.coneOpeningDeg*math.pi/180))/2
-        print(f"Flood source sampled cone angle: {self.coneOpeningDeg} ({self.coneOpeningDeg*math.pi/180} rad)")
-        print(f"Source factor: {1/solid_angle_factor}")
-
-        velocity_min = Utils.NeutronMath.neutron_angstrom_to_meters_per_second(13)
-        velocity_max = Utils.NeutronMath.neutron_angstrom_to_meters_per_second(2)
-        print("monitor TOF min: " + str(self.sourceMonitorDistanceMeters / velocity_max *Units.second))
-        print("monitor TOF max: " + str(self.sourceMonitorDistanceMeters / velocity_min *Units.second))
-
     def generate_event(self,gun):
         # Energy - uniform wavelength distribution between min and max parameters
         wavelength = (self.neutron_wavelength_min_aangstrom + self.rand()*(self.neutron_wavelength_max_aangstrom - self.neutron_wavelength_min_aangstrom))
@@ -51,7 +33,7 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
 
         # Initial TOF - calculated from source_sample_distance and the sampled wavelength(velocity)
         velocity = Utils.NeutronMath.neutron_angstrom_to_meters_per_second(wavelength)
-        gun.set_time(self.sourceSampleDistanceMeters / velocity *Units.second)
+        gun.set_time(self.source_sample_distance_meters / velocity *Units.second)
 
         # Source position - uniform surface source (could be volume)
         x_meters = self.gen_x_width_meters *(self.rand()-0.5) + self.gen_x_offset_meters
@@ -59,7 +41,7 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         gun.set_position(x_meters *Units.m, y_meters *Units.m , self.fixed_z_meters *Units.m)
 
         # Direction - uniform within a cone with an opening angle of alpha
-        cos_alpha = math.cos(self.coneOpeningDeg*math.pi/180)
+        cos_alpha = math.cos(self.cone_opening_deg*math.pi/180)
         rho = cos_alpha + self.rand() * (1 - cos_alpha) # rand uniform [cos(alpha), 1]
         theta = math.acos(rho)
         phi = self.rand() * 2.0 * math.pi

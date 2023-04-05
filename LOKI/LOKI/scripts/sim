@@ -6,6 +6,3 @@ geo = GEO.create()
 
 import LOKI.Common
 LOKI.Common.launch(geo)
-
-#import LOKI.Common
-#LOKI.Common.launch(geo)

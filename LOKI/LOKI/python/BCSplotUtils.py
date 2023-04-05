@@ -1,6 +1,4 @@
 from __future__ import print_function
-
-#!/usr/bin/env python3
 from builtins import zip
 from builtins import map
 from builtins import str
