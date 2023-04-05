@@ -1,0 +1,8 @@
+package(USEPKG G4Units MCPL USEEXT Mantid)
+
+######################################################################
+
+
+Package providing scripts to produce Mantid nexus files from LOKI detector simulations.
+
+Primary author: milan.klausz@ess.eu

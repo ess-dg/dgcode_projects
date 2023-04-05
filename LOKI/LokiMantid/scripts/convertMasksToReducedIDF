@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import csv
+import xml.etree.ElementTree as ET
+from LokiMantid.PixelIdConverters import Larmor2022GeometryConverter, TubeNumberingConverter
+
+pixelPerStraw = 512
+reducedGeomConverter = Larmor2022GeometryConverter(pixelPerStraw)
+tubeNumberingConverter = TubeNumberingConverter(pixelPerStraw)
+
+def intersection(lst1, lst2):
+    return list(set(lst1) & set(lst2))
+
+
+fileList = ['maskFile.xml'] #input
+convertOldNuberingToNewNumbering = False # For masks corresponding to the old pixel numbering (ICD v1)
+pixelOffset = 11 #Thi
+outputFileName = 'mask_reduced_geom_px512_ssd4099_newNumbering.xml'
+
+idIntersection = ()
+for index, fileName in enumerate(fileList):
+    tree = ET.parse(fileName)
+    root = tree.getroot()
+    #print(root.tag)
+    groupElement = root.find('group')
+    detidsElement = groupElement.find('detids')
+
+    idStringList = list(detidsElement.text.split(","))
+    idList_fullGeom = [int(idString)-pixelOffset for idString in idStringList]
+    
+    if convertOldNuberingToNewNumbering:
+      idList_fullGeom = [tubeNumberingConverter.getNewPixelId(id) for id in idList_fullGeom]
+
+    idList = [ id-reducedGeomConverter.getReductionPixelOffset_newGeom(id)+1 for id in idList_fullGeom if reducedGeomConverter.isPixelInReducedGeom(id) ]
+
+    if(index == 0):
+        idIntersection = idList
+    else:
+        idIntersection = intersection(idIntersection, idList)
+
+    print('file: ', fileName, 'masked Ids: ', len(idList), 'intersected Ids: ', len(idIntersection))
+
+idIntersection.sort()
+print('Final masked Ids (intersections): ', len(idIntersection))
+
+with open(outputFileName, 'w' ) as f:
+    f.write('<?xml version="1.0"?>\n')
+    f.write('<detector-masking>\n')
+    f.write('\t<group>\n')
+    f.write('\t\t<detids> ')
+    writer = csv.writer(f)
+    writer.writerow(idIntersection)
+    f.write(' </detids>\n')
+    f.write('\t</group>\n')
+    f.write('</detector-masking>')
+    f.close()

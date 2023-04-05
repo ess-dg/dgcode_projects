@@ -1,0 +1,208 @@
+#!/usr/bin/env mantidpython
+
+import mantid.simpleapi as api
+from mantid.kernel import DateAndTime
+from Core import FindData
+import MCPL
+import numpy as np
+import time as measureTime
+from pathlib import Path
+from datetime import datetime
+from glob import glob
+import os, sys
+
+#mcStasFolderName, mcplFileNameList, saveFileName = ("flat_20A_onlyScattered_split1000_1e11_newlong", ["flat_20A_deweight_onlyScattered_split1000_1e11_withDetOffset_sdd4420/flat_20A_deweight_onlyScattered_split1000_1e11_withDetOffset_sdd4420.mcpl"], "flat_20A_onlyScattered_withDetOffset_sdd4420.nxs") #recreated, so not sure
+#mcStasFolderName, mcplFileNameList, saveFileName = ("flat_20A_onlyScattered_split1000_1e11_BS_newlong", ["flat_20A_deweight_onlyScattered_split1000_1e11_withBS_sdd4420/flat_20A_deweight_onlyScattered_split1000_1e11_withBS_sdd4420.mcpl"], "flat_20A_onlyScattered_withDetOffset_sdd4420_BS.nxs")
+#mcStasFolderName, mcplFileNameList, saveFileName = ("samp10_2kA_onlyScattered_split1000_1e11_BS_newlong", ["samp10_2kA_deweight_onlyScattered_split1000_1e11_withBS_sdd4420/samp10_2kA_deweight_onlyScattered_split1000_1e11_withBS_sdd4420.mcpl"], "samp10_2kA_onlyScattered_withDetOffset_sdd4420_BS.nxs") 
+#mcStasFolderName, mcplFileNameList, saveFileName = ("empty_20mA_onlyTransmited_split1000_1e9", ["empty_20mA_onlyTransmited_split1000_1e9_withDetOffset_sdd4420/empty_20mA_onlyTransmited_split1000_1e9_withDetOffset_sdd4420.mcpl"], "empty_20mA_withDetOffset_sdd4420.nxs")   
+
+#mcStasFolderName, mcplFileNameList, saveFileName = ("samp18_20A_onlyScattered_split1000_1e11_BS_newlong", ["samp18_20A_onlyScattered_split1000_1e11_BS_with_detOffset_sdd4420/samp18_20A_onlyScattered_split1000_1e11_BS_with_detOffset_sdd4420.mcpl"], "samp18_20A_onlyScattered_withDetOffset_sdd4420_BS.nxs")
+#mcStasFolderName, mcplFileNameList, saveFileName = ("sans50_2kA_onlyScattered_split2000_1e11_BS_newlong", ["sans50_2kA_onlyScattered_split1000_1e11_BS_with_detOffset_sdd4420/sans50_2kA_onlyScattered_split1000_1e11_BS_with_detOffset_sdd4420.mcpl"], "sans50_20A_onlyScattered_withDetOffset_sdd4420_BS.nxs")
+
+mcStasFolderName, mcplFileNameList, saveFileName = ("test_deweightMCPL_samp18_dw0_n1e5_1", ["wrongSsd/samp10_200mA_onlyScattered_split100_1e8_BS_deweight/detectionEvents.mcpl"], "test_samp10_200mA_onlyScattered_split100_1e8_BS_deweight.nxs")
+
+mcstasBaseDir_larmor = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LARMOR2020', None))
+mcplBaseDir_larmor = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LARMOR2020', None))
+saveDir_larmor = Path(os.environ.get('G4PROC_SAVEDIR_LARMOR2020', None))
+
+mcStasFolder = str(mcstasBaseDir_larmor / mcStasFolderName)
+mcplFileList = [ mcplBaseDir_larmor / mcplFileName  for mcplFileName in mcplFileNameList]
+saveFile = str(saveDir_larmor / saveFileName)
+
+instrumentDefinitionFile = FindData("LokiMantid","LARMOR_Definition_2020.xml")
+
+def extractMonitorData(filename):
+    with open(filename) as monitorFile:
+        data = monitorFile.readlines()
+
+        headerLines = 0
+        for line in data:
+            if line.startswith('#'):
+                headerLines +=1
+
+        header = data[headerLines-1].split(" ")
+
+        monitorData = np.array([x.split(" ") for x in data[headerLines:-1]])
+
+        wavelength = None
+        tof = None
+        if header[2] == 't':
+            tof = monitorData[:, 0].astype(np.float32) #values in Larmor McStas monitors are already in microseconds so no conversion factor
+        else:
+            wavelength = monitorData[:, 0].astype(np.float32)
+        intensity = monitorData[:, 1].astype(np.float32)
+        error = monitorData[:, 2].astype(np.float32)
+
+        return tof, wavelength, intensity, error
+
+startScriptTime = measureTime.time()
+# do stuff
+
+print("Process McStas monitors - START")
+
+monitor1 = '/TOFmon1.dat'
+monitor2 = '/TOFmon2.dat'
+monitor3 = '/TOFpresamp.dat'
+monitor4 = '/TOFmon4.dat'
+
+fileList = [monitor1, monitor2, monitor3, monitor4]
+
+X = []
+Y = []
+E = []
+detIDs = []
+
+for i, file in enumerate(fileList):
+    if len(glob(mcStasFolder + file)) == 1:
+        fileList[i] = glob(mcStasFolder + file)[0]
+    else:
+        sys.exit(f'Problem with finding {mcStasFolder + file}')
+
+    tof, wavelength, y, e = extractMonitorData(fileList[i])
+    X.append(wavelength if tof is None else tof)
+    Y.append(y)
+    E.append(e)
+    # x = convertToBinEdges(x)
+    # monitors[i] = CreateWorkspace(OutputWorkspace="monitorWs"+str(i),DataX=x, DataY=y, DataE=e, NSpec=1)
+    # monitors.append(x, y, e)
+X = np.array(X)
+Y = np.array(Y)
+E = np.array(E)
+mcStasMonitorWS = api.CreateWorkspace(OutputWorkspace="mcStasMonitorWS", DataX=X, DataY=Y, DataE=E, NSpec=len(fileList), UnitX='TOF', YUnitLabel='Counts')
+
+api.LoadInstrument(Workspace=mcStasMonitorWS, Filename=instrumentDefinitionFile, RewriteSpectraMap=True)
+
+print("Process McStas monitors - END")
+
+print("Process Geant4 data - START")
+
+Geant4DataWS = api.LoadEmptyInstrument(instrumentDefinitionFile, MakeEventWorkspace=True)
+
+numHists = Geant4DataWS.getNumberHistograms()
+detToIndex = {}
+for i in range(numHists):
+    eventList = Geant4DataWS.getSpectrum(i)
+    id = eventList.getDetectorIDs()
+    detToIndex[id[0]] = i
+    eventList.clear(False)
+
+
+pulsetime = datetime.now()
+        
+dateTime = DateAndTime(pulsetime.isoformat(sep="T"))
+numHistograms = Geant4DataWS.getNumberHistograms()
+
+allEventList = [ Geant4DataWS.getSpectrum(idx) for idx in range(numHistograms)]
+
+#tof = np.array([])
+#detids = np.array([])
+
+readBlockLength = 100000000
+
+#idOffset = 0 #original
+idOffset = 11
+
+print("Loading detection events from MCPL - START")
+
+countAddEventError = 0
+globalCountEventError = 0
+
+for mcplFile in mcplFileList:
+    countAddEventError = 0
+    tof = np.array([])
+    detids = np.array([])
+    myfile = MCPL.MCPLFile(mcplFile, blocklength=readBlockLength)
+    with myfile:
+        for p in myfile.particle_blocks:
+            detids = np.append(detids, p.userflags.astype(int))
+            tof = np.append(tof, p.time * 1000)  # convert to microseconds
+        
+        print(f"Loading detection events from MCPL {mcplFile} - END")
+
+        print("Add events to workspace - START")
+        for time,detId in zip(tof, detids):
+            try:
+                allEventList[detToIndex[detId+idOffset]].addEventQuickly(time, dateTime)
+            except:
+                countAddEventError = countAddEventError + 1
+                #print('Index problem: ' + str(detId) + ' withOffset: ' + str(detId+idOffset) )
+                pass
+
+        globalCountEventError = globalCountEventError + countAddEventError 
+        print(f'Number of addEventQuickly errors in file {mcplFile} is: {countAddEventError}')
+        print("Add events to workspace - END")
+
+print(f'SUM number of addEventQuickly errors: {globalCountEventError}')
+tofmin = int(Geant4DataWS.getTofMin())
+tofmax = int(Geant4DataWS.getTofMax())
+#print('tofmin', tofmin)
+#print('tofmax', tofmax)
+width = tofmax - tofmin
+#width = (tofmax - tofmin)/100 #milan
+ptMin = Geant4DataWS.getPulseTimeMin()
+ptMax = Geant4DataWS.getPulseTimeMax()
+
+run = Geant4DataWS.run()
+run.setStartAndEndTime(ptMin, ptMax)
+run.addProperty("run_number", "1", True)
+run.addProperty("run_start", str(ptMin), True)
+run.addProperty("TimeUnit", "Micro Seconds", True)
+#SortEvents(InputWorkspace=Geant4DataWS, SortBy='Pulse Time')
+#Geant4DataWS = Rebin(InputWorkspace=Geant4DataWS, OutputWorkspace=Geant4DataWS,
+#             Params=str(tofmin) + "," + str(width) + "," + str(tofmax), PreserveEvents=True)
+Geant4DataWS.setYUnitLabel("Counts")
+Geant4DataWS.getAxis(0).setUnit("TOF")
+
+print("Process Geant4 data - END")    
+
+tofHistogramStart = 5 # [microSeconds]
+tofHistogramBinwidth = 500 # 100 [microSeconds]
+tofHistogramEnd = 100000 # [microSeconds]
+params = [tofHistogramStart, tofHistogramBinwidth, tofHistogramEnd]
+
+if (tofmin < tofHistogramStart):
+    print("WARNING: tofmin is lower than the histogram limit")
+if (tofmax > tofHistogramEnd):
+    print("WARNING: tofmax is higher than the histogram limit")
+    
+Geant4DataWS2D = api.Rebin(InputWorkspace=Geant4DataWS, OutputWorkspace='Geant4DataWS2D', Params=params, PreserveEvents=False)
+mcStasMonitorWS_rebin = api.Rebin(InputWorkspace=mcStasMonitorWS, OutputWorkspace='mcStasMonitorWS_rebin', Params=params)
+
+# Copy Monitor Data into Geant4DataWS workspace
+gw = api.mtd['Geant4DataWS2D']
+mw = api.mtd['mcStasMonitorWS_rebin']
+ 
+for i in range(3):
+    gw.setY(i, mw.readY(i))
+
+
+# Save nexus file
+api.SaveNexus(Geant4DataWS2D, saveFile)
+print(f'Saved Nexus file: {saveFile}')
+
+elapsed = measureTime.time() - startScriptTime
+print(elapsed)
+
+# Not sure, if needed
+#DeleteWorkspace(Workspace=mcStasMonitorWS)
+#DeleteWorkspace(Workspace=Geant4DataWS)

@@ -1,0 +1,32 @@
+#!/bin/bash
+ 
+#SBATCH --mail-user=milan.klausz@yahoo.com
+#SBATCH --mail-type=ALL
+#SBATCH --job-name=mantidLoad
+#SBATCH --output=slurmOutput/loadMantid_default2.out
+#SBATCH --error=slurmOutput/loadMantid_default2.out 
+#SBATCH --partition=quark
+#SBATCH --nodes 1-1
+#SBATCH --time=12:00:00                                                                                            
+#SBATCH --exclusive      
+ 
+# the --exclusive is needed when running OpenMPI
+# OLD COMMENT it will allocate 12 cores per node, in all  nodes x 12 cores
+
+# mpirun executed directly
+## long: 12
+## verylong: 16
+## newlong: 28
+## quark: 32
+#source /etc/profile.d/modules.sh
+
+if [[ "x$1" != "x" ]]; then
+  mantidpython "$1"
+else
+  #mantidpython larmor_floodSource_loadGeant4Data_cli.py
+  #mantidpython larmor_loadGeant4Data_cli.py
+  #mantidpython rearBankLarmor_floodSource_geant4_cli.py
+  mantidpython rearBankLarmor_floodSource_monitor_cli.py
+  #mantidpython rearBankLarmor_separateLoad_geant4_cli.py
+  #mantidpython rearBankLarmor_separateLoad_mcstas_cli.py
+fi

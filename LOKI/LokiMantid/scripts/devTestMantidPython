@@ -1,0 +1,14 @@
+#!/usr/bin/env mantidpython
+
+from mantid.kernel import *
+
+import Core.FindData
+datafile = Core.FindData("LokiMantid","LARMOR_Definition_2020.xml")
+
+print(datafile)
+
+import os
+userFilePath = os.environ.get('MY_LOKI_MANTID_PROCESSING_PATH_FILE', None) 
+
+import Core
+import LOKI
