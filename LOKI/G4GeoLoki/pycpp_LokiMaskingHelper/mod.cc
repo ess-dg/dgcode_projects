@@ -8,6 +8,13 @@ PYTHON_MODULE
     .def(py::init<double, int, int>())
     .def("getPixelCentrePositionsForMasking",&MaskingHelper::getPixelCentrePositionsForMasking)
     .def("getTotalNumberOfPixels",&MaskingHelper::getTotalNumberOfPixels)
-    // .def("getTotalNumberOfPixels",&MaskingHelper::getTotalNumberOfPixels).staticmethod("getTotalNumberOfPixels")
+    .def("getNumberOfPixels",&MaskingHelper::getNumberOfPixels).staticmethod("getNumberOfPixels")
+    .def("getBankPixelOffset",&MaskingHelper::getBankPixelOffset).staticmethod("getBankPixelOffset")
+    
+    .def("dumpInfo",&MaskingHelper::dumpInfo).staticmethod("dumpInfo")
+    .def("getBankId",&MaskingHelper::getBankId)
+    .def("getPackId",&MaskingHelper::getPackId).staticmethod("getPackId")
+    .def("getTubeId",&MaskingHelper::getTubeId).staticmethod("getTubeId")
+    .def("getStrawId",&MaskingHelper::getStrawId).staticmethod("getStrawId")
     ;
 }

@@ -85,3 +85,34 @@ int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int str
   const int positionPixelId = getPositionPixelId(bankId, positionX, positionY);
   return bankPixelOffset + strawPixelOffset + positionPixelId;
 }
+
+void PixelatedBanks::dumpInfo(){
+  int totalTumberOfPacks = 0;
+  int totalTumberOfTubes = 0;
+  int totalTumberOfStraws = 0;
+  int totalTumberOfPixels = 0;
+  for (int bankIndex = 0; bankIndex < 9; bankIndex++) {
+    const int numberOfPacksInBank = getNumberOfPacksByBankId(bankIndex);
+    totalTumberOfPacks+=numberOfPacksInBank;
+    const int numberOfTubesInBank = getNumberOfTubes(bankIndex);
+    totalTumberOfTubes+=numberOfTubesInBank;
+    const int numberOfStrawsInBank = numberOfTubesInBank * 7;
+    totalTumberOfStraws+=numberOfStrawsInBank;
+    const int pixelPerStraw = getNumberOfPixelsInStraw(bankIndex);
+    const int numberOfPixelsInBank = numberOfStrawsInBank * pixelPerStraw;
+    totalTumberOfPixels+=numberOfPixelsInBank;
+
+    auto indent = "    ";
+    std::cout<<"Bank "<<bankIndex<<"\n";
+    std::cout<<indent<<"Detector length: "<<getStrawLengthByBankId(bankIndex)<<" mm"<<"\n";
+    std::cout<<indent<<"Pixels per straw: "<<pixelPerStraw<<"\n";
+    std::cout<<indent<<"Number of packs: "<<numberOfPacksInBank<<"\n";
+    std::cout<<indent<<"Number of tubes: "<<numberOfTubesInBank<<"\n";
+    std::cout<<indent<<"Number of straws: "<<numberOfStrawsInBank<<"\n";
+    std::cout<<indent<<"Number of pixels: "<<numberOfPixelsInBank<<" (starting from: "<<getBankPixelOffset(bankIndex)<<")"<<"\n";
+  }
+  std::cout<<"Total number of packs: "<<totalTumberOfPacks<<"\n";
+  std::cout<<"Total number of tubes: "<<totalTumberOfTubes<<"\n";
+  std::cout<<"Total number of straws: "<<totalTumberOfStraws<<"\n";
+  std::cout<<"Total number of pixels: "<<totalTumberOfPixels<<"\n";
+}

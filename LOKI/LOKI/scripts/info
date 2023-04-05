@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import argparse
+import G4GeoLoki.LokiMaskingHelper as Mask
+
+parser = argparse.ArgumentParser(description = 'Geometry information tools.')
+parser.add_argument('-i', '--info', action = 'store_true', help = 'Dump information about the geometry.')
+parser.add_argument('-rear', '--rear_detector_distance_m', default=5.0, type=float, help = 'Sample to rear detector distance.')
+parser.add_argument('-spn', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
+parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
+# parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
+parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
+parser.add_argument('-ssd', '--source_sample_distance_m', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
+
+args = parser.parse_args()
+
+print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} source_sample_distance_m={args.source_sample_distance_m}")
+geoHelper = Mask.MaskingHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
+
+if args.info:
+  geoHelper.dumpInfo()
+  exit()
+
+if not args.pixel is None:
+  larmor_2022_experiment=False #TODO input? must be handled everywhere
+  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentrePositionsForMasking(args.pixel, args.old_tube_numbering, larmor_2022_experiment)
+  bankId = geoHelper.getBankId(args.pixel)
+  tubeId = geoHelper.getTubeId(args.pixel, bankId)
+  packId = geoHelper.getPackId(bankId, tubeId, args.old_tube_numbering)
+  strawId = geoHelper.getStrawId(args.pixel, bankId, tubeId)
+  inStrawId = args.pixel % args.straw_pixel_number
+  print(f"Pixel number: {args.pixel}")
+  print(f"Pixel centre position [m] X: {pixelCentreX/1000:.4f} Y: {pixelCentreY/1000:.4f} Z: {(args.source_sample_distance_m+pixelCentreZ/1000):.4f}")
+  print(f"Bank id: {bankId}")
+  print(f"Pack id: {packId}")
+  print(f"Tube id: {tubeId}")
+  print(f"Straw id: {strawId}")
+  print(f"InStraw id: {inStrawId}")
