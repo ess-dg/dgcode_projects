@@ -1,11 +1,13 @@
-#ifndef GriffB10Common_DetectionFileCreator_hh
-#define GriffB10Common_DetectionFileCreator_hh
+#ifndef LOKI_DetectionFileCreator_hh
+#define LOKI_DetectionFileCreator_hh
 
 #include "MCPL/mcpl.h"
+#include "GriffDataRead/Setup.hh"
 #include <iostream>
 
 class DetectionFileCreator {
 public:
+  DetectionFileCreator(const char* fileName, GriffDataRead::StrMap& userData);
   DetectionFileCreator(const char* fileName);
   ~DetectionFileCreator();
 

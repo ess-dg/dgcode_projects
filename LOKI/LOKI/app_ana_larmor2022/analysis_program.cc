@@ -95,10 +95,6 @@ int main(int argc, char**argv) {
   segments_StrawWall.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_StrawWall.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  DetectionFileCreator* detectionFile = nullptr;
-  if (createDetectionMcplFile == true) {
-    detectionFile = new DetectionFileCreator("detectionEvents.mcpl");
-  }
 
   SimpleHists::HistCollection hc;
 
@@ -110,6 +106,11 @@ int main(int argc, char**argv) {
   }
   else{ // use default rear bank pixel number
     banks = new PixelatedBanks(sampleDetectorDistance);
+  }
+
+  DetectionFileCreator* detectionFile = nullptr;
+  if (createDetectionMcplFile == true) {
+    detectionFile = new DetectionFileCreator("detectionEvents.mcpl", userData);
   }
 
   bool oldTubeNumbering = false;

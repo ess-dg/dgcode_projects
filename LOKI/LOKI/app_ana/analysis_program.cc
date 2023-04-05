@@ -77,11 +77,6 @@ int main(int argc, char**argv) {
   segments_all.addFilter(new GriffAnaUtils::TrackFilter_Primary());
   segments_all.addFilter(new GriffAnaUtils::TrackFilter_PDGCode(2112));
 
-  DetectionFileCreator* detectionFile = nullptr;
-  if (createDetectionMcplFile == true) {
-    detectionFile = new DetectionFileCreator("detectionEvents.mcpl");
-  }
-
   SimpleHists::HistCollection hc;
 
   auto userData = setup->userData();
@@ -156,6 +151,10 @@ int main(int argc, char**argv) {
   printf("Number of pixels per straw: %d\n", strawPixelNumber);
   printf("Number of straws: %d\n", numberOfStraws);
 
+  DetectionFileCreator* detectionFile = nullptr;
+  if (createDetectionMcplFile == true) {
+    detectionFile = new DetectionFileCreator("detectionEvents.mcpl", userData);
+  }
   // auto h_neutron_pixel_hit_count = hc.book1D("Number of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_count");
   //      h_neutron_pixel_hit_count->setXLabel("Pixel ID");
   // auto h_neutron_pixel_hit_weight = hc.book1D("Sum weight of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_weight");

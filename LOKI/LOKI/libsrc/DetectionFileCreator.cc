@@ -1,5 +1,22 @@
 #include "LOKI/DetectionFileCreator.hh"
 
+
+DetectionFileCreator::DetectionFileCreator(const char* fileName, GriffDataRead::StrMap& userData): m_fileName(fileName) {
+  this->detMcpl = mcpl_create_outfile(fileName);
+  mcpl_hdr_set_srcname(this->detMcpl, "LOKI/DetectionFileCreator Class");
+  mcpl_hdr_add_comment(this->detMcpl, "Neutrons in this file are actually detection events, and userflags are pixel ID's of hits. Created with the DetectionFileCreator class.");
+  //mcpl_hdr_add_comment(this->detMcpl, "ARG=VAL");
+  mcpl_enable_userflags(this->detMcpl);
+  this->mcplParticle = mcpl_get_empty_particle(this->detMcpl);
+  initiateMcplParticle();
+
+  for(GriffDataRead::StrMap::iterator iter = userData.begin(); iter != userData.end(); ++iter) {
+    std::string key = iter->first;
+    std::string value = iter->second;
+    mcpl_hdr_add_data(this->detMcpl, key.c_str(), value.size(), value.c_str());
+  }
+}
+
 DetectionFileCreator::DetectionFileCreator(const char* fileName): m_fileName(fileName) {
   this->detMcpl = mcpl_create_outfile(fileName);
   //mcpl_hdr_set_srcname(this->detMcpl, "LOKI DetectionFileCreator Class");
