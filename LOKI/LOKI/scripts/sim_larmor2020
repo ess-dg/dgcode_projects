@@ -4,5 +4,5 @@ import G4GeoLoki.GeoLarmorBCSExperiment as GEO
 
 geo = GEO.create()
 
-import LOKI.CommonLarmor
-LOKI.CommonLarmor.launch(geo)
+import LOKI.Larmor2020Launcher
+LOKI.Larmor2020Launcher.launch(geo)

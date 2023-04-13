@@ -22,6 +22,9 @@ def launch(geo):
         gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')  #translate z coordinates by McStas Sample-MCPL_output distance
         gen.dx_meter = -0.040
     elif launcher.getParameterString('event_gen')=='flood':
+        #NOTE cone_opening_deg should be math.acos(1-2/120)/math.pi*180 = 10.4753
+        #self.addParameterDouble("cone_opening_deg", math.acos(1-2/120)/math.pi*180, 0.0, 180.0) #for more efficient sampling - Larmor2020 experiment
+        #self.addParameterDouble("gen_x_offset_meters", -0.040) #Larmor2020 experiment
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
         gen = Gen()
     else:
