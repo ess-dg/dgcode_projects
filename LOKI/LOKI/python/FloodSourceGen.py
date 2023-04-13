@@ -13,14 +13,12 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         self.addParameterDouble("source_monitor_distance_meters", 23.5662) #pre-sample monitor position (should match the IDF file)
 
         self.addParameterDouble("gen_x_offset_meters", 0.0)
-        #self.addParameterDouble("gen_x_offset_meters", -0.040) #Larmor2020 experiment
         self.addParameterDouble("gen_x_width_meters", 0.006)
         self.addParameterDouble("gen_y_width_meters", 0.008)
         #self.addParameterDouble("z_width_meters", 0.001)
         self.addParameterDouble("fixed_z_meters", 0.000)
 
         self.addParameterDouble("cone_opening_deg", 90, 0.0, 180.0) #for more efficient sampling
-        #self.addParameterDouble("cone_opening_deg", math.acos(1-2/120)/math.pi*180, 0.0, 180.0) #for more efficient sampling - Larmor2020 experiment
 
     def init_generator(self,gun):
         gun.set_type('neutron')
