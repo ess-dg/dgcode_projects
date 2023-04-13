@@ -166,6 +166,7 @@ G4LogicalVolume *GeoBCS::createCalibrationMaskLV(CalibMasks::CalibMasksBase cali
 
 ///////////  CREATE DETECTOR BANK LOGICAL VOLUME  //////////////////////////
 G4LogicalVolume *GeoBCS::createBankLV(int bankId){
+  const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   const double strawLength = banks->getStrawLengthByBankId(bankId);
 
   // const double pack_pack_distance = banks->getPackPackDistance();
@@ -215,10 +216,11 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   if (bankId == 0 && withBeamstop) {
     const std::string maskName = "BoronMask-Beamstop";
     const double detBankFrontDistance = banks->detectorSystemFrontDistanceFromBankFront(bankId);
+    const double verticalPosition = larmor2022experiment ? -banks->getLarmor2022ExperimentBankPositionY() : 0;
 
     place(new G4Box(maskName, 0.5 * 1*Units::mm, 0.5 * 5*Units::cm, 0.5 * 5*Units::cm),
           BoronMasks::maskMaterial,
-          -bankSizeZHalf + detBankFrontDistance - 5*Units::cm, 0, 0,
+          -bankSizeZHalf + detBankFrontDistance - 5*Units::cm, verticalPosition, 0,
           lv_bank, BLACK, -5, 0, new G4RotationMatrix());
   }
   return lv_bank;
