@@ -44,28 +44,20 @@ def createDetectorWorkspace(instrumentDefinitionFile_detector):
   Geant4DataWS = api.LoadEmptyInstrument(instrumentDefinitionFile_detector, MakeEventWorkspace=True)
   return Geant4DataWS
 
-def addMcplDetectionEventsToWorkspace(Geant4DataWS, mcplFile, idConverter=(lambda id:id), idFilter=(lambda _:True), verbose=False):
-  
-  numHists = Geant4DataWS.getNumberHistograms()
-  detToIndex = {}
-  for i in range(numHists):
-      eventList = Geant4DataWS.getSpectrum(i)
-      id = eventList.getDetectorIDs()
-      detToIndex[id[0]] = i
-      eventList.clear(False)
-
-  pulsetime = datetime.now()
+def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda id:id), idFilter=(lambda _:True), verbose=False):
+  pulsetime = datetime.now() #dummy pulse time
   dateTime = DateAndTime(pulsetime.isoformat(sep="T"))
-  numHistograms = Geant4DataWS.getNumberHistograms()
-  allEventList = [ Geant4DataWS.getSpectrum(idx) for idx in range(numHistograms)]
+
+  spectraNumber = workspace.getNumberHistograms()
+  allEventLists = [workspace.getSpectrum(wsIndex) for wsIndex in range(spectraNumber)]
+  detectorIdToWorkspaceIndex = {workspace.getDetector(wsIndex).getID():wsIndex for wsIndex in range(spectraNumber)}
 
   readBlockLength = 100000000
-  if verbose:
-    print(f'    Loading detection events from {mcplFile}')
-  
   tof = np.array([])
   detids = np.array([])
-  with MCPL.MCPLFile(mcplFile, blocklength=readBlockLength) as myfile:
+  if verbose:
+    print(f'    Loading detection events from {filename}')
+  with MCPL.MCPLFile(filename, blocklength=readBlockLength) as myfile:
     for p in myfile.particle_blocks:
       detids = np.append(detids, p.userflags.astype(int))
       tof = np.append(tof, p.time * 1000.0)  # convert to microseconds
@@ -74,12 +66,19 @@ def addMcplDetectionEventsToWorkspace(Geant4DataWS, mcplFile, idConverter=(lambd
     for time,detId in zip(tof, detids):
       try:
         if idFilter(detId):
-          id = idConverter(detId) + 1 # +1 for 1-based spectrum indexing
-          allEventList[detToIndex[id]].addEventQuickly(time, dateTime)
+          id = idConverter(detId)
+          allEventLists[detectorIdToWorkspaceIndex[id]].addEventQuickly(time, dateTime)
         else:
           countFilteredOutEvents += 1
       except:
         countAddEventError += 1
     if countAddEventError:
-       print(f'    ERROR: Number of addEventQuickly errors in file {mcplFile} is: {countAddEventError}', file=sys.stderr)
+       print(f'    ERROR: Number of addEventQuickly errors in file {filename} is: {countAddEventError}', file=sys.stderr)
   return countFilteredOutEvents
+
+
+def copyMonitorSpectraToDetectorWorkspace():
+  gw = api.mtd['Geant4DataWS2D']
+  mw = api.mtd['mcStasMonitorWS_rebin']
+  for i in range(3):
+    gw.setY(i, mw.readY(i))

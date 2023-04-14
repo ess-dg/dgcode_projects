@@ -13,13 +13,14 @@ import os
 import argparse
 import sys
 
-parser = argparse.ArgumentParser(description = 'Process detection MCPL files from larmor2022 simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
-parser.add_argument('filename', help = 'Input detection MCPL file name. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LARMOR2022 environment variable, unless a full path is given.')
-parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LARMOR2022 environment variable, unless a full path is given.')
+parser = argparse.ArgumentParser(description = 'Process detection MCPL files from loki simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
+parser.add_argument('filename', help = 'Input detection MCPL file name. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LOKI environment variable, unless a full path is given.')
+parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LOKI environment variable, unless a full path is given.')
 
+parser.add_argument('--rear_detector_distance_m', help = 'Rear detector distance.')
 parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per each detector straw.')
 parser.add_argument('--workspaceTofStart', default = 5, type=int, help = 'TOF start for the workspace spectra binning. [microSeconds]')
-parser.add_argument('--workspaceTofBinWidth', default = 100, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
+parser.add_argument('--workspaceTofBinWidth', default = 10000, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
 parser.add_argument('--workspaceTofEnd', default = 100000, type=int, help = 'TOF end for the workspace spectra binning. [microSeconds]')
 parser.add_argument('-det', '--detectorOnly', action = 'store_true', help = 'Create only the detector spectrum file.')
 parser.add_argument('-mon', '--monitorOnly', action = 'store_true', help = 'Create only the monitor spectrum file.')
@@ -28,7 +29,7 @@ parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable mor
 parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
 
 mcstasParamGroup = parser.add_argument_group('McStas parameters', 'Supplement McStas simulation parameters')
-mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra.  Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LARMOR2022 environment variable, unless a full path is given.')
+mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra.  Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LOKI environment variable, unless a full path is given.')
 mcstasParamGroup.add_argument('--mcstas_monitors', nargs='*', help = 'Name of the McStas monitor files (this option overrides the default ones).')
 
 floodPramGroup = parser.add_argument_group('Flood source parameters', 'Supplement flood source simulation parameters missing from the detection MCPL files (legacy files), or override parameters stored in the files.')
@@ -52,9 +53,9 @@ if args.neutronNumber:
     simulatedNeutronNumber = int(args.neutronNumber)
     isFloodSourceSimulation = True
 
-saveBaseDir = Path(os.environ.get('G4PROC_SAVEDIR_LARMOR2022', None))
-mcplBaseDir = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LARMOR2022', None))
-mcstasBaseDir = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LARMOR2022', None))
+saveBaseDir = Path(os.environ.get('G4PROC_SAVEDIR_LOKI', None))
+mcplBaseDir = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LOKI', None))
+mcstasBaseDir = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LOKI', None))
 
 mcplFile = Path(args.filename) if os.path.isabs(args.filename) else mcplBaseDir / args.filename
 if args.mcstasDir:
@@ -64,17 +65,27 @@ saveFileMonitor = str(saveBaseDir / args.savename) + "_monitor.nxs"
 saveFileDetector = str(saveBaseDir / args.savename) + "_detector.nxs"
 #TODO check if files exists and stop with error, or overide?
 
-instrumentDefinitionFile_monitor = FindData("LokiMantid","LARMOR_Definition_2022_monitors.xml")
-instrumentDefinitionFile_detector = FindData("LokiMantid","LARMOR_Definition_2022_detectors.xml")
+instrumentDefinitionFile_monitor = FindData("LokiMantid","LOKI_Definition_monitors.xml")
+#TODO handle rear detector distances (5vs10m)
+#TODO handle rear 256 vs 512 px resolution
+instrumentDefinitionFile_detector = FindData("LokiMantid","LOKI_Definition_rear5m_newNumbering_512px.xml")
 
-larmor2022defaultParams = {'neutron_wavelength_min_aangstrom': 2,
-                           'neutron_wavelength_max_aangstrom': 13,
-                           'sampling_cone_opening_deg': m.acos(1-2/233)/m.pi*180,
-                           'source_monitor_distance_meters': 25.57,
-                           'analysis_straw_pixel_number': 512,
-                           'mcstas_monitors': ['TOFmon1.dat', 'TOFmon2.dat', 'TOFpresamp.dat', 'TOFmon4.dat']}
+#TODO monitors
+# FOCMonitor = '/Mon10_PostFOC_*.t'
+# HaloMonitor = '/PreSampleMonitor_*.t'
+# TransmissionMonitor = '/PostSampleMonitor_*.t'
+# BeamstopMonitor = '/beamstopMonitor_5m_*.t' #TODO 5m vs 10m
+# fileList = [FOCMonitor, HaloMonitor, TransmissionMonitor, BeamstopMonitor]
+
+lokiDefaultParams = {'rear_detector_distance_m':5,
+                     'neutron_wavelength_min_aangstrom': 2,
+                     'neutron_wavelength_max_aangstrom': 13,
+                     'sampling_cone_opening_deg': 90,  #m.acos(1-2/233)/m.pi*180, #TODO
+                     'source_monitor_distance_meters': 25.57, #TODO
+                     'analysis_straw_pixel_number': 512,
+                     'mcstas_monitors': ['TOFmon1.dat', 'TOFmon2.dat', 'TOFpresamp.dat', 'TOFmon4.dat']} #TODO
 from LokiMantid.paramHandler import ParamHandler
-params = ParamHandler(mcplFile, vars(args), larmor2022defaultParams, args.verbose)
+params = ParamHandler(mcplFile, vars(args), lokiDefaultParams, args.verbose)
 
 if args.showMetadata:
   params.dumpMCPLParams()
@@ -125,15 +136,9 @@ if not args.detectorOnly:
 if not args.monitorOnly:
   Geant4DataWS = api.createDetectorWorkspace(instrumentDefinitionFile_detector)
 
-  from LokiMantid.PixelIdConverters import Larmor2022GeometryConverter
-  pixelIdConverter = Larmor2022GeometryConverter(params.get('analysis_straw_pixel_number'))
-  larmor2022IdFilter = pixelIdConverter.isPixelInReducedGeom #Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
-  larmor2022IdConverter = lambda id: 1 + id - pixelIdConverter.getReductionPixelOffset_newGeom(id) # +1 because the detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry); applying negative pixel offset (depending on the detector layer) to compensate for the extra pixels present in the Geant4 simulation geometry.
-
-  filteredOutEvents = api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=larmor2022IdConverter, idFilter=larmor2022IdFilter, verbose=args.verbose)
-  if args.verbose:
-    print(f'    Number of detection events filtered out due to being outside of the Larmor2022 detector geometry: {filteredOutEvents}')
-  Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams, 'Geant4DataWS2D')
+  idConverter = lambda id: 1 + id #detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
+  api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=idConverter, verbose=args.verbose)
+  Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams, 'Geant4DataWS2D_rebin')
   api.addProperties(Geant4DataWS_rebin, params)
   Geant4DataWS_rebin.setYUnitLabel("Counts")
   Geant4DataWS_rebin.getAxis(0).setUnit("TOF")

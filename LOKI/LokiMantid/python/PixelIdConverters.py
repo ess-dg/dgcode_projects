@@ -9,7 +9,7 @@ class Larmor2022GeometryConverter:
   
   def __init__(self, pixelPerStraw):
     self.pixelPerStraw = int(pixelPerStraw)
-    self.pixelPerTube = 7 * pixelPerStraw
+    self.pixelPerTube = 7 * self.pixelPerStraw
     self.pixelPerLayer = self.pixelPerTube * self.tubePerLayer
 
   def getLayer(self, id): #zero indexed
