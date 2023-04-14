@@ -1,0 +1,132 @@
+#!/usr/bin/env mantidpython
+
+import LokiMantid.mantidApi as api
+from Core import FindData
+from LokiMantid.monitorSpectrum import createFloodSourceTofSpectrum, extractMcStasMonitorData
+
+import numpy as np
+from pathlib import Path
+
+from glob import glob
+import math as m
+import os
+import argparse
+import sys
+
+parser = argparse.ArgumentParser(description = 'Process detection MCPL files from larmor2020 flood source simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
+parser.add_argument('filename', help = 'Input detection MCPL file name. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LARMOR2020 environment variable, unless a full path is given.')
+parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LARMOR2020 environment variable, unless a full path is given.')
+
+#TODO make a single option
+parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per each detector straw.')
+parser.add_argument('--workspaceTofStart', default = 5, type=int, help = 'TOF start for the workspace spectra binning. [microSeconds]')
+parser.add_argument('--workspaceTofBinWidth', default = 500, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
+parser.add_argument('--workspaceTofEnd', default = 100000, type=int, help = 'TOF end for the workspace spectra binning. [microSeconds]')
+parser.add_argument('--noOutput', action = 'store_true', help = 'Developper option. No output is generated.')
+parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable more verbosity.')
+parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
+
+mcstasParamGroup = parser.add_argument_group('McStas parameters', 'Supplement McStas simulation parameters')
+mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra.  Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LARMOR2020 environment variable, unless a full path is given.')
+mcstasParamGroup.add_argument('--mcstas_monitors', nargs='*', help = 'Name of the McStas monitor files (this option overrides the default ones).')
+
+floodPramGroup = parser.add_argument_group('Flood source parameters', 'Supplement flood source simulation parameters missing from the detection MCPL files (legacy files), or override parameters stored in the files.')
+floodPramGroup.add_argument('-n', '--neutronNumber', type=float, help = 'The total number of neutrons used to create (probably) merged detection MCPL input file.')
+floodPramGroup.add_argument('--neutron_wavelength_min_aangstrom', help = 'Minimum neutron wavelength used for the flood source sampling.')
+floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximum neutron wavelength used for the flood source sampling.')
+floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Opening angle of the cone used for the direction sampling.')
+floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. (The preSample monitor TOF spectrum is generated for this distance.')
+
+args = parser.parse_args()
+
+isFloodSourceSimulation = False
+if not args.showMetadata and (not args.neutronNumber and args.mcstasDir is None):
+  parser.error("Either --neutronNumber (for Flood source simulation) or --mcstasDir (for McStas+Geant4 simulation) is required, unless the --showMetadata option is used to examine the metadata stored in the detection MCPL file!")
+if args.neutronNumber:
+  if args.mcstasDir:
+    parser.error("Both --neutronNumber (for Flood source simulation) and --mcstasDir (for McStas+Geant4 simulation) options cannot be provided!")
+  if not args.neutronNumber.is_integer():
+   parser.error(" --neutronNumber has to be an integer.") #float input type is only allowed to handle '1e9' format
+  else:
+    simulatedNeutronNumber = int(args.neutronNumber)
+    isFloodSourceSimulation = True
+
+saveBaseDir = Path(os.environ.get('G4PROC_SAVEDIR_LARMOR2020', None))
+mcplBaseDir = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LARMOR2020', None))
+mcstasBaseDir = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LARMOR2020', None))
+
+mcplFile = Path(args.filename) if os.path.isabs(args.filename) else mcplBaseDir / args.filename
+if args.mcstasDir:
+  mcStasFolder = Path(args.mcstasDir) if os.path.isabs(args.mcstasDir) else mcstasBaseDir / args.mcstasDir
+
+saveFile = str(saveBaseDir / args.savename) + ".nxs"
+#TODO check if files exists and stop with error, or overide?
+
+instrumentDefinitionFile = FindData("LokiMantid","LARMOR_Definition_2020.xml")
+
+larmor2020defaultParams = {'neutron_wavelength_min_aangstrom': 2,
+                           'neutron_wavelength_max_aangstrom': 13,
+                           'sampling_cone_opening_deg': m.acos(1-2/120)/m.pi*180,
+                           'source_monitor_distance_meters': 25.26,
+                           'analysis_straw_pixel_number': 512,
+                           'mcstas_monitors': ['TOFmon1.dat', 'TOFmon2.dat', 'TOFpresamp.dat', 'TOFmon4.dat']}
+from LokiMantid.paramHandler import ParamHandler
+params = ParamHandler(mcplFile, vars(args), larmor2020defaultParams, args.verbose)
+
+if args.showMetadata:
+  params.dumpMCPLParams()
+  sys.exit()
+
+# parameters used for the TOF spectra binning for both the monitors and detectors
+wsBinParams = [args.workspaceTofStart, args.workspaceTofBinWidth, args.workspaceTofEnd]
+
+
+monitorTOF = []
+monitorIntensity = []
+monitorError = []
+if isFloodSourceSimulation:
+  directionBiasMultiplicationFactor = 1/ ((1 - m.cos(params.get('sampling_cone_opening_deg') *m.pi/180))/2)
+  incidentNeutronNumber = simulatedNeutronNumber * directionBiasMultiplicationFactor
+  if args.verbose:
+    print("     Handling flood source neutron number:")
+    print(f"        Number of simulated neutrons: {simulatedNeutronNumber}")
+    print(f"        Multiplication factor due to biased direction sampling: {directionBiasMultiplicationFactor}")
+    print(f"        Resulting incident neutron number on the monitor: {incidentNeutronNumber}")
+
+  floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get ('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)
+
+  #PreSample monitor is expected to be the 3rd spectrum out of 4, so empty spectra are added here
+  blank = np.zeros_like(floodTof)
+  monitorTOF = [floodTof, floodTof, floodTof, floodTof]
+  monitorIntensity = [blank, blank, floodIntensity, blank]
+  monitorError = [blank, blank, floodError, blank]
+else: #McStas+Geant4 simulation
+  for i, filename in enumerate(params.get('mcstas_monitors')):
+    if len(glob(str(mcStasFolder / filename))) == 1:
+      monitorFilePath = glob(str(mcStasFolder / filename))[0]
+    else:
+      sys.exit(f'Problem with finding {mcStasFolder}/{filename}')
+
+    tof, wavelength, y, e = extractMcStasMonitorData(monitorFilePath, args.verbose)
+    monitorTOF.append(wavelength if tof is None else tof)
+    monitorIntensity.append(y)
+    monitorError.append(e)
+
+mcStasMonitorWS = api.createMonitorWorkspace(monitorTOF, monitorIntensity, monitorError, instrumentDefinitionFile)
+mcStasMonitorWS_rebin = api.rebinMonitorWorkspace(mcStasMonitorWS, wsBinParams, 'mcStasMonitorWS_rebin')
+api.addProperties(mcStasMonitorWS_rebin, params)
+
+
+Geant4DataWS = api.createDetectorWorkspace(instrumentDefinitionFile)
+
+larmor2020IdConverter = lambda id: 1 + id #id offset of +11 (IDFdetectorPixelOffset) is applied at the analysis level (due to first 10 spectra reserved for monitors, and IDF detector numbering starting with 1, as opposed to the zero-based Geant4 geometry numbering)
+api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=larmor2020IdConverter, verbose=args.verbose)
+Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams, 'Geant4DataWS2D')
+api.addProperties(Geant4DataWS_rebin, params)
+Geant4DataWS_rebin.setYUnitLabel("Counts")
+Geant4DataWS_rebin.getAxis(0).setUnit("TOF")
+
+api.copyMonitorSpectraToDetectorWorkspace()
+
+if not args.noOutput:
+  api.saveNexus(Geant4DataWS_rebin, saveFile)
