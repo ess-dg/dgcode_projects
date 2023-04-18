@@ -1,4 +1,4 @@
-package(USEPKG G4Units MCPL USEEXT Mantid)
+package(USEPKG G4Units MCPL USEEXT Mantidpython)
 
 ######################################################################
 

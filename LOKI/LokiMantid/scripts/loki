@@ -57,16 +57,21 @@ if args.neutronNumber:
     simulatedNeutronNumber = int(args.neutronNumber)
     isFloodSourceSimulation = True
 
-saveBaseDir = Path(os.environ.get('G4PROC_SAVEDIR_LOKI', None))
-mcplBaseDir = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LOKI', None))
-mcstasBaseDir = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LOKI', None))
+def resolveFilename(filename, baseEnvVar):
+  base = os.environ.get(baseEnvVar, None)
+  if os.path.isabs(filename):
+    return Path(filename)
+  elif base:
+    return Path(base) / filename
+  else:
+    sys.exit(f"ERROR: The provided filename ({filename}) is not an absolute path, and the {baseEnvVar} env var is not set.")
 
-mcplFile = Path(args.filename) if os.path.isabs(args.filename) else mcplBaseDir / args.filename
+mcplFile = resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LOKI')
+saveFile = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LOKI')
+saveFileMonitor = str(saveFile) + "_monitor.nxs"
+saveFileDetector = str(saveFile) + "_detector.nxs"
 if args.mcstasDir:
-  mcStasFolder = Path(args.mcstasDir) if os.path.isabs(args.mcstasDir) else mcstasBaseDir / args.mcstasDir
-
-saveFileMonitor = str(saveBaseDir / args.savename) + "_monitor.nxs"
-saveFileDetector = str(saveBaseDir / args.savename) + "_detector.nxs"
+  mcStasFolder = resolveFilename(args.mcstasDir, 'G4PROC_MCSTAS_BASEDIR_LOKI')
 #TODO check if files exists and stop with error, or overide?
 
 lokiDefaultParams = {'rear_detector_distance_m':5,

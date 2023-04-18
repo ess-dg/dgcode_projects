@@ -51,15 +51,20 @@ if args.neutronNumber:
     simulatedNeutronNumber = int(args.neutronNumber)
     isFloodSourceSimulation = True
 
-saveBaseDir = Path(os.environ.get('G4PROC_SAVEDIR_LARMOR2020', None))
-mcplBaseDir = Path(os.environ.get('G4PROC_MCPL_BASEDIR_LARMOR2020', None))
-mcstasBaseDir = Path(os.environ.get('G4PROC_MCSTAS_BASEDIR_LARMOR2020', None))
+def resolveFilename(filename, baseEnvVar):
+  base = os.environ.get(baseEnvVar, None)
+  if os.path.isabs(filename):
+    return Path(filename)
+  elif base:
+    return Path(base) / filename
+  else:
+    sys.exit(f"ERROR: The provided filename ({filename}) is not an absolute path, and the {baseEnvVar} env var is not set.")
 
-mcplFile = Path(args.filename) if os.path.isabs(args.filename) else mcplBaseDir / args.filename
+mcplFile = resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LARMOR2020')
+saveFile = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LARMOR2020')
+saveFile = str(saveFile) + ".nxs"
 if args.mcstasDir:
-  mcStasFolder = Path(args.mcstasDir) if os.path.isabs(args.mcstasDir) else mcstasBaseDir / args.mcstasDir
-
-saveFile = str(saveBaseDir / args.savename) + ".nxs"
+  mcStasFolder = resolveFilename(args.mcstasDir, 'G4PROC_MCSTAS_BASEDIR_LARMOR2020')
 #TODO check if files exists and stop with error, or overide?
 
 instrumentDefinitionFile = FindData("LokiMantid","LARMOR_Definition_2020.xml")

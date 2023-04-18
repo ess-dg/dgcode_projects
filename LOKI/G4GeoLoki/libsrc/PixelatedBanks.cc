@@ -92,24 +92,24 @@ void PixelatedBanks::dumpInfo(){
   int totalTumberOfStraws = 0;
   int totalTumberOfPixels = 0;
   for (int bankIndex = 0; bankIndex < 9; bankIndex++) {
-    const int numberOfPacksInBank = getNumberOfPacksByBankId(bankIndex);
-    totalTumberOfPacks+=numberOfPacksInBank;
-    const int numberOfTubesInBank = getNumberOfTubes(bankIndex);
-    totalTumberOfTubes+=numberOfTubesInBank;
-    const int numberOfStrawsInBank = numberOfTubesInBank * 7;
-    totalTumberOfStraws+=numberOfStrawsInBank;
+    const int nPacksInBank = getNumberOfPacksByBankId(bankIndex);
+    totalTumberOfPacks+=nPacksInBank;
+    const int nTubesInBank = getNumberOfTubes(bankIndex);
+    totalTumberOfTubes+=nTubesInBank;
+    const int nStrawsInBank = nTubesInBank * 7;
+    totalTumberOfStraws+=nStrawsInBank;
     const int pixelPerStraw = getNumberOfPixelsInStraw(bankIndex);
-    const int numberOfPixelsInBank = numberOfStrawsInBank * pixelPerStraw;
-    totalTumberOfPixels+=numberOfPixelsInBank;
+    const int nPixelsInBank = nStrawsInBank * pixelPerStraw;
+    totalTumberOfPixels+=nPixelsInBank;
 
     auto indent = "    ";
     std::cout<<"Bank "<<bankIndex<<"\n";
     std::cout<<indent<<"Detector length: "<<getStrawLengthByBankId(bankIndex)<<" mm"<<"\n";
     std::cout<<indent<<"Pixels per straw: "<<pixelPerStraw<<"\n";
-    std::cout<<indent<<"Number of packs: "<<numberOfPacksInBank<<"\n";
-    std::cout<<indent<<"Number of tubes: "<<numberOfTubesInBank<<"\n";
-    std::cout<<indent<<"Number of straws: "<<numberOfStrawsInBank<<"\n";
-    std::cout<<indent<<"Number of pixels: "<<numberOfPixelsInBank<<" (starting from: "<<getBankPixelOffset(bankIndex)<<")"<<"\n";
+    std::cout<<indent<<"Number of packs: "<<nPacksInBank<<"\n";
+    std::cout<<indent<<"Number of tubes: "<<nTubesInBank<<"\n";
+    std::cout<<indent<<"Number of straws: "<<nStrawsInBank<<"\n";
+    std::cout<<indent<<"Number of pixels: "<<nPixelsInBank<<" (starting from: "<<getBankPixelOffset(bankIndex)<<")"<<"\n";
   }
   std::cout<<"Total number of packs: "<<totalTumberOfPacks<<"\n";
   std::cout<<"Total number of tubes: "<<totalTumberOfTubes<<"\n";
