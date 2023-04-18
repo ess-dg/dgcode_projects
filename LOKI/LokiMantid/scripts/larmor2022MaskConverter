@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from LokiMantid.PixelIdConverters import Larmor2022GeometryConverter, TubeNumberingConverter
 
 pixelPerStraw = 512
-reducedGeomConverter = Larmor2022GeometryConverter(pixelPerStraw)
+larmor2022Converter = Larmor2022GeometryConverter(pixelPerStraw)
 tubeNumberingConverter = TubeNumberingConverter(pixelPerStraw)
 
 def intersection(lst1, lst2):
@@ -31,7 +31,7 @@ for index, fileName in enumerate(fileList):
     if convertOldNuberingToNewNumbering:
       idList_fullGeom = [tubeNumberingConverter.getNewPixelId(id) for id in idList_fullGeom]
 
-    idList = [ id-reducedGeomConverter.getReductionPixelOffset_newGeom(id)+1 for id in idList_fullGeom if reducedGeomConverter.isPixelInReducedGeom(id) ]
+    idList = [ id-larmor2022Converter.getReductionPixelOffset_newGeom(id)+1 for id in idList_fullGeom if larmor2022Converter.isPixelInLarmor2022Geom(id) ]
 
     if(index == 0):
         idIntersection = idList

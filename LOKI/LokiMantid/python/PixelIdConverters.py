@@ -1,11 +1,11 @@
 
 class Larmor2022GeometryConverter:
-  '''PixelId converter from full loki rear bank geometry to Larmor2022 reduced geometry'''
+  '''PixelId converter from full loki rear bank geometry to Larmor2022 (reduced) geometry'''
   numberOfPacks = 28
   tubePerLayer = 2 * numberOfPacks
   tubeLowerCut = 2*2 #Pack 1-2
   tubeUpperCut = 18*2 #Pack 19-28
-  reductedTubePerLayer = tubeLowerCut + (tubePerLayer - tubeUpperCut) #number of tubes not present in the reduced geometry (per layer)
+  reductedTubePerLayer = tubeLowerCut + (tubePerLayer - tubeUpperCut) #number of tubes not present in the larmor2022 geometry (per layer)
   
   def __init__(self, pixelPerStraw):
     self.pixelPerStraw = int(pixelPerStraw)
@@ -24,7 +24,7 @@ class Larmor2022GeometryConverter:
   def getReductionPixelOffset_newGeom(self, id):
     return self.getLayer(id) * self.reductedTubePerLayer * self.pixelPerTube + self.tubeLowerCut * self.pixelPerTube
 
-  def isPixelInReducedGeom(self, id):
+  def isPixelInLarmor2022Geom(self, id):
     return id >= self.getLowerIdCut_newGeom(id) and id < self.getUpperIdCut_newGeom(id)
 
 

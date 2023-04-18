@@ -93,7 +93,7 @@ if not args.detectorOnly:
     if args.verbose:
        print("     Handling flood source neutron number:")
        print(f"        Number of simulated neutrons: {simulatedNeutronNumber}")
-       print(f"        Multiplication factor due to biased direction sampling: {directionBiasMultiplicationFactor}")
+       print(f"        Multiplication factor due to biassed direction sampling: {directionBiasMultiplicationFactor}")
        print(f"        Resulting incident neutron number on the monitor: {incidentNeutronNumber}")
 
     floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get ('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)
@@ -127,7 +127,7 @@ if not args.monitorOnly:
 
   from LokiMantid.PixelIdConverters import Larmor2022GeometryConverter
   pixelIdConverter = Larmor2022GeometryConverter(params.get('analysis_straw_pixel_number'))
-  larmor2022IdFilter = pixelIdConverter.isPixelInReducedGeom #Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
+  larmor2022IdFilter = pixelIdConverter.isPixelInLarmor2022Geom #Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
   larmor2022IdConverter = lambda id: 1 + id - pixelIdConverter.getReductionPixelOffset_newGeom(id) # +1 because the detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry); applying negative pixel offset (depending on the detector layer) to compensate for the extra pixels present in the Geant4 simulation geometry.
 
   filteredOutEvents = api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=larmor2022IdConverter, idFilter=larmor2022IdFilter, verbose=args.verbose)

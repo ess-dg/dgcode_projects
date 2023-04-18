@@ -90,7 +90,7 @@ if isFloodSourceSimulation:
   if args.verbose:
     print("     Handling flood source neutron number:")
     print(f"        Number of simulated neutrons: {simulatedNeutronNumber}")
-    print(f"        Multiplication factor due to biased direction sampling: {directionBiasMultiplicationFactor}")
+    print(f"        Multiplication factor due to biassed direction sampling: {directionBiasMultiplicationFactor}")
     print(f"        Resulting incident neutron number on the monitor: {incidentNeutronNumber}")
 
   floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get ('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)
