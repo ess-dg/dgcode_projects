@@ -19,9 +19,12 @@ parser.add_argument('savename', help = 'Output nexus filename base. Automaticall
 
 parser.add_argument('--rear_detector_distance_m', help = 'Rear detector distance.')
 parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per each detector straw.')
-parser.add_argument('--workspaceTofStart', default = 5, type=int, help = 'TOF start for the workspace spectra binning. [microSeconds]')
-parser.add_argument('--workspaceTofBinWidth', default = 10000, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
-parser.add_argument('--workspaceTofEnd', default = 100000, type=int, help = 'TOF end for the workspace spectra binning. [microSeconds]')
+parser.add_argument('--detectorWorkspaceTofStart', default = 11000, type=int, help = 'TOF start for the detector workspace spectra binning. [microSeconds]')
+parser.add_argument('--detectorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the detector workspace spectra binning. [microSeconds]')
+parser.add_argument('--detectorWorkspaceTofEnd', default = 113000, type=int, help = 'TOF end for the detector workspace spectra binning. [microSeconds]')
+parser.add_argument('--monitorWorkspaceTofStart', default = 9000, type=int, help = 'TOF start for the monitor workspace spectra binning. [microSeconds]')
+parser.add_argument('--monitorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the monitor workspace spectra binning. [microSeconds]')
+parser.add_argument('--monitorWorkspaceTofEnd', default = 100000, type=int, help = 'TOF end for the monitor workspace spectra binning. [microSeconds]')
 parser.add_argument('-det', '--detectorOnly', action = 'store_true', help = 'Create only the detector spectrum file.')
 parser.add_argument('-mon', '--monitorOnly', action = 'store_true', help = 'Create only the monitor spectrum file.')
 parser.add_argument('--noOutput', action = 'store_true', help = 'Developper option. No output is generated.')
@@ -65,34 +68,42 @@ saveFileMonitor = str(saveBaseDir / args.savename) + "_monitor.nxs"
 saveFileDetector = str(saveBaseDir / args.savename) + "_detector.nxs"
 #TODO check if files exists and stop with error, or overide?
 
-instrumentDefinitionFile_monitor = FindData("LokiMantid","LOKI_Definition_monitors.xml")
-#TODO handle rear detector distances (5vs10m)
-#TODO handle rear 256 vs 512 px resolution
-instrumentDefinitionFile_detector = FindData("LokiMantid","LOKI_Definition_rear5m_newNumbering_512px.xml")
-
-#TODO monitors
-# FOCMonitor = '/Mon10_PostFOC_*.t'
-# HaloMonitor = '/PreSampleMonitor_*.t'
-# TransmissionMonitor = '/PostSampleMonitor_*.t'
-# BeamstopMonitor = '/beamstopMonitor_5m_*.t' #TODO 5m vs 10m
-# fileList = [FOCMonitor, HaloMonitor, TransmissionMonitor, BeamstopMonitor]
-
 lokiDefaultParams = {'rear_detector_distance_m':5,
                      'neutron_wavelength_min_aangstrom': 2,
                      'neutron_wavelength_max_aangstrom': 13,
                      'sampling_cone_opening_deg': 90,  #m.acos(1-2/233)/m.pi*180, #TODO
                      'source_monitor_distance_meters': 25.57, #TODO
                      'analysis_straw_pixel_number': 512,
-                     'mcstas_monitors': ['TOFmon1.dat', 'TOFmon2.dat', 'TOFpresamp.dat', 'TOFmon4.dat']} #TODO
+                     'mcstas_monitors': ['Mon10_PostFOC_*.t', '/PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-']}
 from LokiMantid.paramHandler import ParamHandler
 params = ParamHandler(mcplFile, vars(args), lokiDefaultParams, args.verbose)
+
+if not args.mcstas_monitors: #TODO test
+#TODO maybe implement a set option, to indicate that parameters can change! (then it would make sense to prepend with '_')
+  params.params['mcstas_monitors'][3] = f"/beamstopMonitor_{params.get('rear_detector_distance_m')}m_*.t"
 
 if args.showMetadata:
   params.dumpMCPLParams()
   sys.exit()
 
+# if params.get('rear_detector_distance_m') not in (5, 10):
+#   sys.exit(f"rear_detector_distance_m must be either 5 or 10 to be able to process. Got: {params.get('rear_detector_distance_m')}")
+# if params.get('analysis_straw_pixel_number') not in (256, 512):
+#   sys.exit(f"analysis_straw_pixel_number must be either 256 or 512 to be able to process. Got: {params.get('analysis_straw_pixel_number')}")
+
+#TODO add option to override with input argument
+#TODO handle old pixel numbering?
+mon_idf_name = f"LOKI_Definition_rear{params.get('rear_detector_distance_m')}m_monitors.xml"
+det_idf_name = f"LOKI_Definition_rear{params.get('rear_detector_distance_m')}m_{params.get('analysis_straw_pixel_number')}px.xml"
+instrumentDefinitionFile_monitor = FindData("LokiMantid", mon_idf_name)
+instrumentDefinitionFile_detector = FindData("LokiMantid", det_idf_name)
+
+if not all([instrumentDefinitionFile_monitor, instrumentDefinitionFile_detector]):
+  sys.exit(f"Error: Could not find matching IDF files for parameters: \n  rear_detector_distance_m={params.get('rear_detector_distance_m')} \n  analysis_straw_pixel_number={params.get('analysis_straw_pixel_number')}\nAssumed filenames are: \n  {mon_idf_name} \n  {det_idf_name}")
+
 # parameters used for the TOF spectra binning for both the monitors and detectors
-wsBinParams = [args.workspaceTofStart, args.workspaceTofBinWidth, args.workspaceTofEnd]
+wsBinParams_monitor = [args.monitorWorkspaceTofStart, args.monitorWorkspaceTofBinWidth, args.monitorWorkspaceTofEnd]
+wsBinParams_detector = [args.detectorWorkspaceTofStart, args.detectorWorkspaceTofBinWidth, args.detectorWorkspaceTofEnd]
 
 if not args.detectorOnly:
   monitorTOF = []
@@ -127,7 +138,7 @@ if not args.detectorOnly:
       monitorError.append(e)
 
   mcStasMonitorWS = api.createMonitorWorkspace(monitorTOF, monitorIntensity, monitorError, instrumentDefinitionFile_monitor)
-  mcStasMonitorWS_rebin = api.rebinMonitorWorkspace(mcStasMonitorWS, wsBinParams, 'mcStasMonitorWS_rebin')
+  mcStasMonitorWS_rebin = api.rebinMonitorWorkspace(mcStasMonitorWS, wsBinParams_monitor, 'mcStasMonitorWS_rebin')
   api.addProperties(mcStasMonitorWS_rebin, params)
   if not args.noOutput:
     api.saveNexus(mcStasMonitorWS_rebin, saveFileMonitor)
@@ -138,7 +149,7 @@ if not args.monitorOnly:
 
   idConverter = lambda id: 1 + id #detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
   api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=idConverter, verbose=args.verbose)
-  Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams, 'Geant4DataWS2D_rebin')
+  Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams_detector, 'Geant4DataWS2D_rebin')
   api.addProperties(Geant4DataWS_rebin, params)
   Geant4DataWS_rebin.setYUnitLabel("Counts")
   Geant4DataWS_rebin.getAxis(0).setUnit("TOF")

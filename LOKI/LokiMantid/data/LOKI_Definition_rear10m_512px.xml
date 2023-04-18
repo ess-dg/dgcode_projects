@@ -27,7 +27,7 @@ last-modified="2010-11-16 12:02:05">
 <type is="SamplePos" name="sample-position"/>
 
 <component name="Bank_0_horz_1000_back" type="panel_1000_horz_back" idlist="Bank_0_Ids_horz_back">
-        <location x="0" y="0.008651" z="28.648877"/> <!-- +0.048877 detector front to pack centre -->
+        <location x="0" y="0.008651" z="33.648877"/> <!-- +0.048877 detector front to pack centre -->
 </component>
 <type name="panel_1000_horz_back">
   <component type="pack_horz_1000mm_back_layer_1">
@@ -85,7 +85,7 @@ last-modified="2010-11-16 12:02:05">
 
 <component name="Bank_3_horz_1000_bottom" type="panel_1000_horz_bottom" idlist="Bank_3_Ids_horz_bottom">
     <location x="0" y="-0.493290" z="26.55732" rot="5.7" axis-x="1" axis-y="0" axis-z="0"/>
-</component> 
+</component>
 <type name="panel_1000_horz_bottom">
     <component type="pack_horz_1000mm_bottom_layer_1">
         <locations name="layer_1_pack_" x="0" y="0.1988" y-end="-0.1988" n-elements="8" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
@@ -203,19 +203,19 @@ last-modified="2010-11-16 12:02:05">
     </component>
 </type>
 <type name="pack_horz_1000mm_top_layer_2">
-    <component type="top_tube_1000mm"> 
+    <component type="top_tube_1000mm">
         <location x="0" y="0.01381" z="-0.0135" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="-0.006894" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
 </type>
 <type name="pack_horz_1000mm_top_layer_3">
-    <component type="top_tube_1000mm"> 
+    <component type="top_tube_1000mm">
         <location x="0" y="0.01381" z="0.0135" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="0.020106" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
 </type>
 <type name="pack_horz_1000mm_top_layer_4">
-    <component type="top_tube_1000mm"> 
+    <component type="top_tube_1000mm">
         <location x="0" y="0.01381" z="0.0405" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="0.047106" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
@@ -228,19 +228,19 @@ last-modified="2010-11-16 12:02:05">
     </component>
 </type>
 <type name="pack_horz_1000mm_bottom_layer_2">
-    <component type="bottom_tube_1000mm"> 
+    <component type="bottom_tube_1000mm">
         <location x="0" y="0.01381" z="-0.006894" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="-0.0135" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
 </type>
 <type name="pack_horz_1000mm_bottom_layer_3">
-    <component type="bottom_tube_1000mm"> 
+    <component type="bottom_tube_1000mm">
         <location x="0" y="0.01381" z="0.020106" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="0.0135" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
 </type>
 <type name="pack_horz_1000mm_bottom_layer_4">
-    <component type="bottom_tube_1000mm"> 
+    <component type="bottom_tube_1000mm">
         <location x="0" y="0.01381" z="0.047106" name="top_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
         <location x="0" y="-0.01381" z="0.0405" name="bottom_tube" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
     </component>
@@ -328,19 +328,19 @@ last-modified="2010-11-16 12:02:05">
     </component>
 </type>
 <type name="pack_vert_500mm_left_layer_2">
-    <component type="left_tube_500mm"> 
+    <component type="left_tube_500mm">
         <location x="0.01381" y="0" z="-0.0135" name="top_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
         <location x="-0.01381" y="0" z="-0.006894" name="bottom_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
     </component>
 </type>
 <type name="pack_vert_500mm_left_layer_3">
-    <component type="left_tube_500mm"> 
+    <component type="left_tube_500mm">
         <location x="0.01381" y="0" z="0.0135" name="top_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
         <location x="-0.01381" y="0" z="0.020106" name="bottom_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
     </component>
 </type>
 <type name="pack_vert_500mm_left_layer_4">
-    <component type="left_tube_500mm"> 
+    <component type="left_tube_500mm">
         <location x="0.01381" y="0" z="0.0405" name="top_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
         <location x="-0.01381" y="0" z="0.047106" name="bottom_tube" rot="+5" axis-x="0" axis-y="1" axis-z="0"/>
     </component>
@@ -595,7 +595,7 @@ last-modified="2010-11-16 12:02:05">
 	<axis x="0.0" y="1.0" z="0.0" />
 	<radius val="0.00375" />
 	<height val="0.0009765625" /> <!-- 0.001953125 for 256px -->
-</cylinder> 
+</cylinder>
 <algebra val="cyl-approx" />
 </type>
 
@@ -609,52 +609,41 @@ last-modified="2010-11-16 12:02:05">
 <algebra val="cyl-approx" />
 </type>
 
-<!--#bank pixel limits: 0, 401408, 516096, 602112, 716800, 802816, 1003520, 1232896, 1376256, 1605632 (for 256 pixels/straw)-->
 <!--#bank pixel limits: 0, 802816, 1032192, 1204224, 1433600, 1605632, 2007040, 2465792, 2752512, 3211264 (for 512 pixels/straw)-->
-
 <idlist idname="Bank_0_Ids_horz_back">
 	<id start="1" end="802816"/> <!--for 512 pixels-->
-	<!--<id start="11" end="401418"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_1_Ids_horz_top">
     <id start="802817" end="1032192"/> <!--for 512 pixels-->
-    <!--<id start="401419" end="516106"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_2_Ids_vert_left">
     <id start="1032193" end="1204224"/> <!--for 512 pixels-->
-    <!--<id start="516107" end="602122"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_3_Ids_horz_bottom">
     <id start="1204225" end="1433600"/> <!--for 512 pixels-->
-    <!--<id start="602123" end="716810"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_4_Ids_vert_right">
     <id start="1433601" end="1605632"/> <!--for 512 pixels-->
-    <!--<id start="716811" end="802826"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_5_Ids_horz_top">
     <id start="1605633" end="2007040"/> <!--for 512 pixels-->
-    <!--f<id start="802827" end="1003530"/> or 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_6_Ids_vert_left">
     <id start="2007041" end="2465792"/> <!--for 512 pixels-->
-    <!--<id start="1003531" end="1232906"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_7_Ids_horz_bottom">
     <id start="2465793" end="2752512"/> <!--for 512 pixels-->
-    <!--<id start="1232907" end="1376266"/> for 256 pixels-->
 </idlist>
 
 <idlist idname="Bank_8_Ids_vert_right">
     <id start="2752513" end="3211264"/> <!--for 512 pixels-->
-    <!--<id start="1376267" end="1605642"/> for 256 pixels-->
 </idlist>
 
 </instrument>

@@ -6,6 +6,9 @@ import sys
 import MCPL
 from datetime import datetime
 
+colWarning = '\033[93m'
+colEnd = '\033[0m'
+
 def createMonitorWorkspace(monitorTOF, monitorIntensity, monitorError, instrumentDefinitionFile_monitor):
   mcStasMonitorWS = api.CreateWorkspace(OutputWorkspace="mcStasMonitorWS", DataX=np.array(monitorTOF), DataY=np.array(monitorIntensity), DataE=np.array(monitorError), NSpec=len(monitorTOF), UnitX='TOF', YUnitLabel='Counts')
   
@@ -23,9 +26,9 @@ def rebinDetectorWorkspace(workspace, wsBinParams, workspaceName):
   #Geant4DataWS = Rebin(InputWorkspace=Geant4DataWS, OutputWorkspace=Geant4DataWS,
   #             Params=str(tofmin) + "," + str(width) + "," + str(tofmax), PreserveEvents=True)
   if (tofmin < wsBinParams[0]):
-      print(f"Lowest detection event TOF ({tofmin}) is lower than the workspace TOF binning limit ({wsBinParams[0]}).", file=sys.stderr)
+      print(f"    {colWarning}Warning: Lowest detection event TOF ({tofmin}) is lower than the workspace TOF binning limit ({wsBinParams[0]}).{colEnd}", file=sys.stderr)
   if (tofmax > wsBinParams[2]):
-      print(f"Highest detection event TOF ({tofmax}) is higher than the workspace TOF binning limit ({wsBinParams[2]}).", file=sys.stderr)
+      print(f"    {colWarning}Warning: Highest detection event TOF ({tofmax}) is higher than the workspace TOF binning limit ({wsBinParams[2]}).{colEnd}", file=sys.stderr)
 
   return api.Rebin(InputWorkspace=workspace, OutputWorkspace=workspaceName, Params=wsBinParams, PreserveEvents=False)
 
@@ -73,7 +76,7 @@ def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda i
       except:
         countAddEventError += 1
     if countAddEventError:
-       print(f'    ERROR: Number of addEventQuickly errors in file {filename} is: {countAddEventError}', file=sys.stderr)
+       print(f'    {colWarning}WARNING: Number of addEventQuickly errors in file {filename} is: {countAddEventError}. Possibly wrong IDF for the simulation (simulation pixel index range out of the pixes range defined in the IDF file){colEnd}', file=sys.stderr)
   return countFilteredOutEvents
 
 

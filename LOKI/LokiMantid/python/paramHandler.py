@@ -18,7 +18,8 @@ class ParamHandler:
 
   def get(self, key):
     try:
-      return float(self.params[key])
+      floatValue = float(self.params[key])
+      return floatValue if not floatValue.is_integer() else int(floatValue)
     except TypeError:
       return self.params[key]
 

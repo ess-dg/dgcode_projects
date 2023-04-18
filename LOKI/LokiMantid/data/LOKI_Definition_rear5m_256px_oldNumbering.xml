@@ -71,10 +71,10 @@ last-modified="2010-11-16 12:02:05">
   <type name="monitor-cylindrical" is="monitor">
     <cylinder id="some-shape">
       <centre-of-bottom-base r="0.0" t="0.0" p="0.0" />
-      <axis x="0.0" y="0.0" z="1.0" /> 
+      <axis x="0.0" y="0.0" z="1.0" />
       <radius val="0.079" />
       <height val="0.03" />
-    </cylinder>   
+    </cylinder>
   </type>
 
 <!--MONITOR IDs-->
@@ -155,7 +155,7 @@ last-modified="2010-11-16 12:02:05">
 
 <component name="Bank_3_horz_1000_bottom" type="panel_1000_horz_bottom" idlist="Bank_3_Ids_horz_bottom">
     <location x="0" y="-0.493290" z="26.55732" rot="5.7" axis-x="1" axis-y="0" axis-z="0"/>
-</component> 
+</component>
 
 <type name="panel_1000_horz_bottom">
     <component type="pack_horz_1000mm_bottom">
@@ -259,8 +259,8 @@ last-modified="2010-11-16 12:02:05">
 <component name="Bank_8_vert_1200_right" type="panel_1200_vert_right" idlist="Bank_8_Ids_vert_right">
     <location x="-0.756638" y="0.05143" z="25.227841" rot="-10.6" axis-x="0" axis-y="1" axis-z="0"/>
 </component>
- 
- 
+
+
 <type name="panel_1200_vert_right">
     <component type="pack_vert_1200mm_right">
         <location name="Pack_1" x="0.426"  y="0" z="0" rot="13.45" axis-x="0" axis-y="1" axis-z="0" />
@@ -577,7 +577,5 @@ last-modified="2010-11-16 12:02:05">
 <idlist idname="Bank_8_Ids_vert_right">
     <id start="1376267" end="1605642"/> <!--for 256 pixels-->
 </idlist>
-
-
 
 </instrument>
