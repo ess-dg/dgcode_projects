@@ -39,7 +39,8 @@ floodPramGroup = parser.add_argument_group('Flood source parameters', 'Supplemen
 floodPramGroup.add_argument('-n', '--neutronNumber', type=float, help = 'The total number of neutrons used to create (probably) merged detection MCPL input file.')
 floodPramGroup.add_argument('--neutron_wavelength_min_aangstrom', help = 'Minimum neutron wavelength used for the flood source sampling.')
 floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximum neutron wavelength used for the flood source sampling.')
-floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Opening angle of the cone used for the direction sampling.')
+floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Maximum opening angle of the cone used for the direction sampling.')
+floodPramGroup.add_argument('--sampling_cone_opening_min_deg', help = 'Minimum opening angle of the cone used for the direction sampling.')
 floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. (The preSample monitor TOF spectrum is generated for this distance.')
 
 args = parser.parse_args()
@@ -71,7 +72,8 @@ saveFileDetector = str(saveBaseDir / args.savename) + "_detector.nxs"
 lokiDefaultParams = {'rear_detector_distance_m':5,
                      'neutron_wavelength_min_aangstrom': 2,
                      'neutron_wavelength_max_aangstrom': 13,
-                     'sampling_cone_opening_deg': 90,  #m.acos(1-2/233)/m.pi*180, #TODO
+                     'sampling_cone_opening_deg': 49.6,
+                     'sampling_cone_opening_min_deg': 0,
                      'source_monitor_distance_meters': 25.57, #TODO
                      'analysis_straw_pixel_number': 512,
                      'mcstas_monitors': ['Mon10_PostFOC_*.t', '/PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-']}
@@ -110,12 +112,12 @@ if not args.detectorOnly:
   monitorIntensity = []
   monitorError = []
   if isFloodSourceSimulation:
-    directionBiasMultiplicationFactor = 1/ ((1 - m.cos(params.get('sampling_cone_opening_deg') *m.pi/180))/2)
+    directionBiasMultiplicationFactor = 1/ ((m.cos(params.get('sampling_cone_opening_min_deg')*m.pi/180) - m.cos(params.get('sampling_cone_opening_deg')*m.pi/180))/2)
     incidentNeutronNumber = simulatedNeutronNumber * directionBiasMultiplicationFactor
     if args.verbose:
        print("     Handling flood source neutron number:")
        print(f"        Number of simulated neutrons: {simulatedNeutronNumber}")
-       print(f"        Multiplication factor due to biased direction sampling: {directionBiasMultiplicationFactor}")
+       print(f"        Multiplication factor due to biassed direction sampling: {directionBiasMultiplicationFactor}")
        print(f"        Resulting incident neutron number on the monitor: {incidentNeutronNumber}")
 
     floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get ('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)

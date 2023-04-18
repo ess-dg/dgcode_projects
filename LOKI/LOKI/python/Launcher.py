@@ -9,20 +9,18 @@ def launch(geo):
     launcher.addParameterBoolean('addgeantinoes',False)
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterBoolean('masking_only',False)
+    launcher.addParameterString('bank_filter','') #aim only at the rear detector('rear'), mid-detector('mid), front detector('front)
     launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
     launcher.addParameterString('mcplDirectory','')
     launcher.addParameterString('input_file', '')
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
-
-    launcher.addParameterInt("analysis_straw_pixel_number", 0) # zero means using default pixel number
-    if(launcher.getParameterInt('analysis_straw_pixel_number')):
-      launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
-
+    launcher.addParameterInt("analysis_straw_pixel_number", 256)
+   
    #geometry:
     launcher.setGeo(geo)
 
     #generator:
-    if launcher.getParameterString('event_gen')=='mcpl':
+    if launcher.getParameterString('event_gen')=='mcpl': #McStas+Geant4 simulation
         import G4MCPLPlugins.MCPLGen as Gen
         gen = Gen.create()
         if(launcher.getParameterString('input_file')):
@@ -39,18 +37,25 @@ def launch(geo):
         else:
           gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')#translate z coordinates by McStas Sample-MCPL_output distance
         gen.dx_meter = launcher.getParameterDouble('gen_x_offset_meters')
-        gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
-    elif launcher.getParameterString('event_gen')=='flood':
+    elif launcher.getParameterString('event_gen')=='flood': #Flood source simulation
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
         gen = Gen()
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
-        gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
-    elif launcher.getParameterString('event_gen')=='masking':
+        bankFilter = launcher.getParameterString('bank_filter')
+        if bankFilter != '':
+          assert bankFilter in ('rear', 'mid', 'front'), f"bank_filter must be either rear, mid or front"
+          if bankFilter == 'rear':
+             angleRange = (0, 5.07)
+          elif bankFilter == 'mid':
+             angleRange = (3.5, 15.8)
+          elif bankFilter == 'front':
+             angleRange = (10.5, 49.6)
+          gen.cone_opening_min_deg, gen.cone_opening_deg = angleRange
+    elif launcher.getParameterString('event_gen')=='masking': #Masking simulation
         from  LOKI.MaskingSourceGen import MaskingSourceGen as Gen
         gen = Gen()
         # gen.exposeParameters(geo,"geo_")
         gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
-        gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
         gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
     elif launcher.getParameterString('event_gen')=='spheremodel':
@@ -67,11 +72,13 @@ def launch(geo):
         gen.neutron_wavelength_aangstrom = 3.0
         gen.momdir_spherical = True
         gen.randomize_polarangle = True
-        gen.random_min_polarangle_deg = 0 #47.99
-        gen.random_max_polarangle_deg =0.001  #48 #16.0
+        gen.random_min_polarangle_deg = 0 #49.99
+        gen.random_max_polarangle_deg =0.001  #50 #16.0
         gen.randomize_azimuthalangle = True
         gen.random_min_azimuthalangle_deg = 0 #20.0
         gen.random_max_azimuthalangle_deg = 360.0 #60
+
+    gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
     launcher.setGen(gen)
 
     def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
@@ -86,10 +93,6 @@ def launch(geo):
           launcher.getGen().source_monitor_distance_meters = 25.57
           import math as m
           launcher.getGen().cone_opening_deg = m.acos(1-2/233)/m.pi*180
-          launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
-          launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))
-          launcher.setUserData("neutron_wavelength_min_aangstrom", str(launcher.getGen().neutron_wavelength_min_aangstrom))
-          launcher.setUserData("neutron_wavelength_max_aangstrom", str(launcher.getGen().neutron_wavelength_max_aangstrom))
           print(f"Using predifined parameters for the Larmor-2022 experiment!")
           print(f'    source_sample_distance_meters: {launcher.getGen().source_sample_distance_meters}')
           print(f'    source_monitor_distance_meters: {launcher.getGen().source_monitor_distance_meters}')
@@ -98,7 +101,19 @@ def launch(geo):
         elif(launcher.getGen().getName()=="LOKI.MaskingSourceGen/MaskingSourceGen"): #event_gen=masking
           assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
 
+    def addUserData():
+      if(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
+        launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
+        launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))
+        launcher.setUserData("sampling_cone_opening_min_deg", str(launcher.getGen().cone_opening_min_deg))
+        launcher.setUserData("neutron_wavelength_min_aangstrom", str(launcher.getGen().neutron_wavelength_min_aangstrom))
+        launcher.setUserData("neutron_wavelength_max_aangstrom", str(launcher.getGen().neutron_wavelength_max_aangstrom))
+        launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
+        launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
+        launcher.setUserData("bank_filter", str(launcher.getParameterString('bank_filter')))
+          
     launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
+    launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 
     #filter:
     if launcher.getParameterBoolean('primary_only'):
@@ -113,15 +128,6 @@ def launch(geo):
     if launcher.getParameterBoolean('addgeantinoes'):
         import G4GeantinoInserter
         G4GeantinoInserter.install()
-
-    #general stuff:
-    #if G4Launcher.g4version()<1030:
-        # The following two lines were appropriate/needed in older Geant4 with the QGSP_BIC_HP
-        # physics list. If not interested in Geant4 10.00.p03 support, it is safe to remove
-        # the next two lines (and the if-statement). More info at DGSW-305.
-        #launcher.cmd_postinit('/process/eLoss/StepFunction 0.1 0.001 um')
-        #launcher.cmd_postinit('/process/eLoss/minKinEnergy 10 eV')
-
 
     if not launcher.getParameterBoolean('det_only'):
         launcher.setOutput('lokisim','REDUCED')

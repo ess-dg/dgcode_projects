@@ -18,6 +18,11 @@
 #define M_PI  3.14159265358979323846  //  pi
 #endif
 
+bool allBankFilter(int bankId) {(void)bankId; return true;}
+bool rearBankFilter(int bankId) {return bankId == 0;}
+bool midBankFilter(int bankId) {return bankId == 1 || bankId == 2 || bankId == 3 || bankId == 4;}
+bool frontBankFilter(int bankId) {return bankId == 5 || bankId == 6 || bankId == 7 || bankId == 8;}
+
 int main(int argc, char**argv) {
 
   bool createDetectionMcplFile = true;
@@ -95,6 +100,15 @@ int main(int argc, char**argv) {
   bool oldTubeNumbering = false;
   if (!geo.hasParameterBoolean("old_tube_numbering") || geo.getParameterBoolean("old_tube_numbering")) {
     oldTubeNumbering = true;
+  }
+
+  bool (*bankFilter) (int);
+  bankFilter = allBankFilter;
+  if(userData.count("bank_filter")){
+    std::string bankFocus = userData["bank_filter"];
+    if(bankFocus == "rear") { bankFilter = rearBankFilter; }
+    else if(bankFocus == "mid") { bankFilter = midBankFilter; }
+    else if(bankFocus == "front") { bankFilter = frontBankFilter; }
   }
 
   const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7;
@@ -415,7 +429,7 @@ int main(int argc, char**argv) {
           h_bank_lambda_hit -> fill(lambda_hit_calculated, bankId_conv, hit.eventHitWeight());
           h_panel_lambda_hit->fill(lambda_hit_calculated, panelNumber, hit.eventHitWeight());
 
-          if (createDetectionMcplFile == true) {
+          if (createDetectionMcplFile == true && bankFilter(bankId_conv)) {
             detectionFile->addDetectionEvent(pixelId, hit.eventHitTime()/Units::ms);
           }
 
