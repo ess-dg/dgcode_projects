@@ -58,15 +58,15 @@ int main(int argc, char **argv) {
 
   const int numberOfPixels = 4 * 8 * 7 * strawPixelNumber; //hardcoded: 4(pack) * 8(tube) * 7(straw) * 512(pixel)
 
-  auto h_neutron_pixel_geantino = hc.book2D("Show pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_neutron_pixel_geantino");
-  h_neutron_pixel_geantino->setXLabel("Pixel ID along straw");
-  h_neutron_pixel_geantino->setYLabel("Straw ID");
+  auto h_geantino_pixel_enter = hc.book2D("Shows pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter");
+  h_geantino_pixel_enter->setXLabel("Pixel ID along straw");
+  h_geantino_pixel_enter->setYLabel("Straw ID");
 
-  auto h_neutron_pixel_geantino_masking = hc.book2D("Show pixels the geantinos entered (no mask transmission)", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_neutron_pixel_geantino_masking");
-  h_neutron_pixel_geantino_masking->setXLabel("Pixel ID along straw");
-  h_neutron_pixel_geantino_masking->setYLabel("Straw ID");
+  auto h_geantino_pixel_enter_masked = hc.book2D("Shows pixels the geantinos entered without transmission through masks", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter_masked");
+  h_geantino_pixel_enter_masked->setXLabel("Pixel ID along straw");
+  h_geantino_pixel_enter_masked->setYLabel("Straw ID");
 
-  auto h_counters = hc.bookCounts("General neutron counters", "neutron_counters");
+  auto h_counters = hc.bookCounts("General geantino counters", "geantino_counters");
   auto countTestGeantino = h_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_counters->addCounter("geantino_in_Mask");
 
@@ -93,11 +93,11 @@ int main(int argc, char **argv) {
           const int pixelId = getPixelId(tubeId_conv, strawId_conv, step->postGlobalX());
 
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
-            h_neutron_pixel_geantino_masking->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
+            h_geantino_pixel_enter_masked->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
             masking.setPixelEntered(pixelId);
           }
           if (!masking.isPixelEnteredAimingCheck(pixelId)) { // check if all pixels are aimed at
-            h_neutron_pixel_geantino->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
+            h_geantino_pixel_enter->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
             masking.setPixelEnteredAimingCheck(pixelId);
           }
         }

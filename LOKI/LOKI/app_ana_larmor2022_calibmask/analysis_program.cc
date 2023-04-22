@@ -43,25 +43,31 @@ int main(int argc, char **argv) {
 
   const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
 
-  const int numberOfPixels = 802816; //1605632 for 1024 pixels; //TODO use rearbankOffset //banks.getTotalNumberOfPixels();
-  const int strawPixelNumber = 512; // 1024;
-  printf("HARDCODED rear bank pixel number for analysis: %d\n", strawPixelNumber);
+  auto userData = setup->userData();
+  int strawPixelNumber = 512; //hardcoded default
+  if(userData.count("analysis_straw_pixel_number")){
+    strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
+  }
+
+  const int numberOfPixels = 1568 * strawPixelNumber; //fixed 1568 straws in the geometry; (802816/1605632 for 512/1024)
+  
+  printf("Rear bank pixel number for analysis: %d in total, %d per straw, \n", numberOfPixels, strawPixelNumber);
 
   PixelatedBanks banks = PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
 
-  auto h_neutron_pixel_geantino = hc.book2D("Show pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_neutron_pixel_geantino");
-  h_neutron_pixel_geantino->setXLabel("Pixel ID along straw");
-  h_neutron_pixel_geantino->setYLabel("Straw ID");
+  auto h_geantino_pixel_enter = hc.book2D("Shows pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter");
+  h_geantino_pixel_enter->setXLabel("Pixel ID along straw");
+  h_geantino_pixel_enter->setYLabel("Straw ID");
 
-  auto h_neutron_pixel_geantino_masking = hc.book2D("Show pixels the geantinos entered (no mask transmission)", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_neutron_pixel_geantino_masking");
-  h_neutron_pixel_geantino_masking->setXLabel("Pixel ID along straw");
-  h_neutron_pixel_geantino_masking->setYLabel("Straw ID");
+  auto h_geantino_pixel_enter_masked = hc.book2D("Shows pixels the geantinos entered without transmission through masks", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter_masked");
+  h_geantino_pixel_enter_masked->setXLabel("Pixel ID along straw");
+  h_geantino_pixel_enter_masked->setYLabel("Straw ID");
 
-  auto h_geantino_xy_bank = hc.book2D("Geantino xy (at bank entering)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_bank");
+  auto h_geantino_xy_bank = hc.book2D("Geantino xy (at bank entering)", 2500, -1250, 1250, 2500, -1250, 1250, "geantino_xy_bank");
        h_geantino_xy_bank->setXLabel("-x [mm]");
        h_geantino_xy_bank->setYLabel("y [mm]");
 
-  auto h_geantino_xy_bank_filtered = hc.book2D("Geantino xy filtered (at bank entering)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_bank_filtered");
+  auto h_geantino_xy_bank_filtered = hc.book2D("Geantino xy filtered (at bank entering)", 2500, -1250, 1250, 2500, -1250, 1250, "geantino_xy_bank_filtered");
        h_geantino_xy_bank_filtered->setXLabel("-x [mm]");
        h_geantino_xy_bank_filtered->setYLabel("y [mm]");
 
@@ -140,11 +146,11 @@ int main(int argc, char **argv) {
           const int pixelId = banks.getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY());
 
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
-            h_neutron_pixel_geantino_masking->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
+            h_geantino_pixel_enter_masked->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
             masking.setPixelEntered(pixelId);
           }
           if (!masking.isPixelEnteredAimingCheck(pixelId)) { // check if all pixels are aimed at
-            h_neutron_pixel_geantino->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
+            h_geantino_pixel_enter->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);
             masking.setPixelEnteredAimingCheck(pixelId);
           }
         }
