@@ -1,22 +1,32 @@
 
+import G4GeoLoki.LokiMaskingHelper as Mask
+import Core.Units as Units
+import numpy as np
+
 def launch(geo):
     import G4Launcher
     launcher = G4Launcher()
 
-    launcher.addParameterBoolean('primary_only',False)
     launcher.addParameterString('event_gen','')
-    launcher.addParameterBoolean('gravity',False)
-    launcher.addParameterBoolean('addgeantinoes',False)
+    launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterBoolean('masking_only',False)
-    launcher.addParameterString('bank_filter','') #aim only at the rear detector('rear'), mid-detector('mid), front detector('front)
-    launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
+    launcher.addParameterString('bank_filter','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
+    ## McStas+Geant4 options ##
     launcher.addParameterString('mcplDirectory','')
     launcher.addParameterString('input_file', '')
+    launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
-    launcher.addParameterInt("analysis_straw_pixel_number", 256)
-   
-   #geometry:
+
+    ## Visualisation only options ##
+    launcher.addParameterBoolean('primary_only',False)
+    launcher.addParameterString('cone_view', 'no') # 'min' or 'max' Only for visual confirmation of the cone_opening_min_deg/cone_opening_deg angle for floodSource simulation
+    launcher.addParameterBoolean('geantino', False) # use geantinos instead of neutrons (for visualisation)
+    ## Unused options ##
+    # launcher.addParameterBoolean('gravity',False)
+    # launcher.addParameterBoolean('addgeantinoes',False)
+
+    #geometry:
     launcher.setGeo(geo)
 
     #generator:
@@ -43,18 +53,29 @@ def launch(geo):
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
         bankFilter = launcher.getParameterString('bank_filter')
         if bankFilter != '':
-          assert bankFilter in ('rear', 'mid', 'front'), f"bank_filter must be either rear, mid or front"
-          if bankFilter == 'rear':
-             angleRange = (0, 5.07)
-          elif bankFilter == 'mid':
-             angleRange = (3.5, 15.8)
-          elif bankFilter == 'front':
-             angleRange = (10.5, 49.6)
+          assert bankFilter in (*[str(i) for i in range(9)], '1234', '5678'), f"bank_filter must be either [0,8], 1234 or 5678"
+          if bankFilter == '1234': #mid banks
+            angleRange = (3.5, 15.8)
+          elif bankFilter == '5678': #front banks
+            angleRange = (10.5, 49.6)
+          else: #single banks [0,8]
+            bankId = int(bankFilter)
+            aimHelper = Mask.MaskingHelper(5*Units.m) #rear det distance shouldn't really matter
+            bankCentre = [aimHelper.getBankPosition(bankId, 0), aimHelper.getBankPosition(bankId, 1), aimHelper.getBankPosition(bankId, 2)]
+            gen.ref_dir_x, gen.ref_dir_y, gen.ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
+            bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now
+            angleRange = (0, bankConeAngle[bankId])
+          if launcher.getParameterString('cone_view')=='min': #only for visualisation!
+            angleRange = (angleRange[0], 1.0001*angleRange[0])
+          elif launcher.getParameterString('cone_view')=='max': #only for visualisation!
+            angleRange = (0.9999*angleRange[1], angleRange[1])
           gen.cone_opening_min_deg, gen.cone_opening_deg = angleRange
+        if launcher.getParameterBoolean('geantino') is True: #only for visualisation!
+           gen.particle = 'geantino'
+
     elif launcher.getParameterString('event_gen')=='masking': #Masking simulation
         from  LOKI.MaskingSourceGen import MaskingSourceGen as Gen
         gen = Gen()
-        # gen.exposeParameters(geo,"geo_")
         gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
         gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
@@ -67,8 +88,7 @@ def launch(geo):
     else:
         import G4StdGenerators.FlexGen as Gen
         gen = Gen.create()
-        gen.particleName = 'neutron'
-        #gen.particleName = 'geantino'
+        gen.particleName = 'neutron' if not launcher.getParameterBoolean('geantino') else 'geantino'
         gen.neutron_wavelength_aangstrom = 3.0
         gen.momdir_spherical = True
         gen.randomize_polarangle = True
@@ -120,14 +140,14 @@ def launch(geo):
         import G4CollectFilters.StepFilterPrimary as F
         launcher.setFilter(F.create())
 
-    #gravity
-    if launcher.getParameterBoolean('gravity'):
-        import G4GravityHelper.NeutronGravity as ng
-        ng.enableNeutronGravity(launcher)
+    # #gravity
+    # if launcher.getParameterBoolean('gravity'):
+    #     import G4GravityHelper.NeutronGravity as ng
+    #     ng.enableNeutronGravity(launcher)
 
-    if launcher.getParameterBoolean('addgeantinoes'):
-        import G4GeantinoInserter
-        G4GeantinoInserter.install()
+    # if launcher.getParameterBoolean('addgeantinoes'):
+    #     import G4GeantinoInserter
+    #     G4GeantinoInserter.install()
 
     if not launcher.getParameterBoolean('det_only'):
         launcher.setOutput('lokisim','REDUCED')

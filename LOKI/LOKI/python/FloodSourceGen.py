@@ -3,6 +3,8 @@ import G4CustomPyGen
 import Core.Units as Units
 import Utils.NeutronMath
 import math
+import numpy as np
+import sys
 
 class FloodSourceGen(G4CustomPyGen.GenBase):
     def declare_parameters(self):
@@ -21,10 +23,28 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         self.addParameterDouble("cone_opening_deg", 49.6, 0.0, 180.0) #max opening angle (for more efficient sampling)
         self.addParameterDouble("cone_opening_min_deg", 0, 0.0, 180.0) #min opening angle (for more efficient sampling)
 
+        self.addParameterDouble("ref_dir_x", 0.0) 
+        self.addParameterDouble("ref_dir_y", 0.0)
+        self.addParameterDouble("ref_dir_z", 0.0)
+        self.addParameterString("particle", "neutron")
+
     def init_generator(self,gun):
-        gun.set_type('neutron')
+        gun.set_type(self.particle)
         assert self.cone_opening_min_deg <= self.cone_opening_deg, f'cone_opening_min_deg({self.cone_opening_min_deg}) cannot be higher that cone_opening_deg({self.cone_opening_deg})'
-        #gun.set_type('geantino')
+
+        self.transform = False
+        if any(dir!=0.0 for dir in (self.ref_dir_x, self.ref_dir_y, self.ref_dir_z)) and not (self.ref_dir_x == 0 and self.ref_dir_y == 0):
+          self.transform = True
+          if not math.isclose(1, np.linalg.norm([self.ref_dir_x, self.ref_dir_y, self.ref_dir_z]), rel_tol=1e-5):
+            sys.exit(f"Flood source reference direction must be normalised! {self.ref_dir_x, self.ref_dir_y, self.ref_dir_z}")
+          self.sqrtXY = np.sqrt(self.ref_dir_x**2+self.ref_dir_y**2) #stored for efficiency #TODO rename to include ref
+
+    def transform_direction(self, originalX, originalY, originalZ):
+        """Transform an original direction vector that is randomly sampled around the z-axis (symmetrical in xy) to a vector around a reference direction"""
+        newX = self.ref_dir_y / self.sqrtXY * originalX + self.ref_dir_x * self.ref_dir_z / self.sqrtXY * originalY + self.ref_dir_x * originalZ
+        newY = self.ref_dir_x / self.sqrtXY * originalX + self.ref_dir_y * self.ref_dir_z / self.sqrtXY * originalY + self.ref_dir_y * originalZ
+        newZ = -self.sqrtXY * originalY + self.ref_dir_z * originalZ
+        return newX, newY, newZ
 
     def generate_event(self,gun):
         # Energy - uniform wavelength distribution between min and max parameters
@@ -50,7 +70,11 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
         x_dir = math.sin(theta) * math.cos(phi)
         y_dir = math.sin(theta) * math.sin(phi)
         z_dir = math.cos(theta)
-        gun.set_direction(x_dir,y_dir,z_dir)
+
+        if self.transform is True:
+          x_dir, y_dir, z_dir  = self.transform_direction(x_dir, y_dir, z_dir)
+        gun.set_direction(x_dir, y_dir, z_dir)
+
         #NOTE: The surface area of a spherical segment with height (h) is 2*pi*R*h (regardless of the position of the segment or spherical cap)
         #      The ratio of this area/shpere area (for R=1) is 2*pi*R*h/(4*R*R*pi) = h/2
         #      for alpha max cone opening angle, h = 1-cos(alpha) -> sampling factor = (1-cos(alpha))/2

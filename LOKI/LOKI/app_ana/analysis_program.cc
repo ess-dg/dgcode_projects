@@ -18,11 +18,6 @@
 #define M_PI  3.14159265358979323846  //  pi
 #endif
 
-bool allBankFilter(int bankId) {(void)bankId; return true;}
-bool rearBankFilter(int bankId) {return bankId == 0;}
-bool midBankFilter(int bankId) {return bankId == 1 || bankId == 2 || bankId == 3 || bankId == 4;}
-bool frontBankFilter(int bankId) {return bankId == 5 || bankId == 6 || bankId == 7 || bankId == 8;}
-
 int main(int argc, char**argv) {
 
   bool createDetectionMcplFile = true;
@@ -103,16 +98,36 @@ int main(int argc, char**argv) {
   }
 
   bool (*bankFilter) (int);
-  bankFilter = allBankFilter;
+  bankFilter = [](int bankId) {(void)bankId; return true;}; //allow all banks by default
   if(userData.count("bank_filter")){
-    std::string bankFocus = userData["bank_filter"];
-    if(bankFocus == "rear") { bankFilter = rearBankFilter; }
-    else if(bankFocus == "mid") { bankFilter = midBankFilter; }
-    else if(bankFocus == "front") { bankFilter = frontBankFilter; }
+    int bankFilterNumber = std::stoi(userData["bank_filter"]);
+    switch(bankFilterNumber) {
+      case 0:
+        bankFilter = [](int bankId) { return bankId == 0; }; break;
+      case 1:
+        bankFilter = [](int bankId) { return bankId == 1; }; break;
+      case 2:
+        bankFilter = [](int bankId) { return bankId == 2; }; break;
+      case 3:
+        bankFilter = [](int bankId) { return bankId == 3; }; break;
+      case 4:
+        bankFilter = [](int bankId) { return bankId == 4; }; break;
+      case 5:
+        bankFilter = [](int bankId) { return bankId == 5; }; break;
+      case 6:
+        bankFilter = [](int bankId) { return bankId == 6; }; break;
+      case 7:
+        bankFilter = [](int bankId) { return bankId == 7; }; break;
+      case 8:
+        bankFilter = [](int bankId) { return bankId == 8; }; break;
+      case 1234:
+        bankFilter = [](int bankId) { return bankId == 1 || bankId == 2 || bankId == 3 || bankId == 4; }; break;
+      case 5678:
+        bankFilter = [](int bankId) { return bankId == 5 || bankId == 6 || bankId == 7 || bankId == 8; }; break;
+    }
   }
 
   const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7;
-
   const double ymin = -53; //20+1 tube in negative direction
   const int binsy = 1060/2;
   const int binsz = 160;
@@ -432,7 +447,6 @@ int main(int argc, char**argv) {
           if (createDetectionMcplFile == true && bankFilter(bankId_conv)) {
             detectionFile->addDetectionEvent(pixelId, hit.eventHitTime()/Units::ms);
           }
-
         } // end hit in event
       } // end if conversion condition
       else if (segL->volumeName().find("BoronMask-") != std::string::npos) {

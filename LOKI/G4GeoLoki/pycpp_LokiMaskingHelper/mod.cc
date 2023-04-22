@@ -10,7 +10,7 @@ PYTHON_MODULE
     .def("getTotalNumberOfPixels",&MaskingHelper::getTotalNumberOfPixels)
     .def("getNumberOfPixels",&MaskingHelper::getNumberOfPixels).staticmethod("getNumberOfPixels")
     .def("getBankPixelOffset",&MaskingHelper::getBankPixelOffset).staticmethod("getBankPixelOffset")
-    
+    .def("getBankPosition",&MaskingHelper::getBankPosition)
     .def("dumpInfo",&MaskingHelper::dumpInfo).staticmethod("dumpInfo")
     .def("getBankId",&MaskingHelper::getBankId)
     .def("getPackId",&MaskingHelper::getPackId).staticmethod("getPackId")
