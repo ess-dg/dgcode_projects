@@ -1,7 +1,7 @@
 from __future__ import print_function
 import G4CustomPyGen
 import Core.Units as Units
-import G4GeoLoki.LokiMaskingHelper as Mask
+import G4GeoLoki.LokiAimHelper as LokiAim
 
 class MaskingSourceGen(G4CustomPyGen.GenBase):
     def declare_parameters(self):
@@ -16,7 +16,7 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
     def init_generator(self,gun):
         gun.set_type('geantino')
 
-        self.aimHelper = Mask.MaskingHelper(self.geo_rear_detector_distance_m *Units.m, self.aiming_straw_pixel_number)
+        self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *Units.m, self.aiming_straw_pixel_number)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
         bank_pixel_id_min = self.aimHelper.getBankPixelOffset(self.aiming_bank_id)
         number_of_pixels_in_bank = self.aimHelper.getNumberOfPixels(self.aiming_bank_id)
@@ -47,7 +47,7 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         # Direction - toward the centre of a pixel
         pixelId = ((self._i + 0) % self.totalNumberOfPixels)
 
-        pixelCentreX, pixelCentreY, pixelCentreZ = self.aimHelper.getPixelCentrePositionsForMasking(pixelId, self.geo_old_tube_numbering, self.geo_larmor_2022_experiment)
+        pixelCentreX, pixelCentreY, pixelCentreZ = self.aimHelper.getPixelCentreCoordinates(pixelId, self.geo_old_tube_numbering, self.geo_larmor_2022_experiment)
 
         gun.set_direction(pixelCentreX - sourcePositionX, pixelCentreY - sourcePositionY, pixelCentreZ - sourcePositionZ)
         #gun.set_direction(pixelCentreX - sourcePositionX +3*(2*self.rand()-1), pixelCentreY - sourcePositionY+3*(2*self.rand()-1), pixelCentreZ - sourcePositionZ+3*(2*self.rand()-1))

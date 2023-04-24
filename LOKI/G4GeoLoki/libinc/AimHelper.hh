@@ -1,14 +1,14 @@
-#ifndef G4GeoLoki_MaskingHelper_hh
-#define G4GeoLoki_MaskingHelper_hh
+#ifndef G4GeoLoki_AimHelper_hh
+#define G4GeoLoki_AimHelper_hh
 
 #include "G4GeoLoki/PixelatedBanks.hh"
 #include "Core/Python.hh"
 
-class MaskingHelper : public PixelatedBanks {
+class AimHelper : public PixelatedBanks {
 public:
   using PixelatedBanks::PixelatedBanks; //inherit constructors of PixelatedBanks
 
-  py::object getPixelCentrePositionsForMasking(const int pixelId, const bool isOldPixelNumbering, const bool isLarmor2022Experiment) const;
+  py::object getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering, const bool isLarmor2022Experiment) const;
 
   int getBankId(const int pixelId) const;
   static int getPackId(const int bankId, const int tubeId, const bool isOldPixelNumbering);

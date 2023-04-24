@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import G4GeoLoki.LokiMaskingHelper as Mask
+import G4GeoLoki.LokiAimHelper as LokiAim
 import argparse, os
 
 parser = argparse.ArgumentParser(description = 'Exporting 3D pixel positions of the LOKI detector array based on the Geant4 geometry. The resuilting file is a csv file with the following columns: pixelId, pixelCentreX [m], pixelCentreY [m], pixelCentreZ [m]. Axes represent the beam\'s point of view: X - horizontal (positive to the left), Y - vertical (positive up), Z - distance along the beam (by default distance from the sample position).')
@@ -24,11 +24,11 @@ if args.larmor2022experiment:
     strawPixelNumber = 512
 
 if numbeOfBanks is not None:
-  aimHelper = Mask.MaskingHelper(rearBankDistance * 1000, strawPixelNumber, numbeOfBanks)
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numbeOfBanks)
 elif strawPixelNumber is not None:
-  aimHelper = Mask.MaskingHelper(rearBankDistance * 1000, strawPixelNumber)
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber)
 else:
-  aimHelper = Mask.MaskingHelper(rearBankDistance * 1000)
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000)
 
 oldNumbering = args.oldPixelNumbering
 larmor2022 = args.larmor2022experiment
@@ -38,7 +38,7 @@ fileName = f"{args.fileName}.txt"
 with open(fileName, "w") as pixelFile:
   numberOfPixels = aimHelper.getTotalNumberOfPixels()
   for pixelId in range(numberOfPixels):
-    pixelCentreX, pixelCentreY, pixelCentreZ = aimHelper.getPixelCentrePositionsForMasking(pixelId, oldNumbering, larmor2022)
+    pixelCentreX, pixelCentreY, pixelCentreZ = aimHelper.getPixelCentreCoordinates(pixelId, oldNumbering, larmor2022)
     pixelCentreZ = pixelCentreZ + ssd *1000 #Larmor SSD is 25.61 (source to sample distance)
 
     pixelFile.write( f"{pixelId}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}" )

@@ -1,5 +1,5 @@
 
-import G4GeoLoki.LokiMaskingHelper as Mask
+import G4GeoLoki.LokiAimHelper as LokiAim
 import Core.Units as Units
 import numpy as np
 
@@ -59,7 +59,7 @@ def launch(geo):
             angleRange = (10.5, 49.6)
           else: #single banks [0,8]
             bankId = int(bankFilter)
-            aimHelper = Mask.MaskingHelper(5*Units.m) #rear det distance shouldn't really matter
+            aimHelper = LokiAim.AimHelper(5*Units.m) #rear det distance shouldn't really matter
             bankCentre = [aimHelper.getBankPosition(bankId, 0), aimHelper.getBankPosition(bankId, 1), aimHelper.getBankPosition(bankId, 2)]
             gen.ref_dir_x, gen.ref_dir_y, gen.ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
             bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now

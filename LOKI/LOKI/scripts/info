@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import G4GeoLoki.LokiMaskingHelper as Mask
+import G4GeoLoki.LokiAimHelper as LokiAim
 
 parser = argparse.ArgumentParser(description = 'Geometry information tools.')
 parser.add_argument('-i', '--info', action = 'store_true', help = 'Dump information about the geometry.')
@@ -15,7 +15,7 @@ parser.add_argument('-ssd', '--source_sample_distance_m', type=float, default=0.
 args = parser.parse_args()
 
 print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} source_sample_distance_m={args.source_sample_distance_m}")
-geoHelper = Mask.MaskingHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
+geoHelper = LokiAim.AimHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
 
 if args.info:
   geoHelper.dumpInfo()
@@ -23,7 +23,7 @@ if args.info:
 
 if not args.pixel is None:
   larmor_2022_experiment=False #TODO input? must be handled everywhere
-  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentrePositionsForMasking(args.pixel, args.old_tube_numbering, larmor_2022_experiment)
+  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel, args.old_tube_numbering, larmor_2022_experiment)
   bankId = geoHelper.getBankId(args.pixel)
   tubeId = geoHelper.getTubeId(args.pixel, bankId)
   packId = geoHelper.getPackId(bankId, tubeId, args.old_tube_numbering)
