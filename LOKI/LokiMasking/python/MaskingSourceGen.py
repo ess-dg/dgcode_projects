@@ -1,8 +1,6 @@
 from __future__ import print_function
 import G4CustomPyGen
 import Core.Units as Units
-#import Utils.NeutronMath
-#import math
 import G4GeoLoki.LokiMaskingHelper as Mask
 
 class MaskingSourceGen(G4CustomPyGen.GenBase):

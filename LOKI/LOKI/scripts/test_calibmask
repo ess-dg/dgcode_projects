@@ -1,9 +1,0 @@
-#!/bin/bash
-
-ARGS="rear_detector_distance_m=5 aiming_straw_pixel_number=1024 analysis_straw_pixel_number=512 rear_detector_only=False with_beamstop=False event_gen=masking with_calibration_slits=True"
-ess_loki_sim $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'
-if [ ${PIPESTATUS[0]} == 0 ]; then
-    ess_loki_ana_masking lokisim.griff
-else
-    exit 1
-fi

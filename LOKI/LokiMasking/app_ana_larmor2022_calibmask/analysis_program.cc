@@ -8,7 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include "G4GeoLoki/PixelatedBanks.hh"
-#include "LOKI/MaskFileCreator.hh"
+#include "LokiMasking/MaskFileCreator.hh"
 
 //Griff analysis. See https://confluence.esss.lu.se/display/DGCODE/Griff for more info.
 

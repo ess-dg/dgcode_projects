@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+import G4GeoLoki.GeoBCSBanks as GEO
+
+geo = GEO.create()
+
+import LokiMasking.Launcher
+LokiMasking.Launcher.launch(geo)

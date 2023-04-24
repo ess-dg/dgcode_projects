@@ -1,6 +1,6 @@
-#include "LOKI/MaskFileCreator.hh"
+#include "LokiMasking/MaskFileCreator.hh"
 #include <fstream>
-#include<algorithm>
+#include <algorithm>
 
 MaskFileCreator::MaskFileCreator(const char* fileName, const int numberOfPixels, const int indexOffset):
   m_fileName(fileName),

@@ -1,0 +1,8 @@
+package(USEPKG GriffAnaUtils SimpleHists G4GeoLoki)
+
+######################################################################
+
+
+Package providing scripts for maskfile generating simulations for the LOKI instrument.
+
+Primary author: milan.klausz@ess.eu

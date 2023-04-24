@@ -1,5 +1,5 @@
-#ifndef LOKI_MaskFileCreator_hh
-#define LOKI_MaskFileCreator_hh
+#ifndef LokiMasking_MaskFileCreator_hh
+#define LokiMasking_MaskFileCreator_hh
 
 #include <iostream>
 #include <memory>
