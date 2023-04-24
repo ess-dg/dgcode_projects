@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+import G4Utils.chain
+G4Utils.chain.chain('ess_lokimasking_sim','ess_lokimasking_ana','REDUCED')
