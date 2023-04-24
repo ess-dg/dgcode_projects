@@ -28,7 +28,7 @@ class Larmor2022GeometryConverter:
     return id >= self.getLowerIdCut_newGeom(id) and id < self.getUpperIdCut_newGeom(id)
 
 
-class TubeNumberingConverter:
+class Larmor2022TubeNumberingConverter:
   '''PixelId converter from geometry with old tube numbering (first layer to last layer, top to bottom) to geom with new tube numbering (top to bottom, layer by layer)'''
   numberOfPacks = 28
   tubePerLayer = 2 * numberOfPacks

@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
   auto countTestGeantino = h_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_counters->addCounter("geantino_in_Mask");
 
-  const int indexOffset = 11;
+  const int indexOffset = 1; //detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
   MaskFileCreator masking("maskFile.xml", numberOfPixels, indexOffset);
 
   while (dr.loopEvents()) {
