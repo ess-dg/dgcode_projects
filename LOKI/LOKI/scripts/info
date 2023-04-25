@@ -29,7 +29,7 @@ if not args.pixel is None:
   packId = geoHelper.getPackId(bankId, tubeId, args.old_tube_numbering)
   strawId = geoHelper.getStrawId(args.pixel, bankId, tubeId)
   inStrawId = args.pixel % args.straw_pixel_number
-  print(f"Pixel number: {args.pixel}")
+  print(f"Pixel number: {args.pixel} (according to the Geant4 geometry. It corresponds to the pixelID {args.pixel+1} in the ICD.)")
   print(f"Pixel centre position [m] X: {pixelCentreX/1000:.4f} Y: {pixelCentreY/1000:.4f} Z: {(args.source_sample_distance_m+pixelCentreZ/1000):.4f}")
   print(f"Bank id: {bankId}")
   print(f"Pack id: {packId}")

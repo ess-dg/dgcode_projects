@@ -96,16 +96,17 @@ def launch(geo):
     def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
       if(launcher.getGen().hasParameterBoolean('geo_larmor_2022_experiment') and
          launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
+        assert launcher.getParameterInt('analysis_straw_pixel_number') == 512, "analysis_straw_pixel_number must be 512 for the Larmor2022 experiment!"
         if(launcher.getGen().getName()=="G4MCPLPlugins/MCPLGen"): #event_gen=mcpl
-          assert launcher.getGen().dz_meter == 4.049, "sample_generator_distance_meters should be 4.049, or wrong sample_mcpl_distance_m value in the MCPL file" #note: intentionally 4.049, not 4.099
-          assert launcher.getGen().dx_meter == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+          assert launcher.getGen().dz_meter == 4.049, "sample_generator_distance_meters should be 4.049 (or wrong sample_mcpl_distance_m value in the MCPL file) for the Larmor2022 experiment!" #note: intentionally 4.049, not 4.099
+          assert launcher.getGen().dx_meter == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor 2022 experiment!"
         elif(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
-          assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+          assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor2022 experiment!"
           launcher.getGen().source_sample_distance_meters = 25.61
           launcher.getGen().source_monitor_distance_meters = 25.57
           import math as m
           launcher.getGen().cone_opening_deg = m.acos(1-2/233)/m.pi*180
-          print(f"Using predifined parameters for the Larmor-2022 experiment!")
+          print(f"Using predifined parameters for the Larmor2022 experiment!")
           print(f'    source_sample_distance_meters: {launcher.getGen().source_sample_distance_meters}')
           print(f'    source_monitor_distance_meters: {launcher.getGen().source_monitor_distance_meters}')
           print(f'    cone_opening_deg: {launcher.getGen().cone_opening_deg}')

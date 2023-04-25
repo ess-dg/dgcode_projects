@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+import csv
+import xml.etree.ElementTree as ET
+import argparse
+
+parser = argparse.ArgumentParser(description = 'Merge LOKI maskfiles by reading multiple maskfiles and outputing one that has the intersection of the masked IDs. (Any pixelID that is missing from a file must have been reached by a geantino without going through an absorbing layer.)')
+parser.add_argument('filenames', nargs = '+',  help = 'Input maskfile names.')
+parser.add_argument('-s', '--savename', required=True, help = 'Output maskfile name.')
+args = parser.parse_args()
+
+def intersection(lst1, lst2):
+    return list(set(lst1) & set(lst2))
+
+fileList = args.filenames #TODO add some verification?
+
+idIntersection = ()
+
+for index, fileName in enumerate(fileList):
+    tree = ET.parse(fileName)
+    root = tree.getroot()
+    #print(root.tag)
+    groupElement = root.find('group')
+    detidsElement = groupElement.find('detids')
+
+    idStringList = list(detidsElement.text.split(","))
+    idList = [int(idString) for idString in idStringList]
+
+    if(index == 0):
+        idIntersection = idList
+    else:
+        idIntersection = intersection(idIntersection, idList)
+
+    print(f'File: {fileName}, number of masked IDs: {len(idStringList)}, intersected IDs so far: {len(idIntersection)}')
+
+idIntersection.sort()
+print(f'Final number of masked IDs (intersections): {len(idIntersection)}')
+
+with open(args.savename, 'w' ) as f:
+    f.write('<?xml version="1.0"?>\n')
+    f.write('<detector-masking>\n')
+    f.write('\t<group>\n')
+    f.write('\t\t<detids> ')
+    writer = csv.writer(f)
+    writer.writerow(idIntersection)
+    f.write(' </detids>\n')
+    f.write('\t</group>\n')
+    f.write('</detector-masking>')
+    f.close()

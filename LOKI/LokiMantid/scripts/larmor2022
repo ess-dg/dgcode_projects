@@ -130,7 +130,7 @@ if not args.detectorOnly:
 if not args.monitorOnly:
   Geant4DataWS = api.createDetectorWorkspace(instrumentDefinitionFile_detector)
 
-  from LokiMantid.PixelIdConverters import Larmor2022GeometryConverter
+  from LokiMasking.PixelIdConverters import Larmor2022GeometryConverter
   pixelIdConverter = Larmor2022GeometryConverter(params.get('analysis_straw_pixel_number'))
   larmor2022IdFilter = pixelIdConverter.isPixelInLarmor2022Geom #Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
   larmor2022IdConverter = lambda id: 1 + id - pixelIdConverter.getReductionPixelOffset_newGeom(id) # +1 because the detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry); applying negative pixel offset (depending on the detector layer) to compensate for the extra pixels present in the Geant4 simulation geometry.

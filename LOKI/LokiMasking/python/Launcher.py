@@ -23,7 +23,8 @@ def launch(geo):
     def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
       if(launcher.getGen().hasParameterBoolean('geo_larmor_2022_experiment') and
          launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
-        assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for larmor 2022 experiment"
+        assert launcher.getParameterInt('analysis_straw_pixel_number') == 512, "analysis_straw_pixel_number must be 512 for the Larmor2022 experiment!"
+        assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor2022 experiment!"
 
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))

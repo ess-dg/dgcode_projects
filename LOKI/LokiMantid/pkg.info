@@ -1,4 +1,4 @@
-package(USEPKG G4Units MCPL USEEXT Mantidpython)
+package(USEPKG G4Units MCPL LokiMasking USEEXT Mantidpython )
 
 ######################################################################
 
