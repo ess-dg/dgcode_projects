@@ -37,8 +37,8 @@ def createTofSpectrumWithUniformPart(totalIntensity, tMin, tMax, spectrumStart, 
 def createFloodSourceTofSpectrum(totalIntensity, lambdaMin, lambdaMax, sourceToMonitorDistance, spectrumStart=0, spectrumEnd=100000, verbose=1):
   velocityMin = neutron_angstrom_to_meters_per_second(lambdaMax)
   velocityMax = neutron_angstrom_to_meters_per_second(lambdaMin)
-  tMin = round((sourceToMonitorDistance / velocityMax)*1e6) #ms
-  tMax = round((sourceToMonitorDistance / velocityMin)*1e6) #ms
+  tMin = round((sourceToMonitorDistance / velocityMax)*1e6) #microseconds
+  tMax = round((sourceToMonitorDistance / velocityMin)*1e6) #microseconds
 
   return createTofSpectrumWithUniformPart(totalIntensity, tMin, tMax, spectrumStart, spectrumEnd, verbose)
 

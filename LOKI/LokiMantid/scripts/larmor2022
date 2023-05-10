@@ -14,16 +14,16 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser(description = 'Process detection MCPL files from larmor2022 simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
-parser.add_argument('filename', help = 'Input detection MCPL file name. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LARMOR2022 environment variable, unless a full path is given.')
+parser.add_argument('filename', help = 'Input detection MCPL file. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LARMOR2022 environment variable, unless a full path is given.')
 parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LARMOR2022 environment variable, unless a full path is given.')
 
-parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per each detector straw.')
+parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per detector straw.')
 parser.add_argument('--workspaceTofStart', default = 5, type=int, help = 'TOF start for the workspace spectra binning. [microSeconds]')
 parser.add_argument('--workspaceTofBinWidth', default = 100, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
 parser.add_argument('--workspaceTofEnd', default = 100000, type=int, help = 'TOF end for the workspace spectra binning. [microSeconds]')
 parser.add_argument('-det', '--detectorOnly', action = 'store_true', help = 'Create only the detector spectrum file.')
 parser.add_argument('-mon', '--monitorOnly', action = 'store_true', help = 'Create only the monitor spectrum file.')
-parser.add_argument('--noOutput', action = 'store_true', help = 'Developper option. No output is generated.')
+parser.add_argument('--noOutput', action = 'store_true', help = 'Developer option. No output is generated.')
 parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable more verbosity.')
 parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
 
@@ -32,11 +32,11 @@ mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas director
 mcstasParamGroup.add_argument('--mcstas_monitors', nargs='*', help = 'Name of the McStas monitor files (this option overrides the default ones).')
 
 floodPramGroup = parser.add_argument_group('Flood source parameters', 'Supplement flood source simulation parameters missing from the detection MCPL files (legacy files), or override parameters stored in the files.')
-floodPramGroup.add_argument('-n', '--neutronNumber', type=float, help = 'The total number of neutrons used to create (probably) merged detection MCPL input file.')
+floodPramGroup.add_argument('-n', '--neutronNumber', type=float, help = 'The total number of neutrons used to create the (probably merged) detection MCPL input file.')
 floodPramGroup.add_argument('--neutron_wavelength_min_aangstrom', help = 'Minimum neutron wavelength used for the flood source sampling.')
 floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximum neutron wavelength used for the flood source sampling.')
 floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Opening angle of the cone used for the direction sampling.')
-floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. (The preSample monitor TOF spectrum is generated for this distance.')
+floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. The preSample monitor TOF spectrum is generated for this distance.')
 
 args = parser.parse_args()
 
@@ -93,7 +93,7 @@ if not args.detectorOnly:
   monitorIntensity = []
   monitorError = []
   if isFloodSourceSimulation:
-    directionBiasMultiplicationFactor = 1/ ((1 - m.cos(params.get('sampling_cone_opening_deg') *m.pi/180))/2)
+    directionBiasMultiplicationFactor = 2/(1 - m.cos(params.get('sampling_cone_opening_deg') *m.pi/180))
     incidentNeutronNumber = simulatedNeutronNumber * directionBiasMultiplicationFactor
     if args.verbose:
        print("     Handling flood source neutron number:")

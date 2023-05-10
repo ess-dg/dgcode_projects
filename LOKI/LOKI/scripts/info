@@ -5,12 +5,12 @@ import G4GeoLoki.LokiAimHelper as LokiAim
 
 parser = argparse.ArgumentParser(description = 'Geometry information tools.')
 parser.add_argument('-i', '--info', action = 'store_true', help = 'Dump information about the geometry.')
-parser.add_argument('-rear', '--rear_detector_distance_m', default=5.0, type=float, help = 'Sample to rear detector distance.')
-parser.add_argument('-spn', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
+parser.add_argument('-r', '--rear_detector_distance_m', default=5.0, type=float, help = 'Sample to rear detector distance.')
+parser.add_argument('-s', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
 parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
 # parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
 parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
-parser.add_argument('-ssd', '--source_sample_distance_m', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
+parser.add_argument('-d', '--source_sample_distance_m', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
 
 args = parser.parse_args()
 
