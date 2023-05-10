@@ -34,7 +34,7 @@ def launch(geo):
         gen = Gen.create()
         if(launcher.getParameterString('input_file')):
           gen.input_file = launcher.getParameterString('input_file')
-        else:
+        else: #only for Larmor2022
           gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
 
         import MCPL
@@ -112,16 +112,16 @@ def launch(geo):
           print(f'    cone_opening_deg: {launcher.getGen().cone_opening_deg}')
 
     def addUserData():
+      launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
+      launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
+      launcher.setUserData("bank_filter", str(launcher.getParameterString('bank_filter')))
       if(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
         launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
         launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))
         launcher.setUserData("sampling_cone_opening_min_deg", str(launcher.getGen().cone_opening_min_deg))
         launcher.setUserData("neutron_wavelength_min_aangstrom", str(launcher.getGen().neutron_wavelength_min_aangstrom))
         launcher.setUserData("neutron_wavelength_max_aangstrom", str(launcher.getGen().neutron_wavelength_max_aangstrom))
-        launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
-        launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
-        launcher.setUserData("bank_filter", str(launcher.getParameterString('bank_filter')))
-          
+
     launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 

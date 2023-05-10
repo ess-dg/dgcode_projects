@@ -99,7 +99,7 @@ int main(int argc, char**argv) {
 
   bool (*bankFilter) (int);
   bankFilter = [](int bankId) {(void)bankId; return true;}; //allow all banks by default
-  if(userData.count("bank_filter")){
+  if(userData.count("bank_filter") && userData["bank_filter"]!=""){
     int bankFilterNumber = std::stoi(userData["bank_filter"]);
     switch(bankFilterNumber) {
       case 0:
