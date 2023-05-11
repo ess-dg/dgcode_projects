@@ -209,29 +209,29 @@ int main(int argc, char**argv) {
        h_neutron_bankToBankIncident->setXLabel("Bank id (hit)");
        h_neutron_bankToBankIncident->setYLabel("Bank id (previous)");
 
-  auto h_neutron_bankPanelConvCounter = hc.book2D("Neutron conversion counter for 4 panels of 9 banks", 9, 0, 9, 4, 0, 4, "neutron_bankPanelConvCounter");
-       h_neutron_bankPanelConvCounter->setXLabel("Bank id");
-       h_neutron_bankPanelConvCounter->setYLabel("Panel number");
+  auto h_neutron_bankLayerConvCounter = hc.book2D("Neutron conversion counter for 4 layers of 9 banks", 9, 0, 9, 4, 0, 4, "neutron_bankLayerConvCounter");
+       h_neutron_bankLayerConvCounter->setXLabel("Bank id");
+       h_neutron_bankLayerConvCounter->setYLabel("Layer number");
 
-  auto h_neutron_bankPanelHitCounter = hc.book2D("Neutron hit counter for 4 panels of 9 banks", 9, 0, 9, 4, 0, 4, "neutron_bankPanelHitCounter");
-       h_neutron_bankPanelHitCounter->setXLabel("Bank id");
-       h_neutron_bankPanelHitCounter->setYLabel("Panel number");
+  auto h_neutron_bankLayerHitCounter = hc.book2D("Neutron hit counter for 4 layers of 9 banks", 9, 0, 9, 4, 0, 4, "neutron_bankLayerHitCounter");
+       h_neutron_bankLayerHitCounter->setXLabel("Bank id");
+       h_neutron_bankLayerHitCounter->setYLabel("Layer number");
 
-  auto h_neutron_panelConvCounter = hc.book1D("Neutron conversion counter for 4 panels", 4, 0, 4, "neutron_panelConvCounter");
-       h_neutron_panelConvCounter->setXLabel("Panel number");
+  auto h_neutron_LayerConvCounter = hc.book1D("Neutron conversion counter for 4 layers", 4, 0, 4, "neutron_LayerConvCounter");
+       h_neutron_LayerConvCounter->setXLabel("Layer number");
 
-  auto h_neutron_panelHitCounter = hc.book1D("Neutron hit counter for 4 panels", 4, 0, 4, "neutron_panelHitCounter");
-       h_neutron_panelHitCounter->setXLabel("Panel number");
+  auto h_neutron_LayerHitCounter = hc.book1D("Neutron hit counter for 4 layers", 4, 0, 4, "neutron_layerHitCounter");
+       h_neutron_LayerHitCounter->setXLabel("Layer number");
 
-  auto h_panel_neutronNr_all = hc.book1D("Number of neutrons entering each panel", 4, 0, 4, "panel_neutronNr_all");
+  auto h_layer_neutronNr_all = hc.book1D("Number of neutrons entering each layer", 4, 0, 4, "layer_neutronNr_all");
 
-  auto h_panel_lambda = hc.book2D("Incident neutron wavelength for panels", 325, 0, 14, 4, 0, 4, "panel_lambda");
-       h_panel_lambda->setXLabel("Wavelength [angstrom]");
-       h_panel_lambda->setYLabel("Panel number");
+  auto h_layer_lambda = hc.book2D("Incident neutron wavelength for layers", 325, 0, 14, 4, 0, 4, "layer_lambda");
+       h_layer_lambda->setXLabel("Wavelength [angstrom]");
+       h_layer_lambda->setYLabel("Layer number");
 
-  auto h_panel_lambda_hit = hc.book2D("Detection neutron wavelength for panels", 325, 0, 14, 4, 0, 4, "panel_lambda_hit");
-       h_panel_lambda_hit->setXLabel("Wavelength [angstrom]");
-       h_panel_lambda_hit->setYLabel("Panel number");
+  auto h_layer_lambda_hit = hc.book2D("Detection neutron wavelength for layers", 325, 0, 14, 4, 0, 4, "layer_lambda_hit");
+       h_layer_lambda_hit->setXLabel("Wavelength [angstrom]");
+       h_layer_lambda_hit->setYLabel("Layer number");
 
   auto h_bank_lambda = hc.book2D("Incident neutron wavelength for banks", 325, 0, 14, 9, 0, 9, "bank_lambda");
        h_bank_lambda->setXLabel("Wavelength [angstrom]");
@@ -317,26 +317,26 @@ int main(int argc, char**argv) {
 
       bool firstBankEnter = true;
 
-      int previousPanelNumber = -42; //anything except [0-6] would do it
-      int panelNumber = 0;
+      int previousLayerNumber = -42; //anything except [0-6] would do it
+      int layerNumber = 0;
       int previousBankNumber = -42; //anything except [0-6] would do it
       int bankNumber = 0;
       while (auto tubeWallSegment = segments_TubeWall.next()) { // loop over all segments of the TubeWall
 
         bankNumber = (int)tubeWallSegment->volumeCopyNumber(2);
         const int tubeId = (int)tubeWallSegment->volumeCopyNumber();
-        panelNumber = banks->getTubeLayerId(bankNumber, tubeId, oldTubeNumbering);
+        layerNumber = banks->getTubeLayerId(bankNumber, tubeId, oldTubeNumbering);
         neutron_weight = tubeWallSegment->getTrack()->weight();
 
 
-        if (panelNumber != previousPanelNumber && tubeWallSegment->startEKin()) {
-          previousPanelNumber = panelNumber;
+        if (layerNumber != previousLayerNumber && tubeWallSegment->startEKin()) {
+          previousLayerNumber = layerNumber;
 
-          h_panel_neutronNr_all->fill(panelNumber, neutron_weight);
+          h_layer_neutronNr_all->fill(layerNumber, neutron_weight);
 
           const double actualEkin = tubeWallSegment->startEKin();
           const double actualLambda = Utils::neutronEKinToWavelength(actualEkin) / Units::angstrom;
-          h_panel_lambda->fill(actualLambda, panelNumber, neutron_weight);
+          h_layer_lambda->fill(actualLambda, layerNumber, neutron_weight);
         }
         if (bankNumber!= previousBankNumber) { //his includes first enter
           if (!firstBankEnter) {
@@ -390,9 +390,9 @@ int main(int argc, char**argv) {
 
         h_neutron_xy_conv->fill(-position_conv[0]/Units::mm, position_conv[1]/Units::mm, neutron->weight());
 
-        const int panelNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv, oldTubeNumbering);
-        h_neutron_bankPanelConvCounter->fill(bankId_conv, panelNumber_conv, neutron->weight());
-        h_neutron_panelConvCounter->fill(panelNumber_conv, neutron->weight());
+        const int layerNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv, oldTubeNumbering);
+        h_neutron_bankLayerConvCounter->fill(bankId_conv, layerNumber_conv, neutron->weight());
+        h_neutron_LayerConvCounter->fill(layerNumber_conv, neutron->weight());
 
         if (hit.eventHasHit()) {
           count_neutrons_hit += 1;
@@ -410,8 +410,8 @@ int main(int argc, char**argv) {
           h_neutron_pixel_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
 
 
-          h_neutron_bankPanelHitCounter->fill(bankId_conv, panelNumber_conv, hit.eventHitWeight());
-          h_neutron_panelHitCounter->fill(panelNumber_conv, hit.eventHitWeight());
+          h_neutron_bankLayerHitCounter->fill(bankId_conv, layerNumber_conv, hit.eventHitWeight());
+          h_neutron_LayerHitCounter->fill(layerNumber_conv, hit.eventHitWeight());
 
           if (bankId_conv == 0) {
             h_neutron_pixel_rear_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
@@ -442,7 +442,7 @@ int main(int argc, char**argv) {
           }
 
           h_bank_lambda_hit -> fill(lambda_hit_calculated, bankId_conv, hit.eventHitWeight());
-          h_panel_lambda_hit->fill(lambda_hit_calculated, panelNumber, hit.eventHitWeight());
+          h_layer_lambda_hit->fill(lambda_hit_calculated, layerNumber, hit.eventHitWeight());
 
           if (createDetectionMcplFile == true && bankFilter(bankId_conv)) {
             detectionFile->addDetectionEvent(pixelId, hit.eventHitTime()/Units::ms);

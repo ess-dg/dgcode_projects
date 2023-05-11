@@ -34,8 +34,10 @@ def decomposeFileName(fileName):
     for part in parts:
         if 'ang' in part:
             wavelength=float(part.strip('ang').replace('p','.'))
-        #elif 'panel' in part:
-        #    panelNumber = int(part.strip('panel'))
+        #elif 'layer' in part or: 
+        #    layerNumber = int(part.strip('layer'))
+        #elif 'panel' in part or: #legacy name for layer
+        #    layerNumber = int(part.strip('panel'))
         #elif 'with' in part:
         #    material = part.strip('with')
     return [wavelength]
@@ -48,10 +50,10 @@ parser.add_argument('-t', '--test', action = 'store_true', help = 'Test new func
 parser.add_argument('-obq', '--overlayBankQ', action = 'store_true', help = 'Overlay Q_hit of all 9 Banks')
 parser.add_argument('-obt', '--overlayBankTheta', action = 'store_true', help = 'Overlay Theta_hit of all 9 Banks')
 parser.add_argument('-obl', '--overlayBankLambda', action = 'store_true', help = 'Overlay Lambda_hit of all 9 Banks')
-parser.add_argument('-opl', '--overlayPanelLambda', action = 'store_true', help = 'Overlay panel_lambda for 4 panels (of all 9 Banks)')
+parser.add_argument('-opl', '--overlayLayerLambda', action = 'store_true', help = 'Overlay layer_lambda for 4 layers (of all 9 Banks)')
 
 
-parser.add_argument('-e', '--efficiency', action = 'store_true', help = 'Plot efficiency for different number of panels')
+parser.add_argument('-e', '--efficiency', action = 'store_true', help = 'Plot efficiency for different number of layers')
 parser.add_argument('-be', '--bankEfficiency', action = 'store_true', help = 'Plot efficiency for the 9 detector banks')
 parser.add_argument('-hc', '--hitContribution', action = 'store_true', help = 'Plot contribution of banks to the total number of hits')
 parser.add_argument('-ot', '--overlayTheta', action = 'store_true', help = 'Overlay Thera source, conv, hit')
@@ -93,8 +95,8 @@ def saveOrShowFig(plt, saveFileName):
 if(args.test):
   print('test')
   hc = sh.HistCollection(args.fileName[0])
-  #hist2plot = hc.hist('h_panel_lambda')#TEMP ON
-  hist2plot = hc.hist('h_panel_tof')#TEMP ON
+  #hist2plot = hc.hist('h_layer_lambda')#TEMP ON
+  hist2plot = hc.hist('h_layer_tof')#TEMP ON
   [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
   #bank_0_spectrum = BCSplt.hist1DfromHist2D( hist2plot, 0, isRow=True)
   #bank_0_spectrum.plot()
@@ -112,19 +114,19 @@ if(args.test):
 
   normalise = 0 #4 Defence for Nafi
 
-  for panelNumber in range(5):
-    print(panelNumber)
+  for layerNumber in range(5):
+    print(layerNumber)
 
-    integralValue = sum(histData[panelNumber,:]) #TEMP ON
+    integralValue = sum(histData[layerNumber,:]) #TEMP ON
     print(integralValue)
 
     if not normalise:
-      values = histData[panelNumber, :] #TEMP ON
+      values = histData[layerNumber, :] #TEMP ON
     else:
-      values = histData[panelNumber, :] / integralValue
+      values = histData[layerNumber, :] / integralValue
 
     if(sum(values) > 0):
-      labelText = 'Panel ' + str(int(float(panelNumber)+1)) + ' (' + str(round(integralValue/1e6, 2)) + ' MHz)' #TEMP ON
+      labelText = 'Layer ' + str(int(float(layerNumber)+1)) + ' (' + str(round(integralValue/1e6, 2)) + ' MHz)' #TEMP ON
       ax.plot(histAxisY, values, 'o-', linewidth=5,  label = labelText) #TEMP ON
 
   #x.set_xlabel("Wavelength [{\AA}]")
@@ -145,7 +147,7 @@ if(args.test):
 
 if(args.overlayIncidentLambda):
   hc = sh.HistCollection(args.fileName[0])
-  hist2plot = hc.hist('panel_lambda')#TEMP OFF
+  hist2plot = hc.hist('layer_lambda')#TEMP OFF
   [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
 
   BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
@@ -154,17 +156,17 @@ if(args.overlayIncidentLambda):
   plt.rc('legend',**{'fontsize':30})
 
   normalise = 0 #4 Defence for Nafi
-  for panelNumber in range(4):
-    integralValue = sum(histData[:,panelNumber]) #TEMP OFF
-    print(panelNumber, integralValue)
+  for layerNumber in range(4):
+    integralValue = sum(histData[:,layerNumber]) #TEMP OFF
+    print(layerNumber, integralValue)
 
     if not normalise:
-      values = histData[:,panelNumber]  #TEMP OFF
+      values = histData[:,layerNumber]  #TEMP OFF
     else:
-      values = histData[:,panelNumber] / integralValue
+      values = histData[:,layerNumber] / integralValue
 
     if(sum(values) > 0):
-      labelText = 'Layer ' + str(int(float(panelNumber)+1)) + ' (' + str(round(integralValue/1e6, 2)) + ' MHz)' #TEMP OFF
+      labelText = 'Layer ' + str(int(float(layerNumber)+1)) + ' (' + str(round(integralValue/1e6, 2)) + ' MHz)' #TEMP OFF
       ax.plot(histAxisX, values, 'o-', linewidth=5,  label = labelText) #TEMP OFF
 
   ax.set_xlabel("Wavelength [{\AA}]")
@@ -181,7 +183,7 @@ if(args.overlayIncidentLambda):
 
 if(args.overlayDetectionLambda):
   hc = sh.HistCollection(args.fileName[0])
-  hist2plot = hc.hist('panel_lambda_hit')
+  hist2plot = hc.hist('layer_lambda_hit')
   [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
 
   BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
@@ -189,12 +191,12 @@ if(args.overlayDetectionLambda):
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
 
-  for panelNumber in range(4):
-    print(panelNumber)
-    values = histData[:,panelNumber]
+  for layerNumber in range(4):
+    print(layerNumber)
+    values = histData[:,layerNumber]
 
     if(sum(values) > 0):
-      labelText = 'Layer ' + str(int(float(panelNumber)+1)) + ' (' + str(round(sum(values)/1e6, 2)) + ' MHz)'
+      labelText = 'Layer ' + str(int(float(layerNumber)+1)) + ' (' + str(round(sum(values)/1e6, 2)) + ' MHz)'
       ax.plot(histAxisX, values, 'o-', linewidth=5,  label = labelText)
 
   ax.set_xlabel("Wavelength [{\AA}]")
@@ -342,7 +344,7 @@ elif(args.efficiency):
         wavelength = float(part.strip('ang').replace('p','.'))
 
     hc = sh.HistCollection(fileName)
-    hist2plot = hc.hist('neutron_panelHitCounter')
+    hist2plot = hc.hist('neutron_layerHitCounter')
     [histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
     histData = np.array(histData)
     histError = np.array(histError)
@@ -362,7 +364,7 @@ elif(args.efficiency):
   plt.legend(legends, frameon=False, loc='upper left', bbox_to_anchor=(0, 1.03))
   plt.ylabel('Detection efficiency [\%]')
 
-  plt.xlabel('Panel number')
+  plt.xlabel('Layer number')
   plt.axis([0.5, 4.5, 0, 100])
   #plt.plot([xAxisMin, xAxisMax], [70, 70], colors['magenta'], linewidth=4) #, label=limitsLabel)
 
@@ -371,7 +373,7 @@ elif(args.efficiency):
   plt.yticks(np.arange(0, 110, 10))
   ax.grid()
 
-  saveOrShowFig(plt, 'efficiencyPanel')
+  saveOrShowFig(plt, 'efficiencyLayer')
 
 elif(args.bankEfficiency):
 
@@ -391,10 +393,10 @@ elif(args.bankEfficiency):
         wavelength = float(part.strip('ang').replace('p','.'))
 
     hc = sh.HistCollection(fileName)
-    bankPanelHitHist = hc.hist('neutron_bankPanelHitCounter')
-    [bankPanelHit, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(bankPanelHitHist)
-    bankPanelHit = np.array(bankPanelHit)
-    bankHit = sum(bankPanelHit.transpose())
+    bankLayerHitHist = hc.hist('neutron_bankLayerHitCounter')
+    [bankLayerHit, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(bankLayerHitHist)
+    bankLayerHit = np.array(bankLayerHit)
+    bankHit = sum(bankLayerHit.transpose())
 
     incidentNeutronNumberHist = hc.hist('neutron_bankIncidentCounter')
     [incidentNeutronNumber, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(incidentNeutronNumberHist)
@@ -436,7 +438,7 @@ elif(args.efficiencyOverWavelength):
   bankHitError =  np.zeros(325)
   binCenters =  np.zeros(325)
   for i in range(4):
-    # layer_hit_i = hc.hist(f"panel_lambda%s_hit"%i)
+    # layer_hit_i = hc.hist(f"layer_lambda%s_hit"%i)
     layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
     [hit_number, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(layer_hit_i)
     bankHit = bankHit + hit_number
@@ -542,7 +544,7 @@ elif(args.efficiencyOverWavelength):
     ax.legend()
   elif args.perLayerContribution:
     for i in range(4):
-      # layer_hit_i = hc.hist(f"panel_lambda%s_hit"%i)
+      # layer_hit_i = hc.hist(f"layer_lambda%s_hit"%i)
       layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
       [hit_number, histError, histAxis, _, _] = BCSplt.disassembleHist1d(layer_hit_i)
       efficiency_i, error_i = divide.divide( np.array(hit_number), np.array(histError), incidentNeutronNumber, np.sqrt(incidentNeutronNumber))

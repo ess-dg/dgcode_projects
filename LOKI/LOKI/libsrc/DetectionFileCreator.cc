@@ -19,7 +19,7 @@ DetectionFileCreator::DetectionFileCreator(const char* fileName, GriffDataRead::
 
 DetectionFileCreator::DetectionFileCreator(const char* fileName): m_fileName(fileName) {
   this->detMcpl = mcpl_create_outfile(fileName);
-  //mcpl_hdr_set_srcname(this->detMcpl, "LOKI DetectionFileCreator Class");
+  mcpl_hdr_set_srcname(this->detMcpl, "LOKI DetectionFileCreator Class");
   mcpl_hdr_add_comment(this->detMcpl, "Neutrons in this file are actually detection events, and userflags are pixel ID's of hits. Created with the DetectionFileCreator class.");
   mcpl_hdr_add_comment(this->detMcpl, "ARG=VAL");
   mcpl_enable_userflags(this->detMcpl);
