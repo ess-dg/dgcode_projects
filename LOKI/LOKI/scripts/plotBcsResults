@@ -7,10 +7,9 @@ from SimpleHists.plotutils import *
 import PyAnaUtils.divide as divide
 import math as m
 import numpy as np
-# import BCS.BCSplotUtils as BCSplt
-# import BCS.plotUtils2 as BCSplt2
-import LOKI.BCSplotUtils as BCSplt
-import LOKI.plotUtils2 as BCSplt2
+# import BCS.BCSplotUtils as plotUtils
+# import LOKI.BCSplotUtils as plotUtils
+import LOKI.plotUtils as plotUtils
 import argparse
 
 from cycler import cycler
@@ -97,17 +96,17 @@ if(args.test):
   hc = sh.HistCollection(args.fileName[0])
   #hist2plot = hc.hist('h_layer_lambda')#TEMP ON
   hist2plot = hc.hist('h_layer_tof')#TEMP ON
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
-  #bank_0_spectrum = BCSplt.hist1DfromHist2D( hist2plot, 0, isRow=True)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
+  #bank_0_spectrum = plotUtils.hist1DfromHist2D( hist2plot, 0, isRow=True)
   #bank_0_spectrum.plot()
 
   rebinFactor = 1
   #rebinFactor = 3
   #histData = histData[:,:-1] #cheating but no data lost..
   #histAxisY= histAxisY[:-1] #cheating but no data lost..
-  [histData, histAxisX, histAxisY] = BCSplt.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
+  [histData, histAxisX, histAxisY] = plotUtils.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
@@ -148,9 +147,9 @@ if(args.test):
 if(args.overlayIncidentLambda):
   hc = sh.HistCollection(args.fileName[0])
   hist2plot = hc.hist('layer_lambda')#TEMP OFF
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
@@ -184,9 +183,9 @@ if(args.overlayIncidentLambda):
 if(args.overlayDetectionLambda):
   hc = sh.HistCollection(args.fileName[0])
   hist2plot = hc.hist('layer_lambda_hit')
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
@@ -210,7 +209,7 @@ if(args.overlayDetectionLambda):
   saveOrShowFig(plt, 'LayerLambdaDet')
 
 elif(args.overlayBankLambda):
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
@@ -218,11 +217,11 @@ elif(args.overlayBankLambda):
   hc = sh.HistCollection(args.fileName[0])
 
   #hist2plot = hc.hist('neutron_Q_hit')
-  #[histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+  #[histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
   #plt.errorbar(histAxis, histData, yerr=histError, fmt='o-', linewidth=5, markersize=8, alpha=.5, label = 'Sum')
 
   hist2plot = hc.hist('bank_lambda_hit')
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
 
   for bankNumber in range(9):
     print(bankNumber)
@@ -250,9 +249,9 @@ elif(args.overlayBankLambda):
   saveOrShowFig(plt, 'bankLambda_ang')
 
 elif(args.overlayBankQ):
-  #BCSplt.OverlayAllRowOrCol(args.fileName[0],'neutron_bank_Q_hit', isRow=True, TitleText='neutron_bank_Q_hit', logY=True) ##################
+  #plotUtils.OverlayAllRowOrCol(args.fileName[0],'neutron_bank_Q_hit', isRow=True, TitleText='neutron_bank_Q_hit', logY=True) ##################
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
   plt.rc('legend',**{'fontsize':30})
@@ -260,11 +259,11 @@ elif(args.overlayBankQ):
   hc = sh.HistCollection(args.fileName[0])
 
   hist2plot = hc.hist('neutron_Q_hit')
-  [histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+  [histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
   plt.errorbar(histAxis, histData, yerr=histError, fmt='o-', linewidth=5, markersize=8, alpha=.5, label = 'Sum')
 
   hist2plot = hc.hist('neutron_bank_Q_hit')
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
   for bankNumber in range(9):
     print(bankNumber)
     values = histData[:,bankNumber]
@@ -287,9 +286,9 @@ elif(args.overlayBankQ):
   saveOrShowFig(plt, 'bankQ_ang')
 
 elif(args.overlayBankTheta):
-  #BCSplt.overlayHistogramsInOneFileCmpHist(args.fileName[0], ['neutron_true_theta','neutron_theta_conv','neutron_theta_hit'], norm=0, logScale=0)
+  #plotUtils.overlayHistogramsInOneFileCmpHist(args.fileName[0], ['neutron_true_theta','neutron_theta_conv','neutron_theta_hit'], norm=0, logScale=0)
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
 
@@ -298,15 +297,15 @@ elif(args.overlayBankTheta):
   hc = sh.HistCollection(args.fileName[0])
 
   #hist2plot = hc.hist('neutron_true_theta')
-  #[histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+  #[histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
   #plt.errorbar(histAxis, histData, yerr=histError, fmt='o-', linewidth=5, markersize=8, alpha=.5, label = 'Neutron gun')
 
   hist2plot = hc.hist('neutron_theta_hit')
-  [histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+  [histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
   plt.errorbar(histAxis, histData, yerr=histError, fmt='o-', linewidth=5, markersize=8, alpha=.5, label = 'Sum')
 
   hist2plot = hc.hist('neutron_bank_theta_hit')
-  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(hist2plot)
+  [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(hist2plot)
   for bankNumber in range(9):
     print(bankNumber)
     values = histData[:,bankNumber]
@@ -330,7 +329,7 @@ elif(args.overlayBankTheta):
 elif(args.efficiency):
   fig = plt.figure()
   fig.set_size_inches(8, 6)
-  BCSplt.setPlottingParameters(0.8)
+  plotUtils.setPlottingParameters(0.8)
   plt.tight_layout()
   colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
   #plt.rc('axes', prop_cycle=(cycler('color', [colors['darkred'], colors['orangered'],  colors['darkgreen'], colors['cyan'], colors['navy']])))
@@ -345,7 +344,7 @@ elif(args.efficiency):
 
     hc = sh.HistCollection(fileName)
     hist2plot = hc.hist('neutron_layerHitCounter')
-    [histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+    [histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
     histData = np.array(histData)
     histError = np.array(histError)
 
@@ -379,7 +378,7 @@ elif(args.bankEfficiency):
 
   fig = plt.figure()
   fig.set_size_inches(8, 6)
-  BCSplt.setPlottingParameters(0.8)
+  plotUtils.setPlottingParameters(0.8)
   plt.tight_layout()
   colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
   #plt.rc('axes', prop_cycle=(cycler('color', [colors['darkred'], colors['orangered'],  colors['darkgreen'], colors['cyan'], colors['navy']])))
@@ -394,12 +393,12 @@ elif(args.bankEfficiency):
 
     hc = sh.HistCollection(fileName)
     bankLayerHitHist = hc.hist('neutron_bankLayerHitCounter')
-    [bankLayerHit, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(bankLayerHitHist)
+    [bankLayerHit, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(bankLayerHitHist)
     bankLayerHit = np.array(bankLayerHit)
     bankHit = sum(bankLayerHit.transpose())
 
     incidentNeutronNumberHist = hc.hist('neutron_bankIncidentCounter')
-    [incidentNeutronNumber, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(incidentNeutronNumberHist)
+    [incidentNeutronNumber, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(incidentNeutronNumberHist)
 
 
     values = [bankHit[i]/incidentNeutronNumber[i]*100 for i in range(len(bankHit))]
@@ -440,14 +439,14 @@ elif(args.efficiencyOverWavelength):
   for i in range(4):
     # layer_hit_i = hc.hist(f"layer_lambda%s_hit"%i)
     layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
-    [hit_number, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(layer_hit_i)
+    [hit_number, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(layer_hit_i)
     bankHit = bankHit + hit_number
     bankHitError = np.sqrt(np.array(histError)**2 + bankHitError**2)
     binCenters = histAxis
 
   if not args.fileNameCsv:
     layer_hit_i = hc.hist("incident_lambda_true") if args.trueWavelength else hc.hist("incident_lambda")
-    [incidentNeutronNumber, incidentNeutronNumberError, _, _, _] = BCSplt.disassembleHist1d(layer_hit_i)
+    [incidentNeutronNumber, incidentNeutronNumberError, _, _, _] = plotUtils.disassembleHist1d(layer_hit_i)
     incidentNeutronNumber = np.array(incidentNeutronNumber)
     incidentNeutronNumberError = np.array(incidentNeutronNumberError)
     # sumNumberOfNeutrons = 1.26498e10 #hardcoded  (filtered neutron number for flat G4only sim)
@@ -478,7 +477,7 @@ elif(args.efficiencyOverWavelength):
   #       errors[-i] = 0
   #       break
 
-  BCSplt.setPlottingParameters(0.8)
+  plotUtils.setPlottingParameters(0.8)
 
   fig, ax = plt.subplots()
   fig.set_size_inches(10, 7)
@@ -496,10 +495,10 @@ elif(args.efficiencyOverWavelength):
       layer_incident_lambda = hc.hist("layer_first_incident_lambda_true") if args.trueWavelength else hc.hist("layer_first_incident_lambda")
     else:
       layer_incident_lambda = hc.hist("layer_incident_lambda_true") if args.trueWavelength else hc.hist("layer_incident_lambda")
-    [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = BCSplt.disassembleHist2d(layer_incident_lambda)
+    [histData, histAxisX, histAxisY, hist2plotTitle, histLabelX, histLabelY] = plotUtils.disassembleHist2d(layer_incident_lambda)
     for i in range(4):
       layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
-      [hit_number, histError, histAxis, _, _] = BCSplt.disassembleHist1d(layer_hit_i)
+      [hit_number, histError, histAxis, _, _] = plotUtils.disassembleHist1d(layer_hit_i)
       efficiency_i, error_i = divide.divide(np.array(hit_number), np.array(histError), np.array(histData[i,:]), np.sqrt(np.array(histData[i,:])))
       ax.errorbar(histAxis, efficiency_i * 100, yerr=(error_i * 100), fmt='o--', linewidth=4, markersize=8, label=f'Layer {i+1}')
     ax.errorbar(histAxis, values, yerr=errors, fmt='o--', linewidth=4, markersize=8, label='Global')
@@ -512,11 +511,11 @@ elif(args.efficiencyOverWavelength):
     straw_incident_lambda = hc.hist("straw_incident_lambda_true") if args.trueWavelength else hc.hist("straw_incident_lambda")
     straw_lambda_hit = hc.hist("straw_lambda_true_hit") if args.trueWavelength else hc.hist("straw_lambda_hit")
     rebinFactor = 1 #5 #13
-    [histData, histAxisX, histAxisY, _, _, _] = BCSplt.disassembleHist2d(straw_incident_lambda)
+    [histData, histAxisX, histAxisY, _, _, _] = plotUtils.disassembleHist2d(straw_incident_lambda)
     print(len(histAxisY))
-    [histData_inc, _, histAxis] = BCSplt.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
-    [histData, histAxisX, histAxisY, _, _, _] = BCSplt.disassembleHist2d(straw_lambda_hit)
-    [histData_hit, _, _] = BCSplt.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
+    [histData_inc, _, histAxis] = plotUtils.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
+    [histData, histAxisX, histAxisY, _, _, _] = plotUtils.disassembleHist2d(straw_lambda_hit)
+    [histData_hit, _, _] = plotUtils.shrinkArray(histData, len(histAxisX), int(len(histAxisY)/rebinFactor), histAxisX, histAxisY)
 
     numberOfStraws = 28*8*7 #1568
     frontLayerIdEnd = 28*4*7
@@ -546,7 +545,7 @@ elif(args.efficiencyOverWavelength):
     for i in range(4):
       # layer_hit_i = hc.hist(f"layer_lambda%s_hit"%i)
       layer_hit_i = hc.hist(f"layer{i}_lambda_true_hit") if args.trueWavelength else hc.hist(f"layer{i}_lambda_hit")
-      [hit_number, histError, histAxis, _, _] = BCSplt.disassembleHist1d(layer_hit_i)
+      [hit_number, histError, histAxis, _, _] = plotUtils.disassembleHist1d(layer_hit_i)
       efficiency_i, error_i = divide.divide( np.array(hit_number), np.array(histError), incidentNeutronNumber, np.sqrt(incidentNeutronNumber))
       ax.errorbar(histAxis, efficiency_i * 100, yerr=(error_i * 100), fmt='o--', linewidth=4, markersize=8, label=f'Layer {i+1}')
     ax.errorbar(histAxis, values, yerr=errors, fmt='o--', linewidth=4, markersize=8, label='Global')
@@ -572,7 +571,7 @@ elif(args.efficiencyOverWavelength):
 
 elif(args.overlayTheta):
 
-  BCSplt.setPlottingParameters(multiplicationFactor = 0.8)
+  plotUtils.setPlottingParameters(multiplicationFactor = 0.8)
   fig, ax = plt.subplots()
   fig.set_size_inches(14,9)
 
@@ -584,7 +583,7 @@ elif(args.overlayTheta):
   histLabelList = ['Neutron gun', 'Conversion', 'Detection']
   for histName, labelName in zip(histList,histLabelList) :
     hist2plot = hc.hist(histName)
-    [histData, histError, histAxis, titleText, histLabel] = BCSplt.disassembleHist1d(hist2plot)
+    [histData, histError, histAxis, titleText, histLabel] = plotUtils.disassembleHist1d(hist2plot)
     plt.errorbar(histAxis, histData, yerr=histError, fmt='o-', linewidth=5, markersize=8, label = labelName)
 
 
@@ -685,4 +684,4 @@ elif(args.absorption):
     #     stdMatrix.append([0, 0, 0, 0, 0])
     #     ticks.append('')
 
-  BCSplt2.plotBarChart(meanMatrix, stdMatrix, ticks, legends, createPDF=args.createPDF)
+  plotUtils.plotBarChart(meanMatrix, stdMatrix, ticks, legends, createPDF=args.createPDF)
