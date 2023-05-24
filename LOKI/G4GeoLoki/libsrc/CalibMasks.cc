@@ -6,30 +6,31 @@
 // NOTE: All values are expressed in [mm] unit
 
 
-//Planned calibration slit masks for LoKI, with 94 mm wide parts and 6 mm wide slits
-const CalibMasks::CalibMasksBase mask0("lokiStandard-0", 0.3, 1600.0, -47.0,
+//Planned calibration slit masks for LoKI, with 94 mm wide parts and 6 mm wide slits, at 7.6 mm from the detector front
+const CalibMasks::CalibMasksBase mask0("lokiStandard-0", 0.3, 1600.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask1("lokiStandard-1", 0.3, 500.0, -47.0,
+const CalibMasks::CalibMasksBase mask1("lokiStandard-1", 0.3, 450.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask2("lokiStandard-2", 0.3, 500.0, -47.0,
+const CalibMasks::CalibMasksBase mask2("lokiStandard-2", 0.3, 310.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask3("lokiStandard-3", 0.3, 500.0, -47.0,
+const CalibMasks::CalibMasksBase mask3("lokiStandard-3", 0.3, 450.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask4("lokiStandard-4", 0.3, 500.0, -47.0,
+const CalibMasks::CalibMasksBase mask4("lokiStandard-4", 0.3, 310.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask5("lokiStandard-5", 0.3, 820.0, -47.0,
+const CalibMasks::CalibMasksBase mask5("lokiStandard-5", 0.3, 780.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask6("lokiStandard-6", 0.3, 820.0, -47.0,
+const CalibMasks::CalibMasksBase mask6("lokiStandard-6", 0.3, 880.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask7("lokiStandard-7", 0.3, 600.0, -47.0,
+const CalibMasks::CalibMasksBase mask7("lokiStandard-7", 0.3, 540.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
-const CalibMasks::CalibMasksBase mask8("lokiStandard-8", 0.3, 820.0, -47.0,
+const CalibMasks::CalibMasksBase mask8("lokiStandard-8", 0.3, 880.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
 
 // B4C sheet(cadmium in real life) with holes(slits) cut into it, used for calibration at the LoKI rear bank experiment at Larmor(ISIS)
 // From the right 76 mm (gap) – 74 mm (Cd) - 3 mm (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 63 (Cd)
 // '76 mm (gap)' means the distance from the right end of the detectors tubes, which translates to -50 mm distance from the left end of the BCS tubes
-CalibMasks::CalibMasksBase maskLarmor("larmorCdCalibMask", 0.3, 800., -50., (75.-59.0188),
+// Placed 75 mm from the front of the detectors.
+CalibMasks::CalibMasksBase maskLarmor("larmorCdCalibMask", 0.3, 800., -50., 75.,
   {63., 3.,100.,3.,100.,3.,100.,3.,100.,3., 103.,3.,103.,3.,103.,3.,103.,3., 74.});
 
 const std::map<std::string, CalibMasks::CalibMasksBase> CalibMasks::m_masks {
@@ -40,26 +41,17 @@ const std::map<std::string, CalibMasks::CalibMasksBase> CalibMasks::m_masks {
   {mask3.getName(), mask3},
   {mask4.getName(), mask4},
   {mask5.getName(), mask5},
-  {mask6.getName(), mask5},
+  {mask6.getName(), mask6},
   {mask7.getName(), mask7},
   {mask8.getName(), mask8},
 };
 
-
-CalibMasks::CalibMasksBase::CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, std::vector<double> pattern)
+CalibMasks::CalibMasksBase::CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, double elevationFromTubeFront, std::vector<double> pattern)
   : m_name(name),
     m_thickness(thickness),
     m_height(height),
     m_leftTubeEndDistance(leftTubeEndDistance),
-    m_pattern(pattern)
-{
-}
-CalibMasks::CalibMasksBase::CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, double elevationFromMaskFront, std::vector<double> pattern)
-  : m_name(name),
-    m_thickness(thickness),
-    m_height(height),
-    m_leftTubeEndDistance(leftTubeEndDistance),
-    m_elevationFromMaskFront(elevationFromMaskFront),
+    m_elevationFromTubeFront((assert(elevationFromTubeFront >= 0.05), elevationFromTubeFront)),
     m_pattern(pattern)
 {
 }
@@ -80,8 +72,8 @@ double CalibMasks::CalibMasksBase::getHeight() const{
 double CalibMasks::CalibMasksBase::getLeftTubeEndDistance() const{
   return this->m_leftTubeEndDistance;
 }
-double CalibMasks::CalibMasksBase::getElevationFromMaskFront() const{
-  return this->m_elevationFromMaskFront;
+double CalibMasks::CalibMasksBase::getElevationFromTubeFront() const{
+  return this->m_elevationFromTubeFront;
 }
 std::vector<double> CalibMasks::CalibMasksBase::getPattern() const{
   return this->m_pattern;

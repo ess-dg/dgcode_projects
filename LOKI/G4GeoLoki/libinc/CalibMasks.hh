@@ -11,14 +11,13 @@ class CalibMasks {
 public:
   class CalibMasksBase {
     public:
-      CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, std::vector<double> pattern);
-      CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, double elevationFromMaskFront, std::vector<double> pattern);
+      CalibMasksBase(std::string name, double thickness, double height, double leftTubeEndDistance, double elevationFromTubeFront, std::vector<double> pattern);
 
       std::string getName() const;
       double getThickness() const;
       double getHeight() const;
       double getLeftTubeEndDistance() const;
-      double getElevationFromMaskFront() const;
+      double getElevationFromTubeFront() const;
       std::vector<double> getPattern() const;
       double getWidth() const;
     private:
@@ -26,7 +25,7 @@ public:
       const double m_thickness;
       const double m_height;
       const double m_leftTubeEndDistance;
-      const double m_elevationFromMaskFront = 0.0;
+      const double m_elevationFromTubeFront;
       const std::vector<double> m_pattern;
   };
   static CalibMasksBase getCalibMask(std::string name);

@@ -3,6 +3,7 @@
 /////////////////////////////////////////
 
 #include "G4Interfaces/GeoConstructPyExport.hh"
+#include "G4Para.hh"
 #include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4Transform3D.hh"
@@ -106,7 +107,12 @@ int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPa
 
 ///////////  CREATE PACK BOX LOGICAL VOLUME  //////////////////////////
 G4LogicalVolume *GeoBCS::createPackBoxLV(double strawLength, int packNumber, int numberOfPacksForInvertedNumbering, int numberOfPacks){
-  auto lv_pack_box = new G4LogicalVolume(new G4Box("EmptyPackBox", 0.5*BcsPack::getPackBoxWidth(), 0.5*BcsPack::getPackBoxHeight(), 0.5 * strawLength + BcsPack::getPackBoxIdleLengthOnOneEnd()), BcsPack::packBoxFillMaterial, "EmptyPackBox");
+  const double packRotation = banks->getPackRotation();
+  // Instead of a rectangular box, a detector pack is encapsulated in parallelepiped, to avoid collision of the corners with the calibraion slits after applying the pack rotation.
+  // The PackBoxWidth corresponds to the size of the volume encapsulating the electronics on the sides as well, not just the detectors, but that would cause collision with the calibration slits, so a multiplication factor of 0.799 is applied, to get a volume just large enough to fit in the detectors in the front.
+  auto lv_pack_box = new G4LogicalVolume(
+    new G4Para("EmptyPackBox", 0.799*0.5*BcsPack::getPackBoxWidth(), 0.5*BcsPack::getPackBoxHeight(), 0.5 * strawLength + BcsPack::getPackBoxIdleLengthOnOneEnd(), packRotation, 0, 0),
+    BcsPack::packBoxFillMaterial, "EmptyPackBox");
 
   /// Add 8 BCS detector tubes ///
   auto lv_front_tube = createTubeLV(BcsTube::getFrontTubeConverterThickness(), strawLength);
@@ -144,8 +150,7 @@ G4LogicalVolume *GeoBCS::createCalibrationMaskLV(CalibMasks::CalibMasksBase cali
   const double maskHeightHalf = 0.5*calibMask.getHeight();
   const double maskFullWidthHalf = 0.5*calibMask.getWidth();
 
-  auto lv_calibrationMask = new G4LogicalVolume(new G4Box("EmptyCalibMaskBox", maskThicknessHalf, maskHeightHalf, maskFullWidthHalf),
-                                                 CalibMasks::maskBoxMaterial, "CalibMaskBox");
+  auto lv_calibrationMask = new G4LogicalVolume(new G4Box("EmptyCalibMaskBox", maskThicknessHalf, maskHeightHalf, maskFullWidthHalf), CalibMasks::maskBoxMaterial, "CalibMaskBox");
 
   double offset = 0.0;
   int i = 0;
@@ -223,6 +228,18 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
           -bankSizeZHalf + detBankFrontDistance - 5*Units::cm, verticalPosition, 0,
           lv_bank, BLACK, -5, 0, new G4RotationMatrix());
   }
+
+  const bool withCalibrationSlits = getParameterBoolean("with_calibration_slits");
+  if (withCalibrationSlits && !larmor2022experiment) {
+    std::string calibMaskName = "lokiStandard-"+std::to_string(bankId);
+    const auto calibMask = CalibMasks::getCalibMask(calibMaskName);
+    auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
+
+    place(lv_calibrationMask,
+          banks->getCalibMaskPosition(calibMask, bankId, 2), banks->getCalibMaskPosition(calibMask, bankId, 1), banks->getCalibMaskPosition(calibMask, bankId, 0),
+          lv_bank, PURPLE, -5, 0, new G4RotationMatrix());
+  }
+
   return lv_bank;
  }
 
@@ -274,7 +291,6 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   auto pvWorld = worldvols.physvol;
 
   // Create and place detector banks
-
   for (int bankId = 0; bankId < banks->getNumberOfBanks(); bankId++){
     auto lv_bank = createBankLV(bankId);
 
@@ -286,23 +302,10 @@ G4VPhysicalVolume* GeoBCS::Construct(){
     const double verticalBankPosition = !larmor2022experiment ? banks->getBankPosition(bankId, 1) : banks->getLarmor2022ExperimentBankPositionY();
 
     place(lv_bank, banks->getBankPosition(bankId, 0), verticalBankPosition, banks->getBankPosition(bankId, 2), lvWorld, ORANGE, bankId, 0, rotation);
-
-    // Add Calibration slit masks
-    const bool withCalibrationSlits = getParameterBoolean("with_calibration_slits");
-    if (withCalibrationSlits && bankId!=6 && bankId!=8 ) {
-      std::string calibMaskName = "lokiStandard-"+std::to_string(bankId);
-      if (larmor2022experiment) { calibMaskName = "larmorCdCalibMask"; }
-      const auto calibMask = CalibMasks::getCalibMask(calibMaskName);
-      auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
-
-      place(lv_calibrationMask,
-            banks->getCalibMaskPosition(calibMask, bankId, 0), banks->getCalibMaskPosition(calibMask, bankId, 1), banks->getCalibMaskPosition(calibMask, bankId, 2),
-            lvWorld, PURPLE, -5, 0, rotation);
-      }
   }
 
   // Add 4 triangular boron masks (added to the World instead of the banks)
-  if (!rearBankOnly) {
+  if (!larmor2022experiment) {
     for (int maskId = 0; maskId <= 3; maskId++) {
       auto lv_triangularMask = createTriangularMaskLV(maskId);
 
@@ -316,6 +319,21 @@ G4VPhysicalVolume* GeoBCS::Construct(){
             banks->getTriangularBoronMaskPosition(maskId, 0),banks->getTriangularBoronMaskPosition(maskId, 1),banks->getTriangularBoronMaskPosition(maskId, 2),
             lvWorld, BLACK, -5, 0, rotation);
     }
+  }
+
+  // Add Calibration slit masks for larmor2022experiment, which is outside of the bank
+  const bool withCalibrationSlits = getParameterBoolean("with_calibration_slits");
+  if (larmor2022experiment && withCalibrationSlits) {
+    const auto calibMask = CalibMasks::getCalibMask("larmorCdCalibMask");
+    auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
+    auto rotation = new G4RotationMatrix();
+    rotation->rotateY(banks->getBankRotation(0, 1));
+    rotation->rotateX(banks->getBankRotation(0, 0));
+    rotation->rotateZ(banks->getBankRotation(0, 2));
+
+    place(lv_calibrationMask,
+          banks->getCalibMaskPositionOutsideBank(calibMask, 0, 0), banks->getCalibMaskPositionOutsideBank(calibMask, 0, 1), banks->getCalibMaskPositionOutsideBank(calibMask, 0, 2),
+          lvWorld, PURPLE, -5, 0, rotation);
   }
 
   delete banks;

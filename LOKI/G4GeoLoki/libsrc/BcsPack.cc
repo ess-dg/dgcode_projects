@@ -12,7 +12,7 @@ const double BcsPack::tubeRotationAngle = (8.45-30) *Units::degree; //8.45 degre
 const double BcsPack::packBoxWidth = 265.7 *Units::mm; //excluding the handle
 const double BcsPack::packBoxHeight = 55.20 *Units::mm;
 const double BcsPack::packBoxIdleLengthOnOneEnd = 111.50 *Units::mm;
-const double BcsPack::tubeCentreDistanceFromPackFront = 36.50 *Units::mm;
+const double BcsPack::tubeCentreDistanceFromPackFront = 36.50 *Units::mm; //36.50=23.8+12.7 (packFrontToTubeFront+tubeOuterRadius)
 
 
 double BcsPack::getHorizontalTubeDistanceInPack() {

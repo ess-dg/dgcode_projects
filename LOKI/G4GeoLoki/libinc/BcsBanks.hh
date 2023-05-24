@@ -37,6 +37,7 @@ public:
 
   /// calibration masks ///
   double getCalibMaskPosition(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
+  double getCalibMaskPositionOutsideBank(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
 
 private:
   const double m_rearBankDistance;
