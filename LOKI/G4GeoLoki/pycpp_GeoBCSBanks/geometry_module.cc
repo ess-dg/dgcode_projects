@@ -47,7 +47,6 @@ GeoBCS::GeoBCS()
   : GeoConstructBase("G4GeoLoki/GeoBCSBanks"){
   // declare all parameters that can be used from the command line,
   addParameterDouble("rear_detector_distance_m", 5.0, 4.0, 10.0); // default, min, max
-  addParameterBoolean("rear_detector_only", false);
   addParameterBoolean("with_beamstop", false);
   addParameterBoolean("larmor_2022_experiment", false);
   addParameterBoolean("with_calibration_slits", false);
@@ -277,8 +276,7 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   // this is where we put the entire geometry together, the private functions creating the logical volumes are meant to facilitate the code below
   const double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
-  const bool rearBankOnly = getParameterBoolean("rear_detector_only");
-  const int numberOfBanks = rearBankOnly ? 1 : 9;
+  const int numberOfBanks = larmor2022experiment ? 1 : 9;
   banks = new BcsBanks(rear_detector_distance, numberOfBanks);
 
   // calculate a value that is big enough to fit your world volume, the "super mother"
@@ -344,14 +342,9 @@ G4VPhysicalVolume* GeoBCS::Construct(){
 bool GeoBCS::validateParameters() {
   // you can apply conditions to control the sanity of the geometry parameters and warn the user of possible mistakes
   // a nice example: Projects/SingleCell/G4GeoSingleCell/libsrc/GeoB10SingleCell.cc
-  bool rearBankOnly = getParameterBoolean("rear_detector_only");
   double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   if(larmor2022experiment) {
-    if (rearBankOnly == false) {
-      printf("ERROR: Wrong rear_detector_only value for the larmor_2022_experiment! (It should be true)\n");
-      return false;
-    }
     if (rear_detector_distance != 4.099 *Units::m) {
       printf("ERROR: Wrong rear_detector_distance_m value for the larmor_2022_experiment! (It should be 4.099)\n");
       return false;

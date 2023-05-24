@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARGS="rear_detector_distance_m=4.099 aiming_straw_pixel_number=2048 analysis_straw_pixel_number=512 rear_detector_only=True with_beamstop=False larmor_2022_experiment=True with_calibration_slits=True gen_x_offset_meters=0.005"
+ARGS="rear_detector_distance_m=4.099 aiming_straw_pixel_number=2048 analysis_straw_pixel_number=512 with_beamstop=False larmor_2022_experiment=True with_calibration_slits=True gen_x_offset_meters=0.005"
 ess_lokimasking_sim $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
     ess_lokimasking_ana_larmor2022 loki_masking.griff
