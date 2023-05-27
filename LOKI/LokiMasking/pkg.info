@@ -1,4 +1,4 @@
-package(USEPKG GriffAnaUtils SimpleHists G4GeoLoki)
+package(USEPKG G4Interfaces GriffAnaUtils SimpleHists G4GeoLoki)
 
 ######################################################################
 

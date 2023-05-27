@@ -2,6 +2,7 @@ from __future__ import print_function
 import G4CustomPyGen
 import Core.Units as Units
 import G4GeoLoki.LokiAimHelper as LokiAim
+import G4Interfaces
 
 class MaskingSourceGen(G4CustomPyGen.GenBase):
     def declare_parameters(self):
@@ -25,19 +26,27 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         print(f"Number of pixels in bank{self.aiming_bank_id}: {number_of_pixels_in_bank} (set -n accordingly to cover the whole bank!)")
         print(f"Lowest pixel id in bank{self.aiming_bank_id}: {bank_pixel_id_min}")
 
-        self._i = bank_pixel_id_min  #count events to shoot neutrons at each pixel
+        self.id_min_offset = bank_pixel_id_min
         if(self.aiming_pixel_id_min>=0):
-          self._i = self.aiming_pixel_id_min
+          self.id_min_offset = self.aiming_pixel_id_min
           print(f"aiming_pixel_id_min is set to: {self.aiming_pixel_id_min}. This will be used as the first pixel to aim at, overriding the lowest pixel id in the selected/default bank.")
         else:
-          print(f"First pixel to aim at: {self._i}")
-        self._i -= 1 # incrementation happens at the begining of the generate_event loop
-
+          print(f"First pixel to aim at: {self.id_min_offset}")
         #bank pixel limits: 0, 401408, 516096, 602112, 716800, 802816, 1003520, 1232896, 1376256, 1605632 (for 256 pixels/straw)
         #                   0, 802816, 1032192, 1204224, 1433600, 1605632, 2007040, 2465792, 2752512, 3211264 (for 512 pixels/straw)
+        self.m_nprocs = 0 #number of processes
+
+    def delayed_init(self):
+        self.m_nprocs = G4Interfaces.nProcs()
+        if(self.m_nprocs==1):
+          self._i = 0
+        else: #parallel processing
+          self._i = G4Interfaces.mpID() #id of the process
+          # Each process with mpID E[0,m_nprocs-1] deal with pixels where (id % nProcs == mpID)
 
     def generate_event(self,gun):
-        self._i += 1
+        if(self.m_nprocs == 0): #only the first time
+           self.delayed_init()
         # Source position -
         sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *Units.m + self.gen_x_offset_meters *Units.m
         sourcePositionY = self.gen_y_width_meters *(self.rand()-0.5) *Units.m
@@ -45,9 +54,11 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         gun.set_position(sourcePositionX, sourcePositionY, sourcePositionZ)
 
         # Direction - toward the centre of a pixel
-        pixelId = ((self._i + 0) % self.totalNumberOfPixels)
+        pixelId = ((self._i + self.id_min_offset) % self.totalNumberOfPixels)
 
         pixelCentreX, pixelCentreY, pixelCentreZ = self.aimHelper.getPixelCentreCoordinates(pixelId, self.geo_old_tube_numbering, self.geo_larmor_2022_experiment)
 
         gun.set_direction(pixelCentreX - sourcePositionX, pixelCentreY - sourcePositionY, pixelCentreZ - sourcePositionZ)
         #gun.set_direction(pixelCentreX - sourcePositionX +3*(2*self.rand()-1), pixelCentreY - sourcePositionY+3*(2*self.rand()-1), pixelCentreZ - sourcePositionZ+3*(2*self.rand()-1))
+        self._i += self.m_nprocs
+
