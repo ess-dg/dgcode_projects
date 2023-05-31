@@ -18,7 +18,7 @@ parser.add_argument('filename', help = 'Input detection MCPL file. Assumed to be
 parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LOKI environment variable, unless a full path is given.')
 
 parser.add_argument('--rear_detector_distance_m', help = 'Rear detector distance.')
-parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per detector straw.')
+parser.add_argument('--analysis_straw_pixel_number', choices=[256, 512], help = 'Number of pixels per detector straw.')
 parser.add_argument('--detectorWorkspaceTofStart', default = 11000, type=int, help = 'TOF start for the detector workspace spectra binning. (default: %(default)d microSeconds)')
 parser.add_argument('--detectorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the detector workspace spectra binning. (default: %(default)d microSeconds)')
 parser.add_argument('--detectorWorkspaceTofEnd', default = 113000, type=int, help = 'TOF end for the detector workspace spectra binning. (default: %(default)d microSeconds)')
@@ -79,7 +79,7 @@ lokiDefaultParams = {'rear_detector_distance_m':5,
                      'neutron_wavelength_max_aangstrom': 13,
                      'sampling_cone_opening_deg': 49.6,
                      'sampling_cone_opening_min_deg': 0,
-                     'source_monitor_distance_meters': 23.8322, #TODO
+                     'source_monitor_distance_meters': 23.5662,
                      'analysis_straw_pixel_number': 512,
                      'mcstas_monitors': ['Mon10_PostFOC_*.t', 'PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-']}
 from LokiMantid.paramHandler import ParamHandler

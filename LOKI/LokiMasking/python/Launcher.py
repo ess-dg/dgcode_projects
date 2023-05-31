@@ -6,7 +6,7 @@ def launch(geo):
     launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
     launcher.addParameterBoolean('masking_only',False)
-    # launcher.addParameterString('bank_filter','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
+    # launcher.addParameterString('aiming_bank_id','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
 
     #geometry:
     launcher.setGeo(geo)
@@ -29,7 +29,7 @@ def launch(geo):
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
-      # launcher.setUserData("bank_filter", str(launcher.getParameterString('bank_filter')))
+      # launcher.setUserData("aiming_bank_id", str(launcher.getParameterString('aiming_bank_id')))
           
     launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available

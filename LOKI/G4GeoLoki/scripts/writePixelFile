@@ -2,7 +2,7 @@
 import G4GeoLoki.LokiAimHelper as LokiAim
 import argparse, os
 
-parser = argparse.ArgumentParser(description = 'Exporting 3D pixel positions of the LOKI detector array based on the Geant4 geometry. The resuilting file is a csv file with the following columns: pixelId, pixelCentreX [m], pixelCentreY [m], pixelCentreZ [m]. Axes represent the beam\'s point of view: X - horizontal (positive to the left), Y - vertical (positive up), Z - distance along the beam (by default distance from the sample position).')
+parser = argparse.ArgumentParser(description = 'Exporting 3D pixel positions of the LOKI detector array based on the Geant4 geometry. The resulting file is a csv file with the following columns: pixelId, pixelCentreX [m], pixelCentreY [m], pixelCentreZ [m]. Axes represent the beam\'s point of view: X - horizontal (positive to the left), Y - vertical (positive up), Z - distance along the beam (by default distance from the sample position).')
 parser.add_argument('-f', '--fileName', default='LokiPixelFile', help = 'Output file name (.txt appended)')
 parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, help = 'Rear detector distance [m] (defaults to 5 m)')
 parser.add_argument('-ssd', '--sourceSampleDistance', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')

@@ -10,7 +10,7 @@ def launch(geo):
     launcher.addParameterString('event_gen','')
     launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterBoolean('det_only',False)
-    launcher.addParameterString('bank_filter','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
+    launcher.addParameterString('aiming_bank_id','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
     ## McStas+Geant4 options ##
     launcher.addParameterString('mcplDirectory','')
@@ -50,9 +50,9 @@ def launch(geo):
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
         gen = Gen()
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
-        bankFilter = launcher.getParameterString('bank_filter')
+        bankFilter = launcher.getParameterString('aiming_bank_id')
         if bankFilter != '':
-          assert bankFilter in (*[str(i) for i in range(9)], '1234', '5678'), f"bank_filter must be either [0,8], 1234 or 5678"
+          assert bankFilter in (*[str(i) for i in range(9)], '1234', '5678'), f"aiming_bank_id must be either [0,8], 1234 or 5678"
           if bankFilter == '1234': #mid banks
             angleRange = (3.5, 15.8)
           elif bankFilter == '5678': #front banks
@@ -114,7 +114,7 @@ def launch(geo):
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
-      launcher.setUserData("bank_filter", str(launcher.getParameterString('bank_filter')))
+      launcher.setUserData("aiming_bank_id", str(launcher.getParameterString('aiming_bank_id')))
       if(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
         launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
         launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))
