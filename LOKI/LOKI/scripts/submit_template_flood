@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import os
+import subprocess
+
+baseDir = '/mnt/groupdata/detector/workspaces/mklausz/centos7/lokiSimulations/'
+outputdir= baseDir + '/floodSource_bank3_1e9'
+
+nJobs, nEventsPerJob = (10000, 100000) #total: 1e4 x 1e5 = 1e9
+submitJobRange = [0, 500] #limit how many jobs are submitted at once (prevent DMSC overuse)
+
+queue = 'newlong' #DMSC queue
+# The command to run, with input parameters
+cmdbase = ['ess_lokisim_simanachain'
+          ,'results'
+          ,'event_gen=flood'
+          ,'aiming_bank_id=3']
+
+# Submit the jobs in a loop
+for i in range(nJobs):
+  if i < submitJobRange[0] or i >= submitJobRange[1]:
+    continue
+
+  cmd = cmdbase+['-n%i'%nEventsPerJob,'-s%i'%(7999954+483*i)]
+  cmd = ['ess_dmscutils_submit',queue,os.path.join(outputdir,'job%04i'%i)]+cmd
+  MyOut = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  stdout, stderr = MyOut.communicate()
+  print(stdout)
+  print(stderr)

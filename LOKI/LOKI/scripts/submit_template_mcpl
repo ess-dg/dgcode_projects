@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+import os
+import subprocess
+
+baseDir = '/mnt/groupdata/detector/workspaces/mklausz/centos7/lokiSimulations'
+
+### samp18_2kA_split1000_1e11 (3 MCPL files: frontmid, rear_5, rear_10) ###
+# nJobs, nEventsPerJob, additionalNeutrons= (1551, 100000, 63642) # total: 155163642 (from the MCPL file)
+# mcplFile = baseDir + '/mcstas/samp18_2kA_split1000_1e11/loki-collen_3p0m-ap1_30mm-ap2_10mm-lmin_3p0A-lmax_11p5A_frontmid.mcpl.gz'
+# outputdir= baseDir + '/geant4/samp18_2kA_split1000_1e11/frontmid'
+# rearDetDistance = 5 #[m] (this doesn't really matter for the frontmid bank simulation)
+
+# nJobs, nEventsPerJob, additionalNeutrons= (21115, 100000, 34621) # total: 2111534621 (from the MCPL file)
+# mcplFile = baseDir + '/mcstas/samp18_2kA_split1000_1e11/loki-collen_3p0m-ap1_30mm-ap2_10mm-lmin_3p0A-lmax_11p5A_rear_5p0m.mcpl.gz'
+# outputdir= baseDir + '/geant4/samp18_2kA_split1000_1e11/rear5'
+# rearDetDistance = 5 #[m]
+
+nJobs, nEventsPerJob, additionalNeutrons= (21126, 100000, 70927) # total: 2112670927 (from the MCPL file)
+mcplFile = baseDir + '/mcstas/samp18_2kA_split1000_1e11/loki-collen_3p0m-ap1_30mm-ap2_10mm-lmin_3p0A-lmax_11p5A_rear_10p0m.mcpl.gz'
+outputdir= baseDir + '/geant4/samp18_2kA_split1000_1e11/rear10'
+rearDetDistance = 10 #[m]
+
+submitJobRange = [1000, 2000] #limit how many jobs are submitted at once (prevent DMSC overuse)
+
+queue = 'newlong' #DMSC queue
+# The command to run, with input parameters
+cmdbase = ['ess_loki_simanachain'
+          ,'results'
+          ,'event_gen=mcpl'
+          ,'allow_zero_weight=y'
+          ,'analysis_straw_pixel_number=512'
+          ,f'rear_detector_distance_m={rearDetDistance}'
+          ,f'input_file={mcplFile}'
+          ,'--cleanup']
+
+for i in range(nJobs): 
+  if i < submitJobRange[0] or i >= submitJobRange[1]:
+    continue
+
+  nskip = i*nEventsPerJob #number of events to skip in the MCPL file
+  if i==nJobs-1:
+    nEventsPerJob += additionalNeutrons #last job has additional neutron to simulate
+
+  cmd = cmdbase+['skip_events=%i'%(nskip),'-n%i'%nEventsPerJob,'-s%i'%(7999954+483*i)]
+  cmd = ['ess_dmscutils_submit',queue,os.path.join(outputdir,'job%05i'%i)]+cmd
+  MyOut = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  stdout, stderr = MyOut.communicate()
+  print(stdout)
+  print(stderr)
