@@ -1,0 +1,68 @@
+Used parameters: straw_pixel_number=256 rear_detector_distance_m=5.0 nominal_source_sample_distance_meters=23.5706
+Bank 0
+    Detector length: 1000 mm
+    Pixels per straw: 256
+    Number of packs: 28
+    Number of tubes: 224
+    Number of straws: 1568
+    Number of pixels: 401408 (starting from: 0)
+Bank 1
+    Detector length: 1000 mm
+    Pixels per straw: 256
+    Number of packs: 8
+    Number of tubes: 64
+    Number of straws: 448
+    Number of pixels: 114688 (starting from: 401408)
+Bank 2
+    Detector length: 500 mm
+    Pixels per straw: 256
+    Number of packs: 6
+    Number of tubes: 48
+    Number of straws: 336
+    Number of pixels: 86016 (starting from: 516096)
+Bank 3
+    Detector length: 1000 mm
+    Pixels per straw: 256
+    Number of packs: 8
+    Number of tubes: 64
+    Number of straws: 448
+    Number of pixels: 114688 (starting from: 602112)
+Bank 4
+    Detector length: 500 mm
+    Pixels per straw: 256
+    Number of packs: 6
+    Number of tubes: 48
+    Number of straws: 336
+    Number of pixels: 86016 (starting from: 716800)
+Bank 5
+    Detector length: 1200 mm
+    Pixels per straw: 256
+    Number of packs: 14
+    Number of tubes: 112
+    Number of straws: 784
+    Number of pixels: 200704 (starting from: 802816)
+Bank 6
+    Detector length: 1200 mm
+    Pixels per straw: 256
+    Number of packs: 16
+    Number of tubes: 128
+    Number of straws: 896
+    Number of pixels: 229376 (starting from: 1003520)
+Bank 7
+    Detector length: 1200 mm
+    Pixels per straw: 256
+    Number of packs: 10
+    Number of tubes: 80
+    Number of straws: 560
+    Number of pixels: 143360 (starting from: 1232896)
+Bank 8
+    Detector length: 1200 mm
+    Pixels per straw: 256
+    Number of packs: 16
+    Number of tubes: 128
+    Number of straws: 896
+    Number of pixels: 229376 (starting from: 1376256)
+Total number of packs: 112
+Total number of tubes: 896
+Total number of straws: 6272
+Total number of pixels: 1605632

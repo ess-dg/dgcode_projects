@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ess_loki_info --dump --straw_pixel_number=256

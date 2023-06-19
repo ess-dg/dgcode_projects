@@ -4,20 +4,20 @@ import argparse
 import G4GeoLoki.LokiAimHelper as LokiAim
 
 parser = argparse.ArgumentParser(description = 'Geometry information tools.')
-parser.add_argument('-i', '--info', action = 'store_true', help = 'Dump information about the geometry.')
+parser.add_argument('-d', '--dump', action = 'store_true', help = 'Dump information about the geometry.')
 parser.add_argument('-r', '--rear_detector_distance_m', default=5.0, type=float, help = 'Sample to rear detector distance.')
 parser.add_argument('-s', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
 parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
 # parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
 parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
-parser.add_argument('-d', '--source_sample_distance_m', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
+parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.5706, help = 'Source sample distance [m] (defaults to 0 m)')
 
 args = parser.parse_args()
 
-print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} source_sample_distance_m={args.source_sample_distance_m}")
+print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} nominal_source_sample_distance_meters={args.nominal_source_sample_distance_meters}")
 geoHelper = LokiAim.AimHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
 
-if args.info:
+if args.dump:
   geoHelper.dumpInfo()
   exit()
 
@@ -30,7 +30,7 @@ if not args.pixel is None:
   strawId = geoHelper.getStrawId(args.pixel, bankId, tubeId)
   inStrawId = args.pixel % args.straw_pixel_number
   print(f"Pixel number: {args.pixel} (according to the Geant4 geometry. It corresponds to the pixelID {args.pixel+1} in the ICD.)")
-  print(f"Pixel centre position [m] X: {pixelCentreX/1000:.4f} Y: {pixelCentreY/1000:.4f} Z: {(args.source_sample_distance_m+pixelCentreZ/1000):.4f}")
+  print(f"Pixel centre position [m] X: {pixelCentreX/1000:.4f} Y: {pixelCentreY/1000:.4f} Z: {(args.nominal_source_sample_distance_meters+pixelCentreZ/1000):.4f}")
   print(f"Bank id: {bankId}")
   print(f"Pack id: {packId}")
   print(f"Tube id: {tubeId}")
