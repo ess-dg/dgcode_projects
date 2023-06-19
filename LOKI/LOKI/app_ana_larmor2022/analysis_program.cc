@@ -53,8 +53,8 @@ int main(int argc, char**argv) {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
   }
-  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
-  if (sampleDetectorDistance != 4.099*Units::m) {
+  const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
+  if (rearDetectorDistance != 4.099*Units::m) {
     printf("Error: rear_detector_distance_m is not correct for the Larmor 2022 experiment!\n");
     return 1;
   }
@@ -102,10 +102,10 @@ int main(int argc, char**argv) {
   PixelatedBanks* banks;
   if(userData.count("analysis_straw_pixel_number")){
     const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(sampleDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance);
   }
 
   DetectionFileCreator* detectionFile = nullptr;
@@ -126,8 +126,8 @@ int main(int argc, char**argv) {
   int thetabins = 550/2;
   const double trueThetaMax = 55;
 
-  const double zmin = (sampleDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
-  const double zmax = (sampleDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
+  const double zmin = (rearDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
+  const double zmax = (rearDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
 
   auto h_neutron_xy_bank = hc.book2D("Neutron xy (at bank entering)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_bank");
        h_neutron_xy_bank->setXLabel("-x [mm]");
@@ -240,8 +240,8 @@ int main(int argc, char**argv) {
 
   const double xWidthVacuumTankEnd = 790 *Units::mm;
   const double yHeightVacuumTankEnd = 700 *Units::mm;
-  const double zVacuumTankEnd = sampleDetectorDistance - 90*Units::mm; // "The front of the Loki detector was 90 mm in front of the tank”
-  const double zBankFront = sampleDetectorDistance - banks->detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
+  const double zVacuumTankEnd = rearDetectorDistance - 90*Units::mm; // "The front of the Loki detector was 90 mm in front of the tank”
+  const double zBankFront = rearDetectorDistance - banks->detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
   const double xBankEnterLimit = (xWidthVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   const double yBankEnterLimit = (yHeightVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   //std::cout<<"\n ***** \n xBankEnterLimit: " << xBankEnterLimit << "\n yBankEnterLimit: "<< yBankEnterLimit<< "\n ****** \n";
@@ -384,21 +384,6 @@ int main(int argc, char**argv) {
           h_neutron_pixel_hit->fill(pixelId%numberOfPixelsPerStraw, std::floor(pixelId/numberOfPixelsPerStraw), hit.eventHitWeight());
           h_neutron_layerHitCounter->fill(layerNumber_conv, hit.eventHitWeight());
 
-          //TODO should implement method (in PixelatedBanks class) to get positionOnWire_hit coordinate. Ask Judit, how it is done in real data reduction.
-          // const double sampleToExactHitPositionDistance = std::sqrt(std::pow((position_hit[0] - initialPosition[0]), 2) +
-          //                                                           std::pow((position_hit[1] - initialPosition[1]), 2) +
-          //                                                           std::pow((position_hit[2] - initialPosition[2]), 2));
-
-          // const double tof_hit = hit.eventHitTime()/Units::ms;
-          // double velocity_calculated = -1;
-          // if (tof_hit > 0.0) {
-          //   velocity_calculated = ((sampleToExactHitPositionDistance + sourceGeneratorDistance) / Units::m) / (hit.eventHitTime() / Units::s);
-          // }
-          // else {
-          //   printf("Error in hit tof value, tof zero or negative \n");
-          //   return 1;
-          // }
-          // const double lambda_hit_calculated = Utils::neutron_meters_per_second_to_angstrom(velocity_calculated);
 
           const double lambda_hit_calculated = calculateWavelength(initialPosition, position_hit, hit.eventHitTime(), sourceGeneratorDistance);
 

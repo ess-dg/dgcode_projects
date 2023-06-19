@@ -99,7 +99,7 @@ int main(int argc, char**argv) {
 
   SimpleHists::HistCollection hc;
 
-  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
+  const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
 
   const double tubeRadius = BcsTube::getTubeOuterRadius(); //12.7;
 
@@ -115,8 +115,8 @@ int main(int argc, char**argv) {
   //float dthetamin = -5; //-0.35
   //float dthetamax = 5; //3
   //int dthetabins = 1000;
-  const double zmin = (sampleDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
-  const double zmax = (sampleDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
+  const double zmin = (rearDetectorDistance - tubeRadius) - 20; //[mm]  //4980 for 5 m sd distance
+  const double zmax = (rearDetectorDistance - tubeRadius) + 140; //[mm //]5140 for 5 m sd distance
   //int zbins = 160;
 
   auto h_neutron_xy_conv = hc.book2D("Neutron xy (conv)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_conv");
@@ -395,14 +395,14 @@ int main(int argc, char**argv) {
           // }
 
           //TODO should implement method (in BcsBanks class) to get positionOnWire_hit coordinate. Ask Judit, how it is done in real data reduction.
-          const double sampleToExactHitPositionDistance = std::sqrt(std::pow((position_hit[0] - initialPosition[0]), 2) +
-                                                                    std::pow((position_hit[1] - initialPosition[1]), 2) +
-                                                                    std::pow((position_hit[2] - initialPosition[2]), 2));
+          const double generatorToExactHitPositionDistance = std::sqrt(std::pow((position_hit[0] - initialPosition[0]), 2) +
+                                                                       std::pow((position_hit[1] - initialPosition[1]), 2) +
+                                                                       std::pow((position_hit[2] - initialPosition[2]), 2));
 
           const double tof_hit = hit.eventHitTime()/Units::ms;
           double velocity_calculated = -1;
           if (tof_hit > 0.0) {
-            velocity_calculated = ((sampleToExactHitPositionDistance + sourceSampleDistance) / Units::m) / (hit.eventHitTime() / Units::s);
+            velocity_calculated = ((generatorToExactHitPositionDistance + sourceSampleDistance) / Units::m) / (hit.eventHitTime() / Units::s);
           }
           else {
             printf("Error in hit tof value, tof zero or negative \n");

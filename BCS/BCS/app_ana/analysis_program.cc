@@ -1141,7 +1141,7 @@ int main(int argc, char**argv) {
 
           positionOnWire_hit[0] = smearCoordinateX(hit.eventHitPositionX(), dr);
 
-          //const double sampleToExactHitPositionDistance = sqrt( hit.eventHitPositionX() * hit.eventHitPositionX() + //only works for pointSource at origo USE step0->preGlobalArray()
+          //const double generatorToExactHitPositionDistance = sqrt( hit.eventHitPositionX() * hit.eventHitPositionX() + //only works for pointSource at origo USE step0->preGlobalArray()
           //                                                    hit.eventHitPositionY() * hit.eventHitPositionY() +
           //                                                    hit.eventHitPositionZ() * hit.eventHitPositionZ() );
 
@@ -1271,7 +1271,7 @@ int main(int argc, char**argv) {
 
           ///
 
-          //const double tofExactHitPosition = sampleToExactHitPositionDistance/*[mm]*/ / Utils::neutron_angstrom_to_meters_per_second(lambda_true) /*[m/s]*/; //[ms]
+          //const double tofExactHitPosition = generatorToExactHitPositionDistance/*[mm]*/ / Utils::neutron_angstrom_to_meters_per_second(lambda_true) /*[m/s]*/; //[ms]
           //h_neutron_tofExactHitPosition->fill(tofExactHitPosition, hit.eventHitWeight());
           //h_neutron_dtofExactHitPosition->fill(tof_conv - tofExactHitPosition, hit.eventHitWeight());
 

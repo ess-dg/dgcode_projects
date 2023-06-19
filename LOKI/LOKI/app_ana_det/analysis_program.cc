@@ -58,13 +58,13 @@ int main(int argc, char**argv) {
 
   auto userData = setup->userData();
   PixelatedBanks* banks;
-  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
+  const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   if(userData.count("analysis_straw_pixel_number")){
     const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(sampleDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance);
   }
 
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");

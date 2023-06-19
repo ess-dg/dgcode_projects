@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 
   SimpleHists::HistCollection hc;
 
-  //const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
+  //const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
 
   const int numberOfPixels = 4 * 8 * 7 * strawPixelNumber; //hardcoded: 4(pack) * 8(tube) * 7(straw) * 512(pixel)
 

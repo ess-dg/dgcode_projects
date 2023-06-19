@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 
   SimpleHists::HistCollection hc;
 
-  const double sampleDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
+  const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") * Units::m;
 
   auto userData = setup->userData();
   int strawPixelNumber = 512; //hardcoded default
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
   
   printf("Rear bank pixel number for analysis: %d in total, %d per straw, \n", numberOfPixels, strawPixelNumber);
 
-  PixelatedBanks banks = PixelatedBanks(sampleDetectorDistance, strawPixelNumber);
+  PixelatedBanks banks = PixelatedBanks(rearDetectorDistance, strawPixelNumber);
 
   auto h_geantino_pixel_enter = hc.book2D("Shows pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter");
   h_geantino_pixel_enter->setXLabel("Pixel ID along straw");
@@ -81,21 +81,21 @@ int main(int argc, char **argv) {
   ///const double xWidthVacuumTankEnd = 687.4 *Units::mm;
   ///const double yHeightVacuumTankEnd = 600 *Units::mm;
   ///const double zVacuumTankEnd = 4402 *Units::mm;
-  ///const double zBankFront = sampleDetectorDistance - banks.detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
+  ///const double zBankFront = rearDetectorDistance - banks.detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
   ///const double xBankEnterLimit = (xWidthVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   //const double yBankEnterLimit = (yHeightVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   ////std::cout<<"\n ***** \n xBankEnterLimit: " << xBankEnterLimit << "\n yBankEnterLimit: "<< yBankEnterLimit<< "\n ****** \n";
 
-  const double zVacuumTankEnd = sampleDetectorDistance - 90*Units::mm; // "The front of the Loki detector was 90 mm in front of the tank”
-  const double zBankFront = sampleDetectorDistance - banks.detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
+  const double zVacuumTankEnd = rearDetectorDistance - 90*Units::mm; // "The front of the Loki detector was 90 mm in front of the tank”
+  const double zBankFront = rearDetectorDistance - banks.detectorSystemFrontDistanceFromBankFront(0) *Units::mm;
 
   /////////////////////////////////////////////////////////////////////
   //const double xWidthVacuumTankEnd = 790 *Units::mm;  //overestimated - vacuumtank end
   //const double yHeightVacuumTankEnd = 700 *Units::mm; //overestimated - vacuumtank end
   const double xWidthEmpiricalDetFront = 2*0.27 *Units::m; //illuminated area based on measured data
   const double yHeightEmpiricalDetFront = 2*0.31 *Units::m; //illuminated area based on measured data
-  const double xWidthVacuumTankEnd = xWidthEmpiricalDetFront * (zVacuumTankEnd / sampleDetectorDistance);
-  const double yHeightVacuumTankEnd = yHeightEmpiricalDetFront * (zVacuumTankEnd / sampleDetectorDistance);
+  const double xWidthVacuumTankEnd = xWidthEmpiricalDetFront * (zVacuumTankEnd / rearDetectorDistance);
+  const double yHeightVacuumTankEnd = yHeightEmpiricalDetFront * (zVacuumTankEnd / rearDetectorDistance);
 
   const double xBankEnterLimit = (xWidthVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
   const double yBankEnterLimit = (yHeightVacuumTankEnd * 0.5) * (zBankFront / zVacuumTankEnd);
