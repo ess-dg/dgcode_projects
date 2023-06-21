@@ -8,7 +8,6 @@ def launch(geo):
     launcher.addParameterBoolean('gravity',False)
     launcher.addParameterBoolean('addgeantinoes',False)
     launcher.addParameterString('mcplDirectory','')
-    launcher.addParameterDouble("sample_generator_distance_meters", 4.356)
     launcher.addParameterBoolean('det_only',False)
 
    #geometry:
@@ -18,15 +17,16 @@ def launch(geo):
         import G4MCPLPlugins.MCPLGen as Gen
         gen = Gen.create()
         gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
-        #gen.dz_meter = 0.42  #translate z coordinates by McStas Sample-MCPL_output distance
-        gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')  #translate z coordinates by McStas Sample-MCPL_output distance
+        gen.dz_meter = 4.356 #translate z coordinate by McStas Sample-MCPL_output distance
         gen.dx_meter = -0.040
     elif launcher.getParameterString('event_gen')=='flood':
-        #NOTE cone_opening_deg should be math.acos(1-2/120)/math.pi*180 = 10.4753
-        #self.addParameterDouble("cone_opening_deg", math.acos(1-2/120)/math.pi*180, 0.0, 180.0) #for more efficient sampling - Larmor2020 experiment
-        #self.addParameterDouble("gen_x_offset_meters", -0.040) #Larmor2020 experiment
+        import math
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
-        gen = Gen()
+        ssd = 25.3 #nominal_source_sample_distance_meters
+        gen = Gen(ssd)
+        gen.cone_opening_deg = math.acos(1-2/120)/math.pi*180 #for more efficient sampling (math.acos(1-2/120)/math.pi*180 = 10.4753)
+        gen.gen_x_offset_meters = -0.040
+        gen.source_monitor_distance_meters = 25.26
     else:
         import G4StdGenerators.FlexGen as Gen
         gen = Gen.create()

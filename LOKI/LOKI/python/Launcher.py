@@ -11,11 +11,11 @@ def launch(geo):
     launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterString('aiming_bank_id','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
+    launcher.addParameterDouble("nominal_source_sample_distance_meters", 23.5706) #origo of the Geant4 geometry
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
+
     ## McStas+Geant4 options ##
-    launcher.addParameterString('mcplDirectory','')
     launcher.addParameterString('input_file', '')
-    launcher.addParameterDouble("sample_generator_distance_meters", 0.2) #Sample to MCPL_output mcstas component distance
 
     ## Visualisation only options ##
     launcher.addParameterBoolean('primary_only',False)
@@ -31,24 +31,23 @@ def launch(geo):
     #generator:
     if launcher.getParameterString('event_gen')=='mcpl': #McStas+Geant4 simulation
         import G4MCPLPlugins.MCPLGen as Gen
+        import MCPL
         gen = Gen.create()
         if(launcher.getParameterString('input_file')):
           gen.input_file = launcher.getParameterString('input_file')
-        else: #only for Larmor2022
-          gen.input_file = launcher.getParameterString('mcplDirectory') + 'larmor_postsample.mcpl.gz'
+          tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
+          for blobkey in tmp_myfile.blobs:
+            launcher.setUserData(blobkey, str(tmp_myfile.blobs[blobkey].decode("utf-8")))
+          
+          gen.dz_meter = 0.2 #default nominal sample position to mcpl_output mcstas component distance. New mcpl files store this value with the 'sample_mcpl_distance_m' key, the default is needed for older mcpl files
+          if('sample_mcpl_distance_m' in tmp_myfile.blobs):
+            gen.dz_meter = float(tmp_myfile.blobs['sample_mcpl_distance_m'])
 
-        import MCPL
-        tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
-        for blobkey in tmp_myfile.blobs:
-          launcher.setUserData(blobkey, str(tmp_myfile.blobs[blobkey]))
-        if('sample_mcpl_distance_m' in tmp_myfile.blobs):
-          gen.dz_meter = float(tmp_myfile.blobs['sample_mcpl_distance_m'])
-        else:
-          gen.dz_meter = launcher.getParameterDouble('sample_generator_distance_meters')#translate z coordinates by McStas Sample-MCPL_output distance
         gen.dx_meter = launcher.getParameterDouble('gen_x_offset_meters')
     elif launcher.getParameterString('event_gen')=='flood': #Flood source simulation
         from  LOKI.FloodSourceGen import FloodSourceGen as Gen
-        gen = Gen()
+        ssd = launcher.getParameterDouble("nominal_source_sample_distance_meters")
+        gen = Gen(ssd)
         gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
         bankFilter = launcher.getParameterString('aiming_bank_id')
         if bankFilter != '':
@@ -80,7 +79,7 @@ def launch(geo):
     else:
         import G4StdGenerators.FlexGen as Gen
         gen = Gen.create()
-        gen.particleName = 'neutron' if not launcher.getParameterBoolean('geantino') else 'geantino'
+        gen.particleName = 'geantino' if launcher.getParameterBoolean('geantino') else 'neutron'
         gen.neutron_wavelength_aangstrom = 3.0
         gen.momdir_spherical = True
         gen.randomize_polarangle = True
@@ -98,16 +97,15 @@ def launch(geo):
          launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
         assert launcher.getParameterInt('analysis_straw_pixel_number') == 512, "analysis_straw_pixel_number must be 512 for the Larmor2022 experiment!"
         if(launcher.getGen().getName()=="G4MCPLPlugins/MCPLGen"): #event_gen=mcpl
-          assert launcher.getGen().dz_meter == 4.049, "sample_generator_distance_meters should be 4.049 (or wrong sample_mcpl_distance_m value in the MCPL file) for the Larmor2022 experiment!" #note: intentionally 4.049, not 4.099
           assert launcher.getGen().dx_meter == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor 2022 experiment!"
+          launcher.getGen().dz_meter = 4.049 #note: intentionally 4.049, not 4.099
         elif(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
           assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor2022 experiment!"
-          launcher.getGen().source_sample_distance_meters = 25.61
+          assert launcher.getParameterDouble("nominal_source_sample_distance_meters") == 25.61, "nominal_source_sample_distance_meters should be 25.61 for the Larmor2022 experiment!"
           launcher.getGen().source_monitor_distance_meters = 25.57
           import math as m
           launcher.getGen().cone_opening_deg = m.acos(1-2/233)/m.pi*180
           print(f"Using predifined parameters for the Larmor2022 experiment!")
-          print(f'    source_sample_distance_meters: {launcher.getGen().source_sample_distance_meters}')
           print(f'    source_monitor_distance_meters: {launcher.getGen().source_monitor_distance_meters}')
           print(f'    cone_opening_deg: {launcher.getGen().cone_opening_deg}')
 
@@ -115,6 +113,7 @@ def launch(geo):
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
       launcher.setUserData("aiming_bank_id", str(launcher.getParameterString('aiming_bank_id')))
+      launcher.setUserData("nominal_source_sample_distance_meters", str(launcher.getParameterDouble('nominal_source_sample_distance_meters')))
       if(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood
         launcher.setUserData("source_monitor_distance_meters", str(launcher.getGen().source_monitor_distance_meters))
         launcher.setUserData("sampling_cone_opening_deg", str(launcher.getGen().cone_opening_deg))

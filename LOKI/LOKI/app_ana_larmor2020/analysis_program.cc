@@ -61,14 +61,21 @@ int main(int argc, char**argv) {
   }
 
   auto &gen = setup->gen();
+  auto userData = setup->userData();
 
   double sourceSampleDistance = 0*Units::m;
-  if (gen.getName()=="G4MCPLPlugins/MCPLGen") {
-    sourceSampleDistance = 25.3*Units::m; //From Larmor McStas file
-  }
-  else if(gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen"){
+  if (gen.getName()=="G4MCPLPlugins/MCPLGen" || gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen") {
+    if(userData.count("nominal_source_sample_distance_meters")) {
+      sourceSampleDistance = std::stod(userData["nominal_source_sample_distance_meters"].c_str())*Units::m;
+    }
+    else if (gen.getName()=="G4MCPLPlugins/MCPLGen") {
+      sourceSampleDistance = 25.3*Units::m; //From Larmor McStas file
+    }
+    else if(gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen" && gen.hasParameterDouble("source_sample_distance_meters")){ //old parameter name for backward compatibility
     sourceSampleDistance = gen.getParameterDouble("source_sample_distance_meters") *Units::m;
+    }
   }
+
   printf("sourceSampleDistance: %f\n", sourceSampleDistance);
 
   setup->dump();

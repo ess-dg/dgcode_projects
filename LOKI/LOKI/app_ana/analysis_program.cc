@@ -34,17 +34,12 @@ int main(int argc, char**argv) {
 
   auto setup = dr.setup();
   auto &geo = setup->geo();
+  auto &gen = setup->gen();
+  auto userData = setup->userData();
   //printf("QQQ=============  %s \n", geo.getName().c_str());
   if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
-  }
-
-  auto &gen = setup->gen();
-
-  double sourceSampleDistance = 0*Units::m;
-  if (gen.getName()=="G4MCPLPlugins/MCPLGen" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") { // . changed to /
-    sourceSampleDistance = 23.5706*Units::m; //23.5706 from McStas mcdisplay-webgl
   }
 
   setup->dump();
@@ -79,7 +74,29 @@ int main(int argc, char**argv) {
 
   SimpleHists::HistCollection hc;
 
-  auto userData = setup->userData();
+  double preGeant4Distance = 0*Units::m; // the distance the particle's initial TOF corresponds to
+  double nominalSamplePosDistance = 23.5706*Units::m; // hard-coded default for backward compatibility (23.5706 from McStas mcdisplay-webgl)
+  if (gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen" || gen.getName()=="G4MCPLPlugins/MCPLGen") {
+    if(userData.count("nominal_source_sample_distance_meters")) {
+      nominalSamplePosDistance = std::stod(userData["nominal_source_sample_distance_meters"].c_str())*Units::m;
+    }
+    else if (gen.hasParameterDouble("source_sample_distance_meters")) { //old variable name, kept for backward compatibility
+      nominalSamplePosDistance = gen.getParameterDouble("source_sample_distance_meters") *Units::m;
+    }
+    double nominalSamplePosToGeneratorDistance = 0.0; //distance between the nominal sample position and the particle generator
+    if(gen.getName()=="G4MCPLPlugins/MCPLGen") {
+      nominalSamplePosToGeneratorDistance = 0.2; //default kept for old MCPL files
+      if(userData.count("sample_mcpl_distance_m")) {
+        nominalSamplePosToGeneratorDistance = std::stod(userData["sample_mcpl_distance_m"].c_str()) *Units::m;
+      }
+    }
+    else if(gen.hasParameterDouble("gen_z_offset_meters")) {
+      nominalSamplePosToGeneratorDistance = gen.getParameterDouble("gen_z_offset_meters") *Units::m;
+    }
+    preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
+  }
+  std::cout<<preGeant4Distance/Units::m<<"\n";
+
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
@@ -425,7 +442,7 @@ int main(int argc, char**argv) {
           const double tof_hit = hit.eventHitTime()/Units::ms;
           double velocity_calculated = -1;
           if (tof_hit > 0.0) {
-            velocity_calculated = ((generatorToExactHitPositionDistance + sourceSampleDistance) / Units::m) / (hit.eventHitTime() / Units::s);
+            velocity_calculated = ((generatorToExactHitPositionDistance + preGeant4Distance) / Units::m) / (hit.eventHitTime() / Units::s);
           }
           else {
             printf("Error in hit tof value, tof zero or negative \n");

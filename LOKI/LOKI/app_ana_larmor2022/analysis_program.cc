@@ -18,13 +18,13 @@
 #define M_PI  3.14159265358979323846  //  pi
 #endif
 
-double calculateWavelength(const double* initialPosition, const double* position_hit, const double tof, const double sourceGeneratorDistance) {
+double calculateWavelength(const double* initialPosition, const double* position_hit, const double tof, const double preGeant4Distance) {
   const double sampleToPositionDistance = std::sqrt(std::pow((position_hit[0] - initialPosition[0]), 2) +
                                                     std::pow((position_hit[1] - initialPosition[1]), 2) +
                                                     std::pow((position_hit[2] - initialPosition[2]), 2));
   double velocity_calculated = -1;
   if (tof > 0.0) {
-    velocity_calculated = ((sampleToPositionDistance + sourceGeneratorDistance)/Units::m) / (tof/Units::s);
+    velocity_calculated = ((sampleToPositionDistance + preGeant4Distance)/Units::m) / (tof/Units::s);
   }
   else {
     printf("Error in hit tof value, tof zero or negative \n");
@@ -48,6 +48,7 @@ int main(int argc, char**argv) {
 
   auto setup = dr.setup();
   auto &geo = setup->geo();
+  auto userData = setup->userData();
 
   if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
     printf("Error: Wrong setup for this analysis\n");
@@ -61,16 +62,28 @@ int main(int argc, char**argv) {
 
   auto &gen = setup->gen();
 
-  double sourceGeneratorDistance = 0*Units::m;
-  if (gen.getName()=="G4MCPLPlugins/MCPLGen") {
-    // McStas Larmor model source to sample distance is 25.61 m, but positions in the MCPL file
-    // correspond to the focusAroundDetector Slit component, which is at 0.42 m from the sample
-    sourceGeneratorDistance = (25.61 + 0.42) *Units::m;
+  double preGeant4Distance = 0*Units::m;
+  double nominalSamplePosDistance = 25.61*Units::m;
+  if(gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen" || gen.getName()=="G4MCPLPlugins/MCPLGen") {
+    if(userData.count("nominal_source_sample_distance_meters")) {
+      nominalSamplePosDistance = std::stod(userData["nominal_source_sample_distance_meters"].c_str())*Units::m;
+    }
+    else if (gen.hasParameterDouble("source_sample_distance_meters")) { //old variable name, kept for backward compatibility
+      nominalSamplePosDistance = gen.getParameterDouble("source_sample_distance_meters") *Units::m;
+    }
+    double nominalSamplePosToGeneratorDistance = 0.0; //distance between the nominal sample position and the particle generator
+    if(gen.getName()=="G4MCPLPlugins/MCPLGen") {
+      nominalSamplePosToGeneratorDistance = 0.2; //default kept for old MCPL files
+      if(userData.count("sample_mcpl_distance_m")) {
+        nominalSamplePosToGeneratorDistance = std::stod(userData["sample_mcpl_distance_m"].c_str()) *Units::m;
+      }
+    }
+    else if(gen.hasParameterDouble("gen_z_offset_meters")) {
+      nominalSamplePosToGeneratorDistance = gen.getParameterDouble("gen_z_offset_meters") *Units::m;
+    }
+    preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
-  else if(gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen") {
-    sourceGeneratorDistance = gen.getParameterDouble("source_sample_distance_meters") *Units::m;
-  }
-  printf("sourceGeneratorDistance: %f\n", sourceGeneratorDistance);
+  printf("preGeant4Distance: %f\n", preGeant4Distance);
 
   setup->dump();
 
@@ -98,7 +111,6 @@ int main(int argc, char**argv) {
 
   SimpleHists::HistCollection hc;
 
-  auto userData = setup->userData();
   PixelatedBanks* banks;
   if(userData.count("analysis_straw_pixel_number")){
     const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
@@ -272,7 +284,7 @@ int main(int argc, char**argv) {
 
       double lambdaMcplCalculated = 0.0;
       if (gen.getName()=="G4MCPLPlugins/MCPLGen"){ //works only for non-zero initial TOF
-        const double velocityMcplCalculated = (sourceGeneratorDistance / Units::m) / (stepFirst->preTime() / Units::s);
+        const double velocityMcplCalculated = (preGeant4Distance / Units::m) / (stepFirst->preTime() / Units::s);
         lambdaMcplCalculated = Utils::neutron_meters_per_second_to_angstrom(velocityMcplCalculated);
         h_mcpl_lambda->fill(lambdaMcplCalculated, neutron->weight());
       }
@@ -309,7 +321,7 @@ int main(int argc, char**argv) {
 
         auto stepF = tubeWallSegment->firstStep();
         const double position[3] = {stepF->preGlobalX(), stepF->preGlobalY(), stepF->preGlobalZ()};
-        const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), sourceGeneratorDistance);
+        const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), preGeant4Distance);
         const double actualLambda = Utils::neutronEKinToWavelength(actualEkin)/Units::angstrom;
 
         if(layerId != previousLayerId && actualEkin) {
@@ -334,7 +346,7 @@ int main(int argc, char**argv) {
 
         auto stepF = strawWallSegment->firstStep();
         const double position[3] = {stepF->preGlobalX(), stepF->preGlobalY(), stepF->preGlobalZ()};
-        const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), sourceGeneratorDistance);
+        const double lambda_calculated = calculateWavelength(initialPosition, position, stepF->preTime(), preGeant4Distance);
         const double actualLambda = Utils::neutronEKinToWavelength(actualEkin)/Units::angstrom;
 
         if(globalStrawId != previousStrawId && actualEkin) {
@@ -385,7 +397,7 @@ int main(int argc, char**argv) {
           h_neutron_layerHitCounter->fill(layerNumber_conv, hit.eventHitWeight());
 
 
-          const double lambda_hit_calculated = calculateWavelength(initialPosition, position_hit, hit.eventHitTime(), sourceGeneratorDistance);
+          const double lambda_hit_calculated = calculateWavelength(initialPosition, position_hit, hit.eventHitTime(), preGeant4Distance);
 
           const double actualEkin = segL->startEKin();
           const double actualLambda = Utils::neutronEKinToWavelength(actualEkin) / Units::angstrom;
