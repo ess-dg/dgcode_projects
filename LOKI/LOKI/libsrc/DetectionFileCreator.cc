@@ -4,9 +4,9 @@
 DetectionFileCreator::DetectionFileCreator(const char* fileName, GriffDataRead::StrMap& userData): m_fileName(fileName) {
   this->detMcpl = mcpl_create_outfile(fileName);
   mcpl_hdr_set_srcname(this->detMcpl, "LOKI/DetectionFileCreator Class");
-  mcpl_hdr_add_comment(this->detMcpl, "Neutrons in this file are actually detection events, and userflags are pixel ID's of hits. Created with the DetectionFileCreator class.");
-  //mcpl_hdr_add_comment(this->detMcpl, "ARG=VAL");
-  mcpl_enable_userflags(this->detMcpl);
+  mcpl_hdr_add_comment(this->detMcpl, "Particles in this file are actually detection events, and ekins are pixel ID's. Created with the DetectionFileCreator class.");
+  mcpl_enable_universal_pdgcode(this->detMcpl, 99); //for file size reduction
+  mcpl_enable_universal_weight(this->detMcpl, 1); //for file size reduction
   this->mcplParticle = mcpl_get_empty_particle(this->detMcpl);
   initiateMcplParticle();
 
@@ -20,9 +20,9 @@ DetectionFileCreator::DetectionFileCreator(const char* fileName, GriffDataRead::
 DetectionFileCreator::DetectionFileCreator(const char* fileName): m_fileName(fileName) {
   this->detMcpl = mcpl_create_outfile(fileName);
   mcpl_hdr_set_srcname(this->detMcpl, "LOKI DetectionFileCreator Class");
-  mcpl_hdr_add_comment(this->detMcpl, "Neutrons in this file are actually detection events, and userflags are pixel ID's of hits. Created with the DetectionFileCreator class.");
-  mcpl_hdr_add_comment(this->detMcpl, "ARG=VAL");
-  mcpl_enable_userflags(this->detMcpl);
+  mcpl_hdr_add_comment(this->detMcpl, "Particles in this file are actually detection events, and ekins are pixel ID's. Created with the DetectionFileCreator class.");
+  mcpl_enable_universal_pdgcode(this->detMcpl, 99); //for file size reduction
+  mcpl_enable_universal_weight(this->detMcpl, 1); //for file size reduction
   this->mcplParticle = mcpl_get_empty_particle(this->detMcpl);
   initiateMcplParticle();
 }
@@ -33,19 +33,16 @@ DetectionFileCreator::~DetectionFileCreator() {
 }
 
 void DetectionFileCreator::initiateMcplParticle() {
-  this->mcplParticle->weight = 1.0;
-  this->mcplParticle->position[0] = 0.0;
-  this->mcplParticle->position[1] = 0.0;
-  this->mcplParticle->position[2] = 0.0;
+  this->mcplParticle->position[0] = 0;
+  this->mcplParticle->position[1] = 0;
+  this->mcplParticle->position[2] = 0;
   this->mcplParticle->direction[0] = 0;
   this->mcplParticle->direction[1] = 0;
   this->mcplParticle->direction[2] = 1;
-  this->mcplParticle->ekin = 0;
-  this->mcplParticle->pdgcode = 0;
 }
 
 void DetectionFileCreator::addDetectionEvent(const int pixelId, const double tof) {
-  this->mcplParticle->userflags = pixelId;
+  this->mcplParticle->ekin = pixelId;
   this->mcplParticle->time = tof;
   mcpl_add_particle(this->detMcpl, this->mcplParticle);
 }

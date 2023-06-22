@@ -11,7 +11,7 @@ colEnd = '\033[0m'
 
 def createMonitorWorkspace(monitorTOF, monitorIntensity, monitorError, instrumentDefinitionFile_monitor):
   mcStasMonitorWS = api.CreateWorkspace(OutputWorkspace="mcStasMonitorWS", DataX=np.array(monitorTOF), DataY=np.array(monitorIntensity), DataE=np.array(monitorError), NSpec=len(monitorTOF), UnitX='TOF', YUnitLabel='Counts')
-  
+
   api.LoadInstrument(Workspace=mcStasMonitorWS, Filename=instrumentDefinitionFile_monitor, RewriteSpectraMap=True)
   return mcStasMonitorWS
 
@@ -38,7 +38,7 @@ def addProperties(workspace, params):
   mcplMetadata = params.getMcplMetadata()
   for (k,v) in mcplMetadata.items():
     run.addProperty(k, v, True)
-  
+
 def saveNexus(workspace, filename):
   api.SaveNexus(workspace, filename)
   print(f'    Saved nexus file: {filename}')
@@ -61,8 +61,9 @@ def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda i
   if verbose:
     print(f'    Loading detection events from {filename}')
   with MCPL.MCPLFile(filename, blocklength=readBlockLength) as myfile:
+    oldFile = myfile.opt_userflags #This could break if new detection files are created with userflags for some reason
     for p in myfile.particle_blocks:
-      detids = np.append(detids, p.userflags.astype(int))
+      detids = np.append(detids, (p.ekin.astype(int) if not oldFile else p.userflags.astype(int)))
       tof = np.append(tof, p.time * 1000.0)  # convert to microseconds
     countAddEventError = 0
     countFilteredOutEvents = 0 #e.g., Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
