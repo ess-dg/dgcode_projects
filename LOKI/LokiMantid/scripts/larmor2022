@@ -15,9 +15,9 @@ import sys
 
 parser = argparse.ArgumentParser(description = 'Process detection MCPL files from larmor2022 simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
 parser.add_argument('filename', help = 'Input detection MCPL file. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LARMOR2022 environment variable, unless a full path is given.')
-parser.add_argument('savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LARMOR2022 environment variable, unless a full path is given.')
+parser.add_argument('-s','--savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LARMOR2022 environment variable, unless a full path is given.')
 
-parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per detector straw.')
+parser.add_argument('--analysis_straw_pixel_number', choices=['256', '512'], help = 'Number of pixels per detector straw.')
 parser.add_argument('--workspaceTofStart', default = 5, type=int, help = 'TOF start for the workspace spectra binning. [microSeconds]')
 parser.add_argument('--workspaceTofBinWidth', default = 100, type=int, help = 'TOF bin width for the workspace spectra binning. [microSeconds]')
 parser.add_argument('--workspaceTofEnd', default = 100000, type=int, help = 'TOF end for the workspace spectra binning. [microSeconds]')
@@ -41,6 +41,8 @@ floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source t
 args = parser.parse_args()
 
 isFloodSourceSimulation = False
+if not args.savename and not (args.noOutput or args.showMetadata):
+  parser.error("Save filename (-s, --savename) is required, unless no output (-no, --noOutput) or metadata (-show, --showMetadata) option is selected")
 if not args.showMetadata and (not args.neutronNumber and args.mcstasDir is None):
   parser.error("Either --neutronNumber (for Flood source simulation) or --mcstasDir (for McStas+Geant4 simulation) is required, unless the --showMetadata option is used to examine the metadata stored in the detection MCPL file!")
 if args.neutronNumber:
@@ -62,9 +64,10 @@ def resolveFilename(filename, baseEnvVar):
     sys.exit(f"ERROR: The provided filename ({filename}) is not an absolute path, and the {baseEnvVar} env var is not set.")
 
 mcplFile = resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LARMOR2022')
-saveFile = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LARMOR2022')
-saveFileMonitor = str(saveFile) + "_monitor.nxs"
-saveFileDetector = str(saveFile) + "_detector.nxs"
+if not (args.noOutput or args.showMetadata):
+  saveFile = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LARMOR2022')
+  saveFileMonitor = str(saveFile) + "_monitor.nxs"
+  saveFileDetector = str(saveFile) + "_detector.nxs"
 if args.mcstasDir:
   mcStasFolder = resolveFilename(args.mcstasDir, 'G4PROC_MCSTAS_BASEDIR_LARMOR2022')
 #TODO check if files exists and stop with error, or overide?

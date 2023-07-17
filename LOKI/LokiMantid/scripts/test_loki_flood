@@ -1,0 +1,4 @@
+#!/bin/bash
+
+MCPLFILE=`ess_core_finddata LokiMantid detectionEventsFlood_testFile.mcpl`
+ess_lokimantid_loki -- $MCPLFILE --neutronNumber=25 --analysis_straw_pixel_number=256 --noOutput

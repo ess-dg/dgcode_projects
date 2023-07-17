@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ess_loki_sim event_gen=flood -n25 |grep '^G4Launcher::Launcher'
+if [ ${PIPESTATUS[0]} == 0 ]; then
+    ess_loki_ana lokisim.griff
+else
+    exit 1
+fi
+
+G4PROC_MCPL_BASEDIR_LOKI=./ ess_lokimantid_loki -- detectionEvents.mcpl --neutronNumber=25 --analysis_straw_pixel_number=256 --noOutput
