@@ -14,7 +14,7 @@ parser.add_argument('--nominal_source_sample_distance_meters', type=float, defau
 
 args = parser.parse_args()
 
-print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} nominal_source_sample_distance_meters={args.nominal_source_sample_distance_meters}")
+print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} nominal_source_sample_distance_meters={args.nominal_source_sample_distance_meters}\n")
 geoHelper = LokiAim.AimHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
 
 if args.dump:

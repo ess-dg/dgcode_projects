@@ -39,6 +39,9 @@ public:
   double getCalibMaskPosition(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
   double getCalibMaskPositionOutsideBank(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
 
+  /// beamstop ///
+  static double getBeamstopSize(const int beamstopId, const int axisIndex); // 0 - x, 1 - y, 2 - z
+
 private:
   const double m_rearBankDistance;
   const int m_numberOfBanks;
@@ -70,6 +73,8 @@ private:
   static double packHolderToFirstTubeCentreCoordsInPack(const int axisIndex);
   static double detectorSystemCentreDistanceFromBankTop(const int bankId);
   static double detectorSystemCentreOffsetInBank(const int bankId, const int axisIndex);
+
+  const static double beamstopSize[5][3];
 };
 
 #endif

@@ -381,3 +381,26 @@ double BcsBanks::getCalibMaskPositionOutsideBank(CalibMasks::CalibMasksBase cali
     return getBankPosition(bankId, 2) - elevationFromBankCentre * std::cos(bankRot);
   }
  }
+
+const double BcsBanks::beamstopSize[5][3] = { // width, height, thickness [mm] (from ESS-1178830 Table 4.6 Selected beamstop sizes)
+    {30., 35., 1.},   // id = 1 ("includes transmission detector")
+    {20., 25., 1.},   // id = 2
+    {50., 60., 1.},   // id = 3
+    {65., 75., 1.},   // id = 4
+    {100., 105., 1.}, // id = 5
+};
+
+double BcsBanks::getBeamstopSize(const int beamstopId, const int axisIndex) { // 0 - x, 1 - y, 2 - z
+  assert(1 <= beamstopId && beamstopId <= 5);
+  assert(0 <= axisIndex && axisIndex <= 2);
+  return beamstopSize[beamstopId-1][axisIndex]*Units::mm;
+}
+// default beamstop could depending on collen: (smallest sufficient bs)
+// collen = 3 m
+//   rear det dist = 5 -> bs 5
+// collen = 5 m
+//   rear det dist = 5 -> bs 3
+//   rear det dist = 10 -> bs 5
+// collen = 8 m
+//   rear det dist = 5 -> bs 3
+//   rear det dist = 10 -> bs 4

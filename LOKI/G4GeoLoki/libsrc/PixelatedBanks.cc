@@ -115,4 +115,11 @@ void PixelatedBanks::dumpInfo(){
   std::cout<<"Total number of tubes: "<<totalTumberOfTubes<<"\n";
   std::cout<<"Total number of straws: "<<totalTumberOfStraws<<"\n";
   std::cout<<"Total number of pixels: "<<totalTumberOfPixels<<"\n";
+  
+  std::cout<<"\nBeamstop options:\n";
+  for (int beamstopId = 1; beamstopId <= 5; beamstopId++) {
+    std::cout<<" id: "<< beamstopId; 
+    std::cout<<", width: " <<getBeamstopSize(beamstopId, 0) << " mm";
+    std::cout<<", height: " <<getBeamstopSize(beamstopId, 1) <<" mm " << "\n";
+  }
 }

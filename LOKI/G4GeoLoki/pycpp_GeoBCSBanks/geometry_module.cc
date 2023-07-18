@@ -47,7 +47,7 @@ GeoBCS::GeoBCS()
   : GeoConstructBase("G4GeoLoki/GeoBCSBanks"){
   // declare all parameters that can be used from the command line,
   addParameterDouble("rear_detector_distance_m", 5.0, 4.0, 10.0); // default, min, max
-  addParameterBoolean("with_beamstop", false);
+  addParameterInt("beamstop_id", 0, 0, 5); // id [1-5] from ESS-1178830 Table 4.6 'Selected beamstop sizes' (0 = no beamstop)
   addParameterBoolean("larmor_2022_experiment", false);
   addParameterBoolean("with_calibration_slits", false);
 
@@ -215,16 +215,22 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
             lv_bank, BLACK, -2, 0, new G4RotationMatrix(0, 0, BoronMasks::getRotation(bankId, maskId)));
   }
 
-  // Add BeamStop to the Rear Bank volume
-  const bool withBeamstop = getParameterBoolean("with_beamstop");
-  if (bankId == 0 && withBeamstop) {
+  // Add Beamstop to the Rear Bank volume
+  const int beamstopId = getParameterInt("beamstop_id");
+  if (bankId == 0 && beamstopId) { // beamstopId==0 means no beamstop
     const std::string maskName = "BoronMask-Beamstop";
     const double detBankFrontDistance = banks->detectorSystemFrontDistanceFromBankFront(bankId);
-    const double verticalPosition = larmor2022experiment ? -banks->getLarmor2022ExperimentBankPositionY() : 0;
+    const double verticalPosition = !larmor2022experiment ? banks->getBankPosition(bankId, 1) : banks->getLarmor2022ExperimentBankPositionY(); //compensate bank elevation to centre the beam on the beamstop
 
-    place(new G4Box(maskName, 0.5 * 1*Units::mm, 0.5 * 5*Units::cm, 0.5 * 5*Units::cm),
+    const double distanceFromDetectorFront = 5*Units::cm;
+
+    const double width = banks->getBeamstopSize(beamstopId, 0);
+    const double height = banks->getBeamstopSize(beamstopId, 1);
+    const double thickness = banks->getBeamstopSize(beamstopId, 2);
+
+    place(new G4Box(maskName, 0.5* thickness, 0.5* height, 0.5* width),
           BoronMasks::maskMaterial,
-          -bankSizeZHalf + detBankFrontDistance - 5*Units::cm, verticalPosition, 0,
+          -bankSizeZHalf + detBankFrontDistance - distanceFromDetectorFront, -verticalPosition, 0,
           lv_bank, BLACK, -5, 0, new G4RotationMatrix());
   }
 

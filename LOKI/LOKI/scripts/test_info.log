@@ -1,4 +1,5 @@
 Used parameters: straw_pixel_number=256 rear_detector_distance_m=5.0 nominal_source_sample_distance_meters=23.5706
+
 Bank 0
     Detector length: 1000 mm
     Pixels per straw: 256
@@ -66,3 +67,10 @@ Total number of packs: 112
 Total number of tubes: 896
 Total number of straws: 6272
 Total number of pixels: 1605632
+
+Beamstop options:
+ id: 1, width: 30 mm, height: 35 mm 
+ id: 2, width: 20 mm, height: 25 mm 
+ id: 3, width: 50 mm, height: 60 mm 
+ id: 4, width: 65 mm, height: 75 mm 
+ id: 5, width: 100 mm, height: 105 mm 
