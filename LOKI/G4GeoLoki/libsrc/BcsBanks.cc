@@ -28,7 +28,7 @@ const double BcsBanks::strawLengthInBank[9] = { // all in mm
     1200.0, // 8 - front right
 };
 
-const int BcsBanks::numberOfPacksInBank[9] = { // all in mm
+const int BcsBanks::numberOfPacksInBank[9] = {
     28, // 0 - rear
     8,  // 1 - mid top
     6, // 2 - mid left

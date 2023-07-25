@@ -42,6 +42,7 @@ floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximu
 floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Maximum opening angle of the cone used for the direction sampling.')
 floodPramGroup.add_argument('--sampling_cone_opening_min_deg', help = 'Minimum opening angle of the cone used for the direction sampling.')
 floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. The preSample monitor TOF spectrum is generated for this distance.')
+floodPramGroup.add_argument('--aiming_bank_id', help = 'Id(s) of the banks to include.')
 floodPramGroup.add_argument('--nominal_source_sample_distance_meters', help = 'Nominal source(moderator) to sample position distance. [m]')
 
 args = parser.parse_args()
@@ -86,32 +87,27 @@ lokiDefaultParams = {'rear_detector_distance_m':5,
                      'source_monitor_distance_meters': 23.599,
                      'nominal_source_sample_distance_meters': 23.6,
                      'analysis_straw_pixel_number': 512,
-                     'mcstas_monitors': ['Mon10_PostFOC_*.t', 'PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-']}
+                     'mcstas_monitors': ['Mon10_PostFOC_*.t', 'PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-'],
+                     'aiming_bank_id': [0,1,2,3,4,5,6,7,8]}
 from LokiMantid.paramHandler import ParamHandler
 params = ParamHandler(mcplFile, vars(args), lokiDefaultParams, args.verbose)
 
 if not args.mcstas_monitors: #TODO test
 #TODO maybe implement a set option, to indicate that parameters can change! (then it would make sense to prepend with '_')
   params.params['mcstas_monitors'][3] = f"beamstopMonitor_{params.get('rear_detector_distance_m')}m_*.t"
+params.params['aiming_bank_id'] = list(str(params.get('aiming_bank_id')))
 
 if args.showMetadata:
   params.dumpMCPLParams()
+  params.dumpParams()
   sys.exit()
 
-# if params.get('rear_detector_distance_m') not in (5, 10):
-#   sys.exit(f"rear_detector_distance_m must be either 5 or 10 to be able to process. Got: {params.get('rear_detector_distance_m')}")
-# if params.get('analysis_straw_pixel_number') not in (256, 512):
-#   sys.exit(f"analysis_straw_pixel_number must be either 256 or 512 to be able to process. Got: {params.get('analysis_straw_pixel_number')}")
-
-#TODO add option to override with input argument
-#TODO handle old pixel numbering?
-mon_idf_name = f"LOKI_Definition_rear{params.get('rear_detector_distance_m')}m_monitors.xml"
-det_idf_name = f"LOKI_Definition_rear{params.get('rear_detector_distance_m')}m_{params.get('analysis_straw_pixel_number')}px.xml"
-instrumentDefinitionFile_monitor = FindData("LokiMantid", mon_idf_name)
-instrumentDefinitionFile_detector = FindData("LokiMantid", det_idf_name)
-
-if not all([instrumentDefinitionFile_monitor, instrumentDefinitionFile_detector]):
-  sys.exit(f"Error: Could not find matching IDF files for parameters: \n  rear_detector_distance_m={params.get('rear_detector_distance_m')} \n  analysis_straw_pixel_number={params.get('analysis_straw_pixel_number')}\nAssumed filenames are: \n  {mon_idf_name} \n  {det_idf_name}")
+from LokiMantid.idfCreator import IdfCreator
+idfFile = IdfCreator(params)
+instrumentDefinitionFile_detector = idfFile.getDetectorIDF()
+instrumentDefinitionFile_monitor = idfFile.getMonitorIDF()
+#TODO implement option to create separate nxs files if multiple banks are illuminated (mcstas/no bank filtering/1234or5678 filtering) maybe that should be default
+#TODO old tube numbering is not supported
 
 # parameters used for the TOF spectra binning for both the monitors and detectors
 wsBinParams_monitor = [args.monitorWorkspaceTofStart, args.monitorWorkspaceTofBinWidth, args.monitorWorkspaceTofEnd]
@@ -154,7 +150,6 @@ if not args.detectorOnly:
   api.addProperties(mcStasMonitorWS_rebin, params)
   if not args.noOutput:
     api.saveNexus(mcStasMonitorWS_rebin, saveFileMonitor)
-
 
 if not args.monitorOnly:
   Geant4DataWS = api.createDetectorWorkspace(instrumentDefinitionFile_detector)

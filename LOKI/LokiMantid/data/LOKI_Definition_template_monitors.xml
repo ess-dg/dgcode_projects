@@ -5,7 +5,7 @@ xsi:schemaLocation="http://www.mantidproject.org/IDF/1.0 http://schema.mantidpro
 name="LOKI" valid-from   ="1900-01-31 23:59:59"
 valid-to     ="2100-01-31 23:59:59"
 last-modified="2010-11-16 12:02:05">
-<!---->
+
   <defaults>
     <length unit="metre"/>
     <angle unit="degree"/>
@@ -22,7 +22,7 @@ last-modified="2010-11-16 12:02:05">
   <type is="Source" name="moderator"/>
 
   <component type="sample-position">
-    <location y="0.0" x="0.0" z="23.6"/>
+    <location y="0.0" x="0.0" z="<PLACEHOLDER_NOMINAL_SOURCE_SAMPLE_DISTANCE>"/>
   </component>
   <type is="SamplePos" name="sample-position"/>
 
@@ -34,7 +34,7 @@ last-modified="2010-11-16 12:02:05">
   <type name="monitors">
     <component type="monitor">
       <location z="15.4696" name="BM2_FOC"/> <!-- Mon10_PostFOC  -->
-      <location z="23.599" name="BM3_haloMon"/> <!-- PreSampleMonitor  -->
+      <location z="<PLACEHOLDER_PRESAMPLE_MONITOR_DISTANCE>" name="BM3_haloMon"/> <!-- PreSampleMonitor  -->
     </component>
 
     <component type="monitor-cylindrical">
@@ -42,7 +42,7 @@ last-modified="2010-11-16 12:02:05">
     </component>
 
     <component type="monitor">
-      <location z="33.55" name="BM5_beamstop"/> <!-- beamstopMonitor_10m  --> <!-- 23.6 + 10 - 0.  05  -->
+      <location z="<PLACEHOLDER_BEAMSTOP_MONITOR_DISTANCE>" name="BM5_beamstop"/>
     </component>
 
     <component type="no shape monitor">

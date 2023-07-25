@@ -8,7 +8,9 @@ class ParamHandler:
     self.mcplFile = mcplFile
     self.mcplMetadata = MCPL.MCPLFile(mcplFile).blobs
     self.mcplMetadata.update((k, v.decode()) for k,v in self.mcplMetadata.items() if isinstance(v, bytes)) #decode MCPL byte strings
-    self.params = {key: userInputs[key] if userInputs[key] else self.mcplMetadata.get(key, default)
+    def getMetadataValueOrDefault(key,default): #default if key doesn't exist, or value is empty/none
+      return default if (key not in self.mcplMetadata or self.mcplMetadata[key]=='') else self.mcplMetadata[key]
+    self.params = {key: userInputs[key] if userInputs[key] else getMetadataValueOrDefault(key, default)
                    for (key,default) in defaultParams.items()} #(order of precedence is userinput > MCPL metadata > defaults)
     #self.params.update((k, v.decode()) for k,v in self.params.items() if isinstance(v, bytes)) #decode MCPL byte strings
 
@@ -20,7 +22,7 @@ class ParamHandler:
     try:
       floatValue = float(self.params[key])
       return floatValue if not floatValue.is_integer() else int(floatValue)
-    except TypeError:
+    except TypeError: #for strings not convertable to float/int
       return self.params[key]
 
   def getMcplFile(self):
