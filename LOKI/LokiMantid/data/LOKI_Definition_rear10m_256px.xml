@@ -22,7 +22,7 @@ last-modified="2010-11-16 12:02:05">
 <type is="Source" name="moderator"/>
 
 <component type="sample-position">
-	<location y="0.0" x="0.0" z="23.5706"/>
+	<location y="0.0" x="0.0" z="23.6"/>
 </component>
 <type is="SamplePos" name="sample-position"/>
 

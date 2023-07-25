@@ -11,7 +11,7 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
     self.addParameterDouble("neutron_wavelength_min_aangstrom", 2)
     self.addParameterDouble("neutron_wavelength_max_aangstrom", 13)
 
-    self.addParameterDouble("source_monitor_distance_meters", 23.5662) #pre-sample monitor position (should match the IDF file)
+    self.addParameterDouble("source_monitor_distance_meters", 23.599) #pre-sample monitor position (should match the IDF file)
 
     # x,y,z offset from the nominal sample position
     self.addParameterDouble("gen_x_offset_meters", 0.000)

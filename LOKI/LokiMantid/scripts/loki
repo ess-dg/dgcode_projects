@@ -42,6 +42,7 @@ floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximu
 floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Maximum opening angle of the cone used for the direction sampling.')
 floodPramGroup.add_argument('--sampling_cone_opening_min_deg', help = 'Minimum opening angle of the cone used for the direction sampling.')
 floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. The preSample monitor TOF spectrum is generated for this distance.')
+floodPramGroup.add_argument('--nominal_source_sample_distance_meters', help = 'Nominal source(moderator) to sample position distance. [m]')
 
 args = parser.parse_args()
 
@@ -82,7 +83,8 @@ lokiDefaultParams = {'rear_detector_distance_m':5,
                      'neutron_wavelength_max_aangstrom': 13,
                      'sampling_cone_opening_deg': 49.6,
                      'sampling_cone_opening_min_deg': 0,
-                     'source_monitor_distance_meters': 23.5662,
+                     'source_monitor_distance_meters': 23.599,
+                     'nominal_source_sample_distance_meters': 23.6,
                      'analysis_straw_pixel_number': 512,
                      'mcstas_monitors': ['Mon10_PostFOC_*.t', 'PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-']}
 from LokiMantid.paramHandler import ParamHandler

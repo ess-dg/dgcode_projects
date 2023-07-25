@@ -75,7 +75,7 @@ int main(int argc, char**argv) {
   SimpleHists::HistCollection hc;
 
   double preGeant4Distance = 0*Units::m; // the distance the particle's initial TOF corresponds to
-  double nominalSamplePosDistance = 23.5706*Units::m; // hard-coded default for backward compatibility (23.5706 from McStas mcdisplay-webgl)
+  double nominalSamplePosDistance = 23.6*Units::m; // hard-coded default for backward compatibility
   if (gen.getName()=="LOKI.FloodSourceGen/FloodSourceGen" || gen.getName()=="G4MCPLPlugins/MCPLGen") {
     if(userData.count("nominal_source_sample_distance_meters")) {
       nominalSamplePosDistance = std::stod(userData["nominal_source_sample_distance_meters"].c_str())*Units::m;
@@ -95,7 +95,6 @@ int main(int argc, char**argv) {
     }
     preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
-  std::cout<<preGeant4Distance/Units::m<<"\n";
 
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;

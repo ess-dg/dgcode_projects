@@ -22,7 +22,7 @@ last-modified="2010-11-16 12:02:05">
 <type is="Source" name="moderator"/>
 
 <component type="sample-position">
-	<location y="0.0" x="0.0" z="23.5706"/>
+	<location y="0.0" x="0.0" z="23.6"/>
 </component>
 <type is="SamplePos" name="sample-position"/>
 
@@ -34,7 +34,7 @@ last-modified="2010-11-16 12:02:05">
  <type name="monitors">
 	<component type="monitor">
 		<location z="15.4696" name="BM2_FOC"/> <!-- Mon10_PostFOC  -->
-		<location z="23.5662" name="BM3_haloMon"/> <!-- PreSampleMonitor  -->
+		<location z="23.599" name="BM3_haloMon"/> <!-- PreSampleMonitor  -->
 	</component>
 
   <component type="monitor-cylindrical">
@@ -42,7 +42,7 @@ last-modified="2010-11-16 12:02:05">
 	</component>
 
 	<component type="monitor">
-    <location z="33.5206" name="BM5_beamstop"/> <!-- beamstopMonitor_10m  --> <!-- 23.5706 + 10 - 0.05  -->
+    <location z="33.55" name="BM5_beamstop"/> <!-- beamstopMonitor_10m  --> <!-- 23.6 + 10 - 0.05  -->
 	</component>
 
   <component type="no shape monitor">

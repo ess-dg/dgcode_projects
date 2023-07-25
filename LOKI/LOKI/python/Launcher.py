@@ -11,7 +11,7 @@ def launch(geo):
     launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterBoolean('det_only',False)
     launcher.addParameterString('aiming_bank_id','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
-    launcher.addParameterDouble("nominal_source_sample_distance_meters", 23.5706) #origo of the Geant4 geometry
+    launcher.addParameterDouble("nominal_source_sample_distance_meters", 23.6) #origo of the Geant4 geometry
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
 
     ## McStas+Geant4 options ##

@@ -10,7 +10,7 @@ parser.add_argument('-s', '--straw_pixel_number', default=256, type=int, help = 
 parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
 # parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
 parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
-parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.5706, help = 'Source sample distance [m] (defaults to 0 m)')
+parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.6, help = 'Source sample distance [m] (defaults to 0 m)')
 
 args = parser.parse_args()
 
