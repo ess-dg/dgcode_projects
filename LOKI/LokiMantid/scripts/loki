@@ -30,6 +30,7 @@ parser.add_argument('-mon', '--monitorOnly', action = 'store_true', help = 'Crea
 parser.add_argument('-no', '--noOutput', action = 'store_true', help = 'Developer option. No output is generated.')
 parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable more verbosity.')
 parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
+parser.add_argument('-i', '--idfCreation', action = 'store_true', help = 'Save the idf files created based on inputs.')
 
 mcstasParamGroup = parser.add_argument_group('McStas parameters', 'Supplement McStas simulation parameters')
 mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra.  Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LOKI environment variable, unless a full path is given.')
@@ -88,7 +89,7 @@ lokiDefaultParams = {'rear_detector_distance_m':5,
                      'nominal_source_sample_distance_meters': 23.6,
                      'analysis_straw_pixel_number': 512,
                      'mcstas_monitors': ['Mon10_PostFOC_*.t', 'PreSampleMonitor_*.t', 'PostSampleMonitor_*.t', '-'],
-                     'aiming_bank_id': [0,1,2,3,4,5,6,7,8]}
+                     'aiming_bank_id': '876543210'}
 from LokiMantid.paramHandler import ParamHandler
 params = ParamHandler(mcplFile, vars(args), lokiDefaultParams, args.verbose)
 
@@ -106,6 +107,12 @@ from LokiMantid.idfCreator import IdfCreator
 idfFile = IdfCreator(params)
 instrumentDefinitionFile_detector = idfFile.getDetectorIDF()
 instrumentDefinitionFile_monitor = idfFile.getMonitorIDF()
+if args.idfCreation:
+  if not args.noOutput:
+    idfFile.saveIdfFiles(f'{saveFile.parents[0]}/LOKI_Definition')
+  else:
+    idfFile.saveIdfFiles('_', printOnly=True)
+  sys.exit()
 #TODO implement option to create separate nxs files if multiple banks are illuminated (mcstas/no bank filtering/1234or5678 filtering) maybe that should be default
 #TODO old tube numbering is not supported
 

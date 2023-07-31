@@ -11,9 +11,10 @@ class IdfCreator:
     self.preSampleMonitorDistance = params.get('source_monitor_distance_meters')
     self.rearDetDistance = params.get('rear_detector_distance_m')
     self.pixelNumber = params.get('analysis_straw_pixel_number')
+    #read idf templates
     self.xmlDetector = self.readXmlFile("LOKI_Definition_template_detectors.xml")
     self.xmlMonitor = self.readXmlFile("LOKI_Definition_template_monitors.xml")
-
+    #edit idf content based on input params using the placeholders
     self.uncommentBanks()
     self.setDistances() #sample, monitor, rear detector bank distance
     self.setPixelNumber()
@@ -47,18 +48,17 @@ class IdfCreator:
 
   def setDistances(self):
     ## Monitor IDF ##
-    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_NOMINAL_SOURCE_SAMPLE_DISTANCE>', str(self.nominalSourceSampleDistance))
-    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_PRESAMPLE_MONITOR_DISTANCE>', str(self.preSampleMonitorDistance))
+    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_NOMINAL_SOURCE_SAMPLE_DISTANCE>', "{:.6f}".format(self.nominalSourceSampleDistance))
+    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_PRESAMPLE_MONITOR_DISTANCE>', "{:.6f}".format(self.preSampleMonitorDistance))
     beamstopMonitorDistance = self.nominalSourceSampleDistance + self.rearDetDistance - 0.05 #hardcoded -5cm
-    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_BEAMSTOP_MONITOR_DISTANCE>', str(beamstopMonitorDistance))
+    self.xmlMonitor = self.xmlMonitor.replace('<PLACEHOLDER_BEAMSTOP_MONITOR_DISTANCE>', "{:.6f}".format(beamstopMonitorDistance))
 
     ## Detector IDF ##
-    self.xmlDetector = self.xmlDetector.replace('<PLACEHOLDER_NOMINAL_SOURCE_SAMPLE_DISTANCE>', str(self.nominalSourceSampleDistance))
+    self.xmlDetector = self.xmlDetector.replace('<PLACEHOLDER_NOMINAL_SOURCE_SAMPLE_DISTANCE>', "{:.6f}".format(self.nominalSourceSampleDistance))
 
     rearDetFrontToPackCentreOffset = 0.048877 #hardcoded offset to position the detector front
     rearDetPositionZ = self.nominalSourceSampleDistance + self.rearDetDistance + rearDetFrontToPackCentreOffset
-    self.xmlDetector = self.xmlDetector.replace('<PLACEHOLDER_REAR_DETECTOR_POSITION_Z>', str(rearDetPositionZ))
-    #note (wrong distance) <location x="0" y="0.008651" z="28.648877"/> <!-- +0.048877 detector front to pack centre -->
+    self.xmlDetector = self.xmlDetector.replace('<PLACEHOLDER_REAR_DETECTOR_POSITION_Z>', "{:.6f}".format(rearDetPositionZ))
 
   def setPixelNumber(self):
     self.xmlDetector = self.xmlDetector.replace('<PLACEHOLDER_PIXEL_NUMBER>', str(self.pixelNumber))
@@ -81,3 +81,14 @@ class IdfCreator:
     for bankId in range(9):
       self.xmlDetector = self.xmlDetector.replace(f'<PLACEHOLDER_BANK{bankId}_PIXEL_ID_START>', str(firstPixelOfBank(bankId)))
       self.xmlDetector = self.xmlDetector.replace(f'<PLACEHOLDER_BANK{bankId}_PIXEL_ID_END>', str(lastPixelOfBank(bankId)))
+
+  def saveIdfFiles(self, savename, printOnly=False): #note: saving the idf files is not needed for producing the nxs files
+    from shutil import copyfile
+    if not printOnly:
+      copyfile(self.tempDetectorIdfFile.name, f'{savename}_detector.xml')
+      copyfile(self.tempMonitorIdfFile.name, f'{savename}_monitor.xml')
+    else: #print output for testing
+      f = open(self.tempDetectorIdfFile.name, "r")
+      print(f.read())
+      f = open(self.tempMonitorIdfFile.name, "r")
+      print(f.read())

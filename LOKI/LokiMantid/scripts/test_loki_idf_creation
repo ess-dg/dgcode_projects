@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+
+import subprocess, sys
+from Core import FindData3
+
+filepath = FindData3("LokiMantid", "detectionEventsFlood_testFile.mcpl")
+
+cmd = ["ess_lokimantid_loki", "--", filepath, "--neutronNumber=25", "--analysis_straw_pixel_number=512", "--rear_detector_distance_m=10", "--nominal_source_sample_distance_meters=23.6", "--idfCreation", "--noOutput"]
+output=subprocess.run(cmd,check=True, stdout=subprocess.PIPE).stdout
+
+etalonDetectorIdfFile = FindData3("LokiMantid", "LOKI_Definition_detector_rear10m_512px.xml")
+etalonMonitorIdfFile = FindData3("LokiMantid", "LOKI_Definition_monitor_rear10m.xml")
+
+with open(etalonDetectorIdfFile, "rb") as file:
+  etalonDetectorIdf=file.read()
+with open(etalonMonitorIdfFile, "rb") as file:
+  etalonMonitorIdf=file.read()
+
+if not etalonDetectorIdf in output or not etalonMonitorIdf in output:
+  sys.exit(1)
