@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 MCPLFILE=`ess_core_finddata LokiMantid detectionEventsMcstas_testFile.mcpl`
 DATADIR="$(dirname "${MCPLFILE}")" #directory with test McStas monitor files

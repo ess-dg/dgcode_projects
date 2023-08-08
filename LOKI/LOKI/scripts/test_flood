@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ess_loki_sim -t -lESS_Empty && \
 ess_loki_sim -lESS_Empty event_gen=flood |grep '^G4Launcher::Launcher'

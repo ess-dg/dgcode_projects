@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ARGS="det_only=true"
 ess_loki_sim_larmor2020 $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'

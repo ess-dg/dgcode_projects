@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ARGS="rear_detector_distance_m=5 aiming_straw_pixel_number=1024 analysis_straw_pixel_number=512 beamstop_id=0 with_calibration_slits=True"
 ess_lokimasking_sim $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 MCPLFILE=`ess_core_finddata LOKI lokiMcstas_testFile.mcpl.gz`
 ess_loki_sim event_gen=mcpl input_file=$MCPLFILE |grep '^G4Launcher::Launcher'

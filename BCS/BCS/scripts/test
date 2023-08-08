@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #Unit test which makes a very simple test of our geometry, simulation and
 #analysis (using an empty physics list for speed). To avoid false positives, it

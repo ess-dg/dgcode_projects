@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #IMPORTANT: This file is version controlled, and should not be edited by users
 #to avoid accidental pushing of personal settings to the repository. If you

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
  
 #SBATCH --mail-user=milan.klausz@yahoo.com
 #SBATCH --mail-type=ALL
