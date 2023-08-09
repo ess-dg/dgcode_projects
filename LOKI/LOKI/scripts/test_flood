@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# testing full geometry (this takes long), and the flood sim-ana workflow (but not the results)
 ess_loki_sim -t -lESS_Empty && \
 ess_loki_sim -lESS_Empty event_gen=flood |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then

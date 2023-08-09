@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
+# testing the processing of an already existing mcpl file (backward compatibility)
 MCPLFILE=`ess_core_finddata LokiMantid detectionEventsFlood_testFile.mcpl`
-ess_lokimantid_loki -- $MCPLFILE --neutronNumber=25 --analysis_straw_pixel_number=256 --noOutput
+ess_lokimantid_loki -- $MCPLFILE --neutronNumber=25 --analysis_straw_pixel_number=4 --singleNexus --noOutput

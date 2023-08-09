@@ -43,10 +43,47 @@ def saveNexus(workspace, filename):
   api.SaveNexus(workspace, filename)
   print(f'    Saved nexus file: {filename}')
 
-def createDetectorWorkspace(instrumentDefinitionFile_detector):
-  Geant4DataWS = api.LoadEmptyInstrument(instrumentDefinitionFile_detector, MakeEventWorkspace=True)
-  return Geant4DataWS
+def createDetectorWorkspace(instrumentDefinitionFile_detector, id=''):
+  return api.LoadEmptyInstrument(instrumentDefinitionFile_detector, OutputWorkspace=f'Geant4DataWS_bank{id}', MakeEventWorkspace=True)
 
+def addMcplDetectionEventsToWorkspaces(workspaces, filename, idConverter=(lambda id:id), idFilter=(lambda _:True), verbose=False):
+  pulsetime = datetime.now() #dummy pulse time
+  dateTime = DateAndTime(pulsetime.isoformat(sep="T"))
+
+  spectraNumber = {}
+  allEventLists = {}
+  detectorIdToWorkspaceIndex = {}
+  for key,ws in workspaces.detectorWorkspaces.items():
+    spectraNumber[key] = ws.getNumberHistograms()
+    allEventLists[key] = [ws.getSpectrum(wsIndex) for wsIndex in range(spectraNumber[key])]
+    detectorIdToWorkspaceIndex[key] = {ws.getDetector(wsIndex).getID():wsIndex for wsIndex in range(spectraNumber[key])}
+  readBlockLength = 100000000
+  tof = np.array([])
+  detids = np.array([])
+  if verbose:
+    print(f'    Loading detection events from {filename}')
+  with MCPL.MCPLFile(filename, blocklength=readBlockLength) as myfile:
+    oldFile = myfile.opt_userflags #This could break if new detection files are created with userflags for some reason
+    for p in myfile.particle_blocks:
+      detids = np.append(detids, (p.ekin.astype(int) if not oldFile else p.userflags.astype(int)))
+      tof = np.append(tof, p.time * 1000.0)  # convert to microseconds
+    countAddEventError = 0
+    countFilteredOutEvents = 0 #e.g., Simulation is done for the full LOKI rear bank geometry instead of the 'reduced' geometry used for the experiment
+    for time,detId in zip(tof, detids):
+      try:
+        if idFilter(detId):
+          id = idConverter(detId)
+          wsKey = workspaces.getDetectorWorkspaceKey(id)
+          allEventLists[wsKey][detectorIdToWorkspaceIndex[wsKey][id]].addEventQuickly(time, dateTime)
+        else:
+          countFilteredOutEvents += 1
+      except:
+        countAddEventError += 1
+    if countAddEventError:
+       print(f'    {colWarning}WARNING: Number of addEventQuickly errors in file {filename} is: {countAddEventError}. Possibly wrong IDF for the simulation (simulation pixel index range out of the pixel range defined in the IDF file){colEnd}', file=sys.stderr)
+  return countFilteredOutEvents
+
+#Legacy version needed for Larmor2020 and Larmor2022 processing
 def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda id:id), idFilter=(lambda _:True), verbose=False):
   pulsetime = datetime.now() #dummy pulse time
   dateTime = DateAndTime(pulsetime.isoformat(sep="T"))

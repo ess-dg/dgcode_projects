@@ -18,7 +18,7 @@ parser.add_argument('filename', help = 'Input detection MCPL file. Assumed to be
 parser.add_argument('-s','--savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LOKI environment variable, unless a full path is given.')
 
 parser.add_argument('--rear_detector_distance_m', help = 'Rear detector distance.')
-parser.add_argument('--analysis_straw_pixel_number', choices=['256', '512'], help = 'Number of pixels per detector straw.')
+parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per detector straw.')
 parser.add_argument('--detectorWorkspaceTofStart', default = 11000, type=int, help = 'TOF start for the detector workspace spectra binning. (default: %(default)d microSeconds)')
 parser.add_argument('--detectorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the detector workspace spectra binning. (default: %(default)d microSeconds)')
 parser.add_argument('--detectorWorkspaceTofEnd', default = 113000, type=int, help = 'TOF end for the detector workspace spectra binning. (default: %(default)d microSeconds)')
@@ -31,6 +31,7 @@ parser.add_argument('-no', '--noOutput', action = 'store_true', help = 'Develope
 parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable more verbosity.')
 parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
 parser.add_argument('-i', '--idfCreation', action = 'store_true', help = 'Save the idf files created based on inputs.')
+parser.add_argument('--singleNexus', action = 'store_true', default=True, help = 'Save a single nexus file (or idf) for all detector banks together, instead of one for each.')
 
 mcstasParamGroup = parser.add_argument_group('McStas parameters', 'Supplement McStas simulation parameters')
 mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra.  Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LOKI environment variable, unless a full path is given.')
@@ -73,9 +74,7 @@ def resolveFilename(filename, baseEnvVar):
 
 mcplFile = resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LOKI')
 if not (args.noOutput or args.showMetadata):
-  saveFile = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LOKI')
-  saveFileMonitor = str(saveFile) + "_monitor.nxs"
-  saveFileDetector = str(saveFile) + "_detector.nxs"
+  saveFileBase = resolveFilename(args.savename, 'G4PROC_SAVEDIR_LOKI')
 if args.mcstasDir:
   mcStasFolder = resolveFilename(args.mcstasDir, 'G4PROC_MCSTAS_BASEDIR_LOKI')
 #TODO check if files exists and stop with error, or overide?
@@ -103,17 +102,16 @@ if args.showMetadata:
   params.dumpParams()
   sys.exit()
 
-from LokiMantid.idfCreator import IdfCreator
-idfFile = IdfCreator(params)
-instrumentDefinitionFile_detector = idfFile.getDetectorIDF()
-instrumentDefinitionFile_monitor = idfFile.getMonitorIDF()
+from LokiMantid.workspaceCreator import workspaceCreator
+workspaces = workspaceCreator(params, args.singleNexus, args.idfCreation)
+instrumentDefinitionFile_monitor = workspaces.getMonitorIDF()
 if args.idfCreation:
   if not args.noOutput:
-    idfFile.saveIdfFiles(f'{saveFile.parents[0]}/LOKI_Definition')
+    workspaces.saveIdfFiles(f'{saveFileBase.parents[0]}/LOKI_Definition')
   else:
-    idfFile.saveIdfFiles('_', printOnly=True)
+    workspaces.saveIdfFiles('_', printOnly=True)
+  print("It's okey until here")
   sys.exit()
-#TODO implement option to create separate nxs files if multiple banks are illuminated (mcstas/no bank filtering/1234or5678 filtering) maybe that should be default
 #TODO old tube numbering is not supported
 
 # parameters used for the TOF spectra binning for both the monitors and detectors
@@ -156,16 +154,24 @@ if not args.detectorOnly:
   mcStasMonitorWS_rebin = api.rebinMonitorWorkspace(mcStasMonitorWS, wsBinParams_monitor, 'mcStasMonitorWS_rebin')
   api.addProperties(mcStasMonitorWS_rebin, params)
   if not args.noOutput:
-    api.saveNexus(mcStasMonitorWS_rebin, saveFileMonitor)
+    saveFilename = str(saveFileBase) + "_monitor.nxs"
+    api.saveNexus(mcStasMonitorWS_rebin, saveFilename)
 
 if not args.monitorOnly:
-  Geant4DataWS = api.createDetectorWorkspace(instrumentDefinitionFile_detector)
-
   idConverter = lambda id: 1 + id #detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
-  api.addMcplDetectionEventsToWorkspace(Geant4DataWS, params.getMcplFile(), idConverter=idConverter, verbose=args.verbose)
-  Geant4DataWS_rebin = api.rebinDetectorWorkspace(Geant4DataWS, wsBinParams_detector, 'Geant4DataWS2D_rebin')
-  api.addProperties(Geant4DataWS_rebin, params)
-  Geant4DataWS_rebin.setYUnitLabel("Counts")
-  Geant4DataWS_rebin.getAxis(0).setUnit("TOF")
-  if not args.noOutput:
-    api.saveNexus(Geant4DataWS_rebin, saveFileDetector)
+  api.addMcplDetectionEventsToWorkspaces(workspaces, params.getMcplFile(), idConverter=idConverter, verbose=args.verbose)
+  #TODO add some kind of verification or statistics
+  # - number of events in the MCPL file
+  # - number of detection events 
+
+  for id, ws in workspaces.detectors.items():
+    Geant4DataWS_rebin = api.rebinDetectorWorkspace(ws, wsBinParams_detector, f'Geant4DataWS2D_bank{id}_rebin')
+    api.addProperties(Geant4DataWS_rebin, params)
+    Geant4DataWS_rebin.setYUnitLabel("Counts")
+    Geant4DataWS_rebin.getAxis(0).setUnit("TOF")
+    if not args.noOutput:
+      aimingBankIds = ''.join(params.params['aiming_bank_id'])
+      aimingBankIdsText = f"_banks{aimingBankIds}" if aimingBankIds != lokiDefaultParams['aiming_bank_id'] else ''
+      bankText = f"_bank{id}" if not args.singleNexus else aimingBankIdsText
+      saveFilename = str(saveFileBase) + f"{bankText}_detector.nxs"
+      api.saveNexus(Geant4DataWS_rebin, saveFilename)

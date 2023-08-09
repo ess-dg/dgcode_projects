@@ -2,4 +2,4 @@
 
 MCPLFILE=`ess_core_finddata LokiMantid detectionEventsMcstas_testFile.mcpl`
 DATADIR="$(dirname "${MCPLFILE}")" #directory with test McStas monitor files
-ess_lokimantid_loki -- $MCPLFILE --mcstasDir=$DATADIR --analysis_straw_pixel_number=256 --noOutput
+ess_lokimantid_loki -- $MCPLFILE --mcstasDir=$DATADIR --analysis_straw_pixel_number=4 --noOutput
