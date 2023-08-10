@@ -53,7 +53,7 @@ def addMcplDetectionEventsToWorkspaces(workspaces, filename, idConverter=(lambda
   spectraNumber = {}
   allEventLists = {}
   detectorIdToWorkspaceIndex = {}
-  for key,ws in workspaces.detectorWorkspaces.items():
+  for key,ws in workspaces.detectors.items():
     spectraNumber[key] = ws.getNumberHistograms()
     allEventLists[key] = [ws.getSpectrum(wsIndex) for wsIndex in range(spectraNumber[key])]
     detectorIdToWorkspaceIndex[key] = {ws.getDetector(wsIndex).getID():wsIndex for wsIndex in range(spectraNumber[key])}
