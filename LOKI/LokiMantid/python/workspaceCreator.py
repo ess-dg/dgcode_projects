@@ -18,44 +18,36 @@ class workspaceCreator:
     self.xmlDetectorsTemplate = self.readXmlFile("LOKI_Definition_template_detectors.xml")
     #edit idf content based on input params using the placeholders
     self.setDistances() #sample, monitor, rear detector bank distance
+    self.firstPixelOfBank = [None]*9 #filled up in setPixelNumbers()
     self.lastPixelOfBank = [None]*9 #filled up in setPixelNumbers(), used later for getting bankId(workspace id) for a certain pixelId in getDetectorWorkspaceKey()
     self.setPixelNumbers()
 
-    if not self.singleNexus:
-      self.xmlDetectors = {id: self.getXmlForBanks(id) for id in self.bankIds} #TODO This is probaly not needed
-    else: #create one xml, containing all detector banks 
+    if self.singleNexus: #create one xml, containing all detector banks
+      print("    Creating a single IDF/workspace for all banks")
       self.xmlDetectors = {'All': self.getXmlForBanks(self.bankIds)}
+    else:
+      self.xmlDetectors = {id: self.getXmlForBanks(id) for id in self.bankIds}
     self.tempDetectorIdfFiles = {id: self.getTempDetectorIdfFile(id) for id in self.xmlDetectors}
     if not idfCreation: #no need for long workspace creation if only the idf files are required
-      print("Creating detector workspace(s)") #TODO DEBUG
       self.detectors = {id: api.createDetectorWorkspace(self.tempDetectorIdfFiles[id].name, id) for id in self.tempDetectorIdfFiles}
 
-  def getDetectorWorkspaceKey(self, pixelId): 
-    #note: conversion(e.g. offset) is already applied to pixelId (also referred to as detectorId) 
-    #note: no need to handle indexes out of ranges, due to the exception handling when adding events to event lists
-    if not self.singleNexus:
-      for id, lastPixel in enumerate(self.lastPixelOfBank):
-        if pixelId <= lastPixel:
-          return str(id)
-    else:
+  def getDetectorWorkspaceKey(self, pixelId):
+    #note: conversion(e.g. offset) is already applied to pixelId (also referred to as detectorId)
+    if self.singleNexus:
       return 'All'
+    else:
+      for id, (firstPixel, lastPixel) in enumerate(zip(self.firstPixelOfBank,self.lastPixelOfBank)):
+        if firstPixel <= pixelId <= lastPixel:
+          return str(id)
+    return 'outOfValidPixelRanges'
 
   def getTempDetectorIdfFile(self, id):
     self.tempFile = NamedTemporaryFile(prefix=f'LOKI_Definition_detector_bank{id}', suffix='.xml')
     with open(self.tempFile.name, 'w') as f:
       f.write(self.xmlDetectors[id]) #TODO we might want to create the idf file here?
     return self.tempFile
-  
-  def getDetectorIDF(self, id):#TODO temporary probably, but might be needed for saving IDF files(?)
-    return self.tempDetectorIdfFiles[id].name
-  
-  # def getDetectorIDF(self): 
-  #   if not hasattr(self, 'tempDetectorIdfFile'):
-  #     self.tempDetectorIdfFile = NamedTemporaryFile(prefix='LOKI_Definition_detector_', suffix='.xml')
-  #     with open(self.tempDetectorIdfFile.name, 'w') as f:
-  #       f.write(self.xmlDetector)
-  #   return self.tempDetectorIdfFile.name
-  def getMonitorIDF(self): #TODO getDetectorIDF and getMonitorIDF are way too similar to be 2 functions
+
+  def getMonitorIDF(self):
     if not hasattr(self, 'tempMonitorIdfFile'):
       self.tempMonitorIdfFile = NamedTemporaryFile(prefix='LOKI_Definition_monitor_', suffix='.xml')
       with open(self.tempMonitorIdfFile.name, 'w') as f:
@@ -68,18 +60,9 @@ class workspaceCreator:
       return file.read()
 
   def getXmlForBanks(self, bankIds):
-    def isLineToRemove(line):
-      return any([(f'<!--BANK{id}_START' in line) or (f'BANK{id}_END-->' in line) for id in bankIds])
-
-    newXmlLines = [line for line in self.xmlDetectorsTemplate.splitlines() if not isLineToRemove(line)]
+    commentLineToRemove = lambda line : any([(f'<!--BANK{id}_START' in line) or (f'BANK{id}_END-->' in line) for id in bankIds])
+    newXmlLines = [line for line in self.xmlDetectorsTemplate.splitlines() if not commentLineToRemove(line)]
     return '\n'.join(newXmlLines)
-  
-  # def uncommentBanks(self):
-  #   def isLineToRemove(line):
-  #     return any([(f'<!--BANK{id}_START' in line) or (f'BANK{id}_END-->' in line) for id in self.bankIds])
-
-  #   newXmlLines = [line for line in self.xmlDetector.splitlines() if not isLineToRemove(line)]
-  #   self.xmlDetector = '\n'.join(newXmlLines)
 
   def setDistances(self):
     ## Monitor IDF ##
@@ -106,31 +89,38 @@ class workspaceCreator:
 
     idfPixelOffset = 1 #pixel ids start from 1 in the IDF file
 
-    def firstPixelOfBank(bankId):
-      offset = idfPixelOffset
-      for id in range(bankId):
-        offset += numberOfPixelsInBank[id]
-      return offset
-    
+    def getFirstPixelOfBank(bankId):
+      if self.firstPixelOfBank[bankId] is None:
+        if bankId == 0:
+          self.firstPixelOfBank[0] = idfPixelOffset
+        else:
+          self.firstPixelOfBank[bankId] = getFirstPixelOfBank(bankId-1) + numberOfPixelsInBank[bankId-1]
+      return self.firstPixelOfBank[bankId]
+
     def getLastPixelOfBank(bankId):
       if self.lastPixelOfBank[bankId] is None:
         if bankId == 0:
-          self.lastPixelOfBank[0] = firstPixelOfBank(0) + numberOfPixelsInBank[0] - idfPixelOffset
+          self.lastPixelOfBank[0] = getFirstPixelOfBank(0) + numberOfPixelsInBank[0] - idfPixelOffset
         else:
           self.lastPixelOfBank[bankId] = getLastPixelOfBank(bankId-1) + numberOfPixelsInBank[bankId]
       return self.lastPixelOfBank[bankId]
 
 
     for bankId in range(9):
-      self.xmlDetectorsTemplate = self.xmlDetectorsTemplate.replace(f'<PLACEHOLDER_BANK{bankId}_PIXEL_ID_START>', str(firstPixelOfBank(bankId)))
+      self.xmlDetectorsTemplate = self.xmlDetectorsTemplate.replace(f'<PLACEHOLDER_BANK{bankId}_PIXEL_ID_START>', str(getFirstPixelOfBank(bankId)))
       self.xmlDetectorsTemplate = self.xmlDetectorsTemplate.replace(f'<PLACEHOLDER_BANK{bankId}_PIXEL_ID_END>', str(getLastPixelOfBank(bankId)))
 
   def saveIdfFiles(self, savename, printOnly=False): #note: saving the idf files is not needed for producing the nxs files
     from shutil import copyfile
     if not printOnly:
+      filename = f'{savename}_monitor.xml'
       copyfile(self.tempMonitorIdfFile.name, f'{savename}_monitor.xml')
+      print(f'    Saved monitor idf file: {filename}')
       for key in self.tempDetectorIdfFiles:
-        copyfile(self.tempDetectorIdfFiles[key].name, f'{savename}_bank{key}_detector.xml')
+        filename = f'{savename}_bank{key}_detector.xml'
+        copyfile(self.tempDetectorIdfFiles[key].name, filename)
+        print(f'    Saved detector idf file: {filename}')
+
     else: #print output for testing
       f = open(self.tempMonitorIdfFile.name, "r")
       print(f.read())

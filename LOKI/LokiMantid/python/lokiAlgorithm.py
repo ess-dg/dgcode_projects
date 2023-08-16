@@ -5,7 +5,7 @@ from mantid.api import *
 
 class LoadLokiDetectionEvents(PythonAlgorithm):
   def PyInit(self):
-    self.declareProperty(FileProperty(name="filename", defaultValue="", action=FileAction.Load, extensions=["mcpl", "mcpl.gz"]), 
+    self.declareProperty(FileProperty(name="filename", defaultValue="", action=FileAction.Load, extensions=["mcpl", "mcpl.gz"]),
                                       doc="Input detection MCPL file.")
     self.declareProperty('savename', defaultValue="",
                          doc="Output nexus filename base (must be an absolute path), automatically extended by '_detector.nxs' and '_monitor.nxs'") #TODO the . might cause an isse
@@ -59,52 +59,65 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
                          doc="Id(s) of the banks to include.")
     self.declareProperty('nominal_source_sample_distance_meters', defaultValue='',
                          doc="Nominal source(moderator) to sample position distance [m].")
-    
+
     # self.declareProperty(EventWorkspaceProperty("OutputWorkspace", self.OUTPUT_NAME, Direction.Output),
     #                       "Output event workspace")
 
   def category(self):
       return 'ESS'
-  
+
   def PyExec(self):
     self.load()
 
-  def _createArgs(self):
+  def _getParser(self):
     import argparse
-    args = argparse.Namespace(
-      filename=self.getProperty("filename").value, 
-      savename=self.getProperty("savename").value, 
-      rear_detector_distance_m=self.getProperty("rear_detector_distance_m").value, 
-      analysis_straw_pixel_number=self.getProperty("analysis_straw_pixel_number").value, 
-      detectorWorkspaceTofStart=self.getProperty("detectorWorkspaceTofStart").value, 
-      detectorWorkspaceTofBinWidth=self.getProperty("detectorWorkspaceTofBinWidth").value, 
-      detectorWorkspaceTofEnd=self.getProperty("detectorWorkspaceTofEnd").value, 
-      monitorWorkspaceTofStart=self.getProperty("monitorWorkspaceTofStart").value, 
-      monitorWorkspaceTofBinWidth=self.getProperty("monitorWorkspaceTofBinWidth").value, 
-      monitorWorkspaceTofEnd=self.getProperty("monitorWorkspaceTofEnd").value, 
-      detectorOnly=self.getProperty("detectorOnly").value, 
-      monitorOnly=self.getProperty("monitorOnly").value, 
-      noOutput=self.getProperty("noOutput").value, 
-      verbose=self.getProperty("verbose").value, 
-      showMetadata=self.getProperty("showMetadata").value, 
-      idfCreation=self.getProperty("idfCreation").value, 
-      singleNexus=self.getProperty("singleNexus").value, 
-      mcstasDir=self.getProperty("mcstasDir").value, 
-      mcstas_monitors=self.getProperty("mcstas_monitors").value, 
-      neutronNumber=float(self.getProperty("neutronNumber").value),
-      neutron_wavelength_min_aangstrom=self.getProperty("neutron_wavelength_min_aangstrom").value, 
-      neutron_wavelength_max_aangstrom=self.getProperty("neutron_wavelength_max_aangstrom").value, 
-      sampling_cone_opening_deg=self.getProperty("sampling_cone_opening_deg").value, 
-      sampling_cone_opening_min_deg=self.getProperty("sampling_cone_opening_min_deg").value, 
-      source_monitor_distance_meters=self.getProperty("source_monitor_distance_meters").value, 
-      aiming_bank_id=self.getProperty("aiming_bank_id").value, 
-      nominal_source_sample_distance_meters=self.getProperty("nominal_source_sample_distance_meters").value,
-      )
-    return args
+    parser = argparse.ArgumentParser(description = 'Process detection MCPL files from loki simulations to produce nexus files (one for the detectors, one for the monitors) readable with Mantid.')
+    parser.add_argument('filename', help = 'Input detection MCPL file. Assumed to be a path relative to the directory defined by the G4PROC_MCPL_BASEDIR_LOKI environment variable, unless a full path is given.')
+    parser.add_argument('-s','--savename', help = 'Output nexus filename base. Automatically extended by "_detector.nxs" and "_monitor.nxs". Assumed to be a path relative to the directory defined by the G4PROC_SAVEDIR_LOKI environment variable, unless a full path is given.')
+
+    parser.add_argument('--rear_detector_distance_m', help = 'Rear detector distance.')
+    parser.add_argument('--analysis_straw_pixel_number', help = 'Number of pixels per detector straw.')
+    parser.add_argument('--detectorWorkspaceTofStart', default = 11000, type=int, help = 'TOF start for the detector workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('--detectorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the detector workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('--detectorWorkspaceTofEnd', default = 113000, type=int, help = 'TOF end for the detector workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('--monitorWorkspaceTofStart', default = 9000, type=int, help = 'TOF start for the monitor workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('--monitorWorkspaceTofBinWidth', default = 1000, type=int, help = 'TOF bin width for the monitor workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('--monitorWorkspaceTofEnd', default = 100000, type=int, help = 'TOF end for the monitor workspace spectra binning. (default: %(default)d microSeconds)')
+    parser.add_argument('-det', '--detectorOnly', action = 'store_true', help = 'Create only the detector spectrum file.')
+    parser.add_argument('-mon', '--monitorOnly', action = 'store_true', help = 'Create only the monitor spectrum file.')
+    parser.add_argument('-no', '--noOutput', action = 'store_true', help = 'Developer option. No output is generated.')
+    parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable more verbosity.')
+    parser.add_argument('-show', '--showMetadata', action = 'store_true', help = 'Only output metadata stored in the detection MCPL file (without producing nxs files).')
+    parser.add_argument('-i', '--idfCreation', action = 'store_true', help = 'Save the idf files created based on inputs.')
+    parser.add_argument('--singleNexus', action = 'store_true', default=False, help = 'Save a single nexus file (or idf) for all detector banks together, instead of one for each.')
+
+    mcstasParamGroup = parser.add_argument_group('McStas parameters', 'Supplement McStas simulation parameters')
+    mcstasParamGroup.add_argument('--mcstasDir', help = 'Name of the McStas directory containing the monitor spectra. Assumed to be a path relative to the directory defined by the G4PROC_MCSTAS_BASEDIR_LOKI environment variable, unless a full path is given.')
+    mcstasParamGroup.add_argument('--mcstas_monitors', nargs='*', help = 'Name of the McStas monitor files (this option overrides the default ones).')
+
+    floodPramGroup = parser.add_argument_group('Flood source parameters', 'Supplement flood source simulation parameters missing from the detection MCPL files (legacy files), or override parameters stored in the files.')
+    floodPramGroup.add_argument('-n', '--neutronNumber', type=float, help = 'The total number of neutrons used to create the (probably merged) detection MCPL input file.')
+    floodPramGroup.add_argument('--neutron_wavelength_min_aangstrom', help = 'Minimum neutron wavelength used for the flood source sampling.')
+    floodPramGroup.add_argument('--neutron_wavelength_max_aangstrom', help = 'Maximum neutron wavelength used for the flood source sampling.')
+    floodPramGroup.add_argument('--sampling_cone_opening_deg', help = 'Maximum opening angle of the cone used for the direction sampling.')
+    floodPramGroup.add_argument('--sampling_cone_opening_min_deg', help = 'Minimum opening angle of the cone used for the direction sampling.')
+    floodPramGroup.add_argument('--source_monitor_distance_meters', help = 'Source to preSample monitor distance. The preSample monitor TOF spectrum is generated for this distance.')
+    floodPramGroup.add_argument('--aiming_bank_id', help = 'Id(s) of the banks to include.')
+    floodPramGroup.add_argument('--nominal_source_sample_distance_meters', help = 'Nominal source(moderator) to sample position distance. [m]')
+    return parser
+
+  def _getInputsForArgParser(self):
+    """Transforms the input of the Mantid Agorithm GUI into a format suitable for the command line argument parser"""
+    inps = [self.getProperty("filename").value] #filename is the only positional argument
+    propPairs = [[f"--{p.name}", str(p.value)] for p in self.getProperties() if p.name!='filename' and p.value!='' and p.value is not False]
+    inps.extend([pair[0] for pair in propPairs if pair[1]=='True']) #only the name for "store_true" arguments
+    inps.extend([item for pair in propPairs if pair[1]!='True' for item in pair]) # flat list of name,value,name,value
+    # print(f"{inps=}")
+    return inps
 
   def _resolveFilename(self, filename, baseEnvVar):
     """Ensure that the filename is an absolute path"""
-    import os, sys
+    import os
     from pathlib import Path
     base = os.environ.get(baseEnvVar, None)
     if os.path.isabs(filename):
@@ -112,49 +125,47 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
     elif base:
       return Path(base) / filename
     else:
-      sys.exit(f"ERROR: The provided filename ({filename}) is not an absolute path, and the {baseEnvVar} env var is not set.")
+      raise Exception(f"    The provided filename ({filename}) is not an absolute path, and the {baseEnvVar} env var is not set.")
 
-  def load(self, parser=None):
-    if parser is not None:
-      print("Assuming dgcode script execution")
+  def load(self, cli=False):
+    parser = self._getParser()
+    if cli:
+      print("    Assuming dgcode script execution")
       args = parser.parse_args()
-    if parser is None: #if not called from the loki dgcode script, get input arguments from Mantid algorithm interface
-      print("Assuming Mantid GUI execution")
-      args = self._createArgs()
-      
-      import argparse
-      parser = argparse.ArgumentParser() #TODO the need for this should be eliminated
+    else: #if not called from the loki dgcode script, get input arguments from Mantid algorithm interface
+      print("    Assuming Mantid GUI execution")
+      args = parser.parse_args(self._getInputsForArgParser())
 
       import dgbuild.cfg as cfg
       import os
       os.environ["ESS_DATA_DIR"]=str(cfg.dirs.datadir) #This is set by the bootstrap.sh script for dgcode cli execution
-    else:
-
-    
     mcplFile = self._resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LOKI')
     if not (args.noOutput or args.showMetadata):
       saveFileBase = self._resolveFilename(args.savename, 'G4PROC_SAVEDIR_LOKI')
     if args.mcstasDir:
       mcStasFolder = self._resolveFilename(args.mcstasDir, 'G4PROC_MCSTAS_BASEDIR_LOKI')
     #TODO check if files exists and stop with error, or overide?
-    
+
     import LokiMantid.mantidApi as api
     from LokiMantid.monitorSpectrum import createFloodSourceTofSpectrum, extractMcStasMonitorData
     import numpy as np
     from glob import glob
     import math as m
-    import sys
-    
+
     isFloodSourceSimulation = False
     if not args.savename and not (args.noOutput or args.showMetadata):
       parser.error("Save filename (-s, --savename) is required, unless no output (-no, --noOutput) or metadata (-show, --showMetadata) option is selected")
+      raise Exception #parser error doesn't stop Mantid algorithm execution
     if not args.showMetadata and (not args.neutronNumber and args.mcstasDir is None):
       parser.error("Either --neutronNumber (for Flood source simulation) or --mcstasDir (for McStas+Geant4 simulation) is required, unless the --showMetadata option is used to examine the metadata stored in the detection MCPL file!")
+      raise Exception #parser error doesn't stop Mantid algorithm execution
     if args.neutronNumber:
       if args.mcstasDir:
         parser.error("Both --neutronNumber (for Flood source simulation) and --mcstasDir (for McStas+Geant4 simulation) options cannot be provided!")
+        raise Exception #parser error doesn't stop Mantid algorithm execution
       if not args.neutronNumber.is_integer():
         parser.error(" --neutronNumber has to be an integer.") #float input type is only allowed to handle '1e9' format
+        raise Exception #parser error doesn't stop Mantid algorithm execution
       else:
         simulatedNeutronNumber = int(args.neutronNumber)
         isFloodSourceSimulation = True
@@ -176,6 +187,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
     #Possile TODO maybe implement a set option, to indicate that parameters can change! (then it would make sense to prepend with '_')
       params.params['mcstas_monitors'][3] = f"beamstopMonitor_{params.get('rear_detector_distance_m')}m_*.t"
     params.params['aiming_bank_id'] = list(str(params.get('aiming_bank_id')))
+    FilteredOurBankIds = list(set(str(lokiDefaultParams['aiming_bank_id']))-set(params.params['aiming_bank_id']))
 
     if args.showMetadata:
       params.dumpMCPLParams()
@@ -190,7 +202,6 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
         workspaces.saveIdfFiles(f'{saveFileBase.parents[0]}/LOKI_Definition')
       else:
         workspaces.saveIdfFiles('_', printOnly=True)
-      print("It's okey until here")
       return
     #TODO old tube numbering is not supported
 
@@ -203,6 +214,10 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
       monitorIntensity = []
       monitorError = []
       if isFloodSourceSimulation:
+        print("    Processing flood source simulation data.")
+        if simulatedNeutronNumber <= params.mcplEventNr:
+          raise Exception(f"    The provided neutronNumber({simulatedNeutronNumber}) is lower than the number of detection events({params.mcplEventNr}) in the MCPL file!")
+
         directionBiasMultiplicationFactor = 2/(m.cos(params.get('sampling_cone_opening_min_deg')*m.pi/180) - m.cos(params.get('sampling_cone_opening_deg')*m.pi/180))
         incidentNeutronNumber = simulatedNeutronNumber * directionBiasMultiplicationFactor
         if args.verbose:
@@ -211,7 +226,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
           print(f"        Multiplication factor due to biassed direction sampling: {directionBiasMultiplicationFactor}")
           print(f"        Resulting incident neutron number on the monitor: {incidentNeutronNumber}")
 
-        floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get ('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)
+        floodTof, floodIntensity, floodError = createFloodSourceTofSpectrum(incidentNeutronNumber, params.get('neutron_wavelength_min_aangstrom'), params.get('neutron_wavelength_max_aangstrom'), params.get('source_monitor_distance_meters'), verbose=args.verbose)
 
         #PreSample monitor is expected to be the 3rd spectrum out of 4, so empty spectra are added here
         blank = np.zeros_like(floodTof)
@@ -219,13 +234,12 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
         monitorIntensity = [blank, blank, floodIntensity, blank]
         monitorError = [blank, blank, floodError, blank]
       else: #McStas+Geant4 simulation
+        print("    Processing McStas+Geant4 simulation data.")
         for i, filename in enumerate(params.get('mcstas_monitors')):
           if len(glob(str(mcStasFolder / filename))) == 1:
             monitorFilePath = glob(str(mcStasFolder / filename))[0]
           else:
-            sys.exit(f'Problem with finding {mcStasFolder}/{filename}')
-            return #sys.exit doesn't stop the Mantid algorithm execution
-
+            raise Exception(f"    Unable to finding {mcStasFolder}/{filename}")
           tof, wavelength, y, e = extractMcStasMonitorData(monitorFilePath, args.verbose)
           monitorTOF.append(wavelength if tof is None else tof)
           monitorIntensity.append(y)
@@ -240,10 +254,26 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
 
     if not args.monitorOnly:
       idConverter = lambda id: 1 + id #detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
-      api.addMcplDetectionEventsToWorkspaces(workspaces, params.getMcplFile(), idConverter=idConverter, verbose=args.verbose)
-      #TODO add some kind of verification or statistics
-      # - number of events in the MCPL file
-      # - number of detection events 
+      # idFilter = lambda id: any([workspaces.firstPixelOfBank[int(bankId)]<=id<=workspaces.lastPixelOfBank[int(bankId)] for bankId in workspaces.bankIds])
+      idFilter = lambda id: not any([workspaces.firstPixelOfBank[int(bankId)]<=id<=workspaces.lastPixelOfBank[int(bankId)] for bankId in FilteredOurBankIds])
+      eventsFilteredOut = api.addMcplDetectionEventsToWorkspaces(workspaces, params.getMcplFile(), idConverter=idConverter, idFilter=idFilter)
+
+      ## Print statistics ##
+      print(f'    Number of events in the MCPL file: {params.mcplEventNr}')
+      sumWsEventNr = 0
+      for id, ws in workspaces.detectors.items():
+        wsEventNr = ws.getNumberEvents()
+        sumWsEventNr+=wsEventNr
+        print(f"    Number of events in bank {id}: {wsEventNr}")
+      if eventsFilteredOut != 0:
+        print(f'    Number of events filtered out: {eventsFilteredOut}')
+      if params.mcplEventNr != sumWsEventNr+eventsFilteredOut:
+        print(f'    Lost events: {params.mcplEventNr-(sumWsEventNr+eventsFilteredOut)}')
+        print(f'      Are you sure about the analysis_straw_pixel_number({params.get("analysis_straw_pixel_number")})?')
+        print(f'      Bank pixel id ranges:')
+        for bankId in range(9):
+          filteredText = '(filtered out)' if str(bankId) in FilteredOurBankIds else ''
+          print(f'        BankId: {bankId} start: {workspaces.firstPixelOfBank[bankId]} end: {workspaces.lastPixelOfBank[bankId]} {filteredText}')
 
       for id, ws in workspaces.detectors.items():
         Geant4DataWS_rebin = api.rebinDetectorWorkspace(ws, wsBinParams_detector, f'Geant4DataWS2D_bank{id}_rebin')
