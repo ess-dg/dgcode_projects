@@ -8,4 +8,10 @@ else
 fi
 
 # only testing the full workflow (sim-ana-processing), but not the results
-G4PROC_MCPL_BASEDIR_LOKI=./ G4PROC_SAVEDIR_LOKI=./ ess_lokimantid_loki -- detectionEvents.mcpl --savename=test --neutronNumber=25
+cmdArgs=('--' 'detectionEvents.mcpl' '--savename=test' '--neutronNumber=25')
+
+#Test mantidpython (python vs ipython) to see whether '--' is needed before the arguments
+if ! ess_lokimantid_loki -- -h ; then
+  unset cmdArgs[0]
+fi
+G4PROC_MCPL_BASEDIR_LOKI=./ G4PROC_SAVEDIR_LOKI=./ ess_lokimantid_loki "${cmdArgs[@]}"

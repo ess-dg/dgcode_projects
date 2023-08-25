@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 
 MCPLFILE=`ess_core_finddata LokiMantid detectionEventsFlood_testFile.mcpl`
-ess_lokimantid_larmor2022 -- $MCPLFILE --neutronNumber=25 --analysis_straw_pixel_number=256 --noOutput
+
+cmdArgs=('--' $MCPLFILE '--neutronNumber=25' '--analysis_straw_pixel_number=256' '--noOutput')
+
+#Test mantidpython (python vs ipython) to see whether '--' is needed before the arguments
+if ! ess_lokimantid_larmor2022 -- -h ; then
+  unset cmdArgs[0]
+fi
+ess_lokimantid_larmor2022 "${cmdArgs[@]}"

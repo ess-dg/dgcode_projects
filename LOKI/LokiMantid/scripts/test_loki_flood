@@ -2,4 +2,11 @@
 
 # testing the processing of an already existing mcpl file (backward compatibility)
 MCPLFILE=`ess_core_finddata LokiMantid detectionEventsFlood_testFile.mcpl`
-ess_lokimantid_loki -- $MCPLFILE --neutronNumber=25 --analysis_straw_pixel_number=4 --singleNexus --noOutput
+
+cmdArgs=('--' $MCPLFILE '--neutronNumber=25' '--analysis_straw_pixel_number=4' '--singleNexus' '--noOutput')
+
+#Test mantidpython (python vs ipython) to see whether '--' is needed before the arguments
+if ! ess_lokimantid_loki -- -h ; then
+  unset cmdArgs[0]
+fi
+ess_lokimantid_loki "${cmdArgs[@]}"
