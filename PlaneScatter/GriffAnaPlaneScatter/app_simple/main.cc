@@ -7,7 +7,7 @@
 #include "SimpleHists/HistCollection.hh"
 #include "Utils/Format.hh"
 #include "Utils/ArrayMath.hh"
-#include "Core/Units.hh"
+#include "G4Units/Units.hh"
 
 int main (int argc,char**argv) {
 

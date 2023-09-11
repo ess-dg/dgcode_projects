@@ -8,7 +8,7 @@
 #include "GriffB10Common/DetHitApproximation.hh"
 #include "Utils/ArrayMath.hh"
 #include "Utils/NeutronMath.hh"
-#include "Core/Units.hh"
+#include "G4Units/Units.hh"
 #include "Core/FPE.hh"
 // #include "TMath.h"
 // #include <TFile.h>

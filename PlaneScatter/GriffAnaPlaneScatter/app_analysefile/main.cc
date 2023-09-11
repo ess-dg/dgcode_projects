@@ -3,7 +3,7 @@
 #include "Utils/Format.hh"
 #include "Utils/ArrayMath.hh"
 // #include "G4Units/Constants.hh"
-#include "Core/Units.hh"
+#include "G4Units/Units.hh"
 #include <cmath>
 //Update March 2014: ROOT hists were not actually used. If needed, migrate to SimpleHists instead.
 // #include "TH1D.h"
