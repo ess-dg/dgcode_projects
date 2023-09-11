@@ -1,6 +1,6 @@
 from __future__ import print_function
 import G4CustomPyGen
-import Core.Units as Units
+import G4Units.Units as Units
 import Utils.NeutronMath
 import math
 from SansUtils.SansSphereGen import genSansSphereQR

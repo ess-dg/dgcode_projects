@@ -2,7 +2,7 @@
 #include "GriffDataRead/DumpObj.hh"
 #include "Utils/Format.hh"
 #include "Utils/ArrayMath.hh"
-// #include "Core/Constants.hh"
+// #include "G4Units/Constants.hh"
 #include "Core/Units.hh"
 #include <cmath>
 //Update March 2014: ROOT hists were not actually used. If needed, migrate to SimpleHists instead.

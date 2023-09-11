@@ -1,6 +1,6 @@
 
 import G4GeoLoki.LokiAimHelper as LokiAim
-import Core.Units as Units
+import G4Units.Units as Units
 import numpy as np
 
 def launch(geo):
