@@ -187,7 +187,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
     #Possile TODO maybe implement a set option, to indicate that parameters can change! (then it would make sense to prepend with '_')
       params.params['mcstas_monitors'][3] = f"beamstopMonitor_{params.get('rear_detector_distance_m')}m_*.t"
     params.params['aiming_bank_id'] = list(str(params.get('aiming_bank_id')))
-    FilteredOurBankIds = list(set(str(lokiDefaultParams['aiming_bank_id']))-set(params.params['aiming_bank_id']))
+    FilteredOutBankIds = list(set(str(lokiDefaultParams['aiming_bank_id']))-set(params.params['aiming_bank_id']))
 
     if args.showMetadata:
       params.dumpMCPLParams()
@@ -235,12 +235,13 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
         monitorError = [blank, blank, floodError, blank]
       else: #McStas+Geant4 simulation
         print("    Processing McStas+Geant4 simulation data.")
-        for i, filename in enumerate(params.get('mcstas_monitors')):
+        for filename in params.get('mcstas_monitors'):
           if len(glob(str(mcStasFolder / filename))) == 1:
             monitorFilePath = glob(str(mcStasFolder / filename))[0]
           else:
             raise Exception(f"    Unable to finding {mcStasFolder}/{filename}")
           tof, wavelength, y, e = extractMcStasMonitorData(monitorFilePath, args.verbose)
+          tof = tof * 1e6 #convert sec to microsec
           monitorTOF.append(wavelength if tof is None else tof)
           monitorIntensity.append(y)
           monitorError.append(e)
@@ -255,7 +256,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
     if not args.monitorOnly:
       idConverter = lambda id: 1 + id #detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
       # idFilter = lambda id: any([workspaces.firstPixelOfBank[int(bankId)]<=id<=workspaces.lastPixelOfBank[int(bankId)] for bankId in workspaces.bankIds])
-      idFilter = lambda id: not any([workspaces.firstPixelOfBank[int(bankId)]<=id<=workspaces.lastPixelOfBank[int(bankId)] for bankId in FilteredOurBankIds])
+      idFilter = lambda id: not any([workspaces.firstPixelOfBank[int(bankId)]<=id<=workspaces.lastPixelOfBank[int(bankId)] for bankId in FilteredOutBankIds])
       eventsFilteredOut = api.addMcplDetectionEventsToWorkspaces(workspaces, params.getMcplFile(), idConverter=idConverter, idFilter=idFilter)
 
       ## Print statistics ##
@@ -272,7 +273,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
         print(f'      Are you sure about the analysis_straw_pixel_number({params.get("analysis_straw_pixel_number")})?')
         print(f'      Bank pixel id ranges:')
         for bankId in range(9):
-          filteredText = '(filtered out)' if str(bankId) in FilteredOurBankIds else ''
+          filteredText = '(filtered out)' if str(bankId) in FilteredOutBankIds else ''
           print(f'        BankId: {bankId} start: {workspaces.firstPixelOfBank[bankId]} end: {workspaces.lastPixelOfBank[bankId]} {filteredText}')
 
       for id, ws in workspaces.detectors.items():

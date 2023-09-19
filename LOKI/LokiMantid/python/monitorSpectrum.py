@@ -57,7 +57,7 @@ def extractMcStasMonitorData(filename, verbose):
         monitorData = np.array([x.split(" ") for x in data[headerLines:-1]])
 
         if header[2] == 't':
-            tof = monitorData[:, 0].astype(np.float32) #values in McStas monitor file are already in microseconds so no conversion factor
+            tof = monitorData[:, 0].astype(np.float32)
             wavelength = None
         else:
             wavelength = monitorData[:, 0].astype(np.float32)
