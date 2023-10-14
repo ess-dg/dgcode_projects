@@ -3,5 +3,5 @@
 
 PYTHON_MODULE
 {
-  GeoConstructPyExport::exportGeo<GeoPlane>("GeoPlane");
+  GeoConstructPyExport::exportGeo<GeoPlane>(PYMOD "GeoPlane");
 }

@@ -2,13 +2,13 @@
 #define G4GeoLoki_AimHelper_hh
 
 #include "G4GeoLoki/PixelatedBanks.hh"
-#include "Core/Python.hh"
+#include <tuple>
 
 class AimHelper : public PixelatedBanks {
 public:
   using PixelatedBanks::PixelatedBanks; //inherit constructors of PixelatedBanks
 
-  py::object getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering, const bool isLarmor2022Experiment) const;
+  std::tuple<double,double,double> getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering, const bool isLarmor2022Experiment) const;
 
   int getBankId(const int pixelId) const;
   static int getPackId(const int bankId, const int tubeId, const bool isOldPixelNumbering);

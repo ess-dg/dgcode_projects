@@ -24,7 +24,7 @@ private:
 };
 
 // this line is necessary to be able to declare the geometry in the python simulation script
-PYTHON_MODULE { GeoConstructPyExport::exportGeo<GeoBCS>("GeoBCS"); }
+PYTHON_MODULE { GeoConstructPyExport::exportGeo<GeoBCS>(PYMOD "GeoBCS"); }
 
 ////////////////////////////////////////////
 // Implementation of our geometry module: //

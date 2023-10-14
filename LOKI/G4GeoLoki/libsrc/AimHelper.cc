@@ -6,7 +6,7 @@
 #include <cassert>
 
 //////// Utilities for getting the centre coordinates of a pixel ////////
-py::object AimHelper::getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering = false, const bool isLarmor2022Experiment = false) const {
+std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering = false, const bool isLarmor2022Experiment = false) const {
   const int bankId = getBankId(pixelId);
   const int tubeId = getTubeId(pixelId, bankId);
   const int inPackTubeId = getInPackTubeId(bankId, tubeId, isOldPixelNumbering);
@@ -45,7 +45,7 @@ py::object AimHelper::getPixelCentreCoordinates(const int pixelId, const bool is
   positionY += !isLarmor2022Experiment ? getBankPosition(bankId, 1) : getLarmor2022ExperimentBankPositionY();
   positionZ += getBankPosition(bankId, 2);
 
-  return py::make_tuple(positionX, positionY, positionZ);
+  return { positionX, positionY, positionZ };
 }
 
 void AimHelper::coordinateRotation(double &x, double &y, const double angle) {
