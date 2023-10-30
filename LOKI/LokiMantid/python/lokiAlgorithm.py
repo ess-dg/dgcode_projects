@@ -138,7 +138,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
 
       import dgbuild.cfg as cfg
       import os
-      os.environ["ESS_DATA_DIR"]=str(cfg.dirs.datadir) #This is set by the bootstrap.sh script for dgcode cli execution
+      os.environ["SBLD_DATA_DIR"]=str(cfg.dirs.datadir) #This is set by the bootstrap.sh script for dgcode cli execution
     mcplFile = self._resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LOKI')
     if not (args.noOutput or args.showMetadata):
       saveFileBase = self._resolveFilename(args.savename, 'G4PROC_SAVEDIR_LOKI')
