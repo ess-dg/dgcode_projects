@@ -9,7 +9,7 @@ from ScanUtils.ScanLauncher import ScanLauncher,ParameterGroup
 from numpy import linspace
 
 #Global setup for all scan jobs:
-scan = ScanLauncher("ess_loki_simanachain_bcs_larmor",autoseed=True)
+scan = ScanLauncher("sb_loki_simanachain_bcs_larmor",autoseed=True)
 scan.add_global_parameter("rundir")
 #scan.add_global_parameter("--cleanup")
 scan.add_global_parameter("--nevts",1000)

@@ -24,7 +24,7 @@ submitJobRange = [1000, 2000] #limit how many jobs are submitted at once (preven
 
 queue = 'newlong' #DMSC queue
 # The command to run, with input parameters
-cmdbase = ['ess_loki_simanachain'
+cmdbase = ['sb_loki_simanachain'
           ,'results'
           ,'event_gen=mcpl'
           ,'allow_zero_weight=y'
@@ -42,7 +42,7 @@ for i in range(nJobs):
     nEventsPerJob += additionalNeutrons #last job has additional neutron to simulate
 
   cmd = cmdbase+['skip_events=%i'%(nskip),'-n%i'%nEventsPerJob,'-s%i'%(7999954+483*i)]
-  cmd = ['ess_dmscutils_submit',queue,os.path.join(outputdir,'job%05i'%i)]+cmd
+  cmd = ['sb_dmscutils_submit',queue,os.path.join(outputdir,'job%05i'%i)]+cmd
   MyOut = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   stdout, stderr = MyOut.communicate()
   print(stdout)

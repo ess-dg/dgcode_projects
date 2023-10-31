@@ -423,8 +423,8 @@ elif(args.bankEfficiency):
   saveOrShowFig(plt, 'efficiencyBank')
 
 elif(args.efficiencyOverWavelength):
-  #ess_loki_plotbcsresults -eow -fn rearBankRealSetup_samp18_20A_split1000_1e11_BS_new_merged.shist -fncsv wavelength_hist_larmor_postsample.csv -png
-  #ess_loki_plotbcsresults -eow -nn -fn realSetupFloodSource_000000to199999.shist -png
+  #sb_loki_plotbcsresults -eow -fn rearBankRealSetup_samp18_20A_split1000_1e11_BS_new_merged.shist -fncsv wavelength_hist_larmor_postsample.csv -png
+  #sb_loki_plotbcsresults -eow -nn -fn realSetupFloodSource_000000to199999.shist -png
   incidentNeutronNumber = np.zeros(325)
   if args.fileNameCsv:
     for fileName in args.fileNameCsv:

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-MCPLFILE=`ess_core_finddata LOKI lokiMcstas_testFile.mcpl.gz`
-ess_loki_sim event_gen=mcpl input_file=$MCPLFILE |grep '^G4Launcher::Launcher'
+MCPLFILE=`sb_core_finddata LOKI lokiMcstas_testFile.mcpl.gz`
+sb_loki_sim event_gen=mcpl input_file=$MCPLFILE |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
-    ess_loki_ana lokisim.griff
+    sb_loki_ana lokisim.griff
 else
     exit 1
 fi

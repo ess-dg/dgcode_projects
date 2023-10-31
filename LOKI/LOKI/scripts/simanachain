@@ -1,3 +1,3 @@
 #!/usr/bin/env python3
 import G4Utils.chain
-G4Utils.chain.chain('ess_loki_sim','ess_loki_ana','REDUCED')
+G4Utils.chain.chain('sb_loki_sim','sb_loki_ana','REDUCED')

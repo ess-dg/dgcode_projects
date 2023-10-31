@@ -5,10 +5,10 @@ from Core import FindData3
 
 filepath = FindData3("LokiMantid", "detectionEventsFlood_testFile.mcpl")
 
-cmd = ["ess_lokimantid_loki", "--", filepath, "--neutronNumber=25", "--analysis_straw_pixel_number=512", "--rear_detector_distance_m=10", "--nominal_source_sample_distance_meters=23.6", "--singleNexus" , "--idfCreation", "--noOutput"]
+cmd = ["sb_lokimantid_loki", "--", filepath, "--neutronNumber=25", "--analysis_straw_pixel_number=512", "--rear_detector_distance_m=10", "--nominal_source_sample_distance_meters=23.6", "--singleNexus" , "--idfCreation", "--noOutput"]
 
 #Test mantidpython (python vs ipython) to see whether '--' is needed before the arguments
-if subprocess.run(["ess_lokimantid_loki", "--",  "-h"]).returncode != 0:
+if subprocess.run(["sb_lokimantid_loki", "--",  "-h"]).returncode != 0:
   cmd.remove("--")
 output=subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
 

@@ -1,4 +1,4 @@
 #!/usr/bin/env python3
 import G4Utils.chain
-G4Utils.chain.chain('ess_g4simplanescatter_sim','ess_griffanaplanescatter_simple','FULL')
+G4Utils.chain.chain('sb_g4simplanescatter_sim','sb_griffanaplanescatter_simple','FULL')
 

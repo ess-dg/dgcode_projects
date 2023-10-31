@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-MCPLFILE=`ess_core_finddata LokiMantid detectionEventsMcstas_testFile.mcpl`
+MCPLFILE=`sb_core_finddata LokiMantid detectionEventsMcstas_testFile.mcpl`
 DATADIR="$(dirname "${MCPLFILE}")" #directory with test McStas monitor files
 
 cmdArgs=('--' $MCPLFILE "--mcstasDir=$DATADIR" '--analysis_straw_pixel_number=4' '--noOutput')
 
 #Test mantidpython (python vs ipython) to see whether '--' is needed before the arguments
-if ! ess_lokimantid_loki -- -h ; then
+if ! sb_lokimantid_loki -- -h ; then
   unset cmdArgs[0]
 fi
-G4PROC_MCPL_BASEDIR_LOKI=./ G4PROC_SAVEDIR_LOKI=./ ess_lokimantid_loki "${cmdArgs[@]}"
+G4PROC_MCPL_BASEDIR_LOKI=./ G4PROC_SAVEDIR_LOKI=./ sb_lokimantid_loki "${cmdArgs[@]}"

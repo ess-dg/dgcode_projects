@@ -50,7 +50,7 @@ int main(int argc, char**argv) {
   mcpl_particle_t *mcplParticle;
 
   detMcpl = mcpl_create_outfile("detectionEvents.mcpl");
-  mcpl_hdr_add_comment(detMcpl, "Neutrons in this file are actually detection events and userflags are pixel ID's of hits. Created with ess_loki_loki_ana command.");
+  mcpl_hdr_add_comment(detMcpl, "Neutrons in this file are actually detection events and userflags are pixel ID's of hits. Created with sb_loki_loki_ana command.");
   mcpl_enable_userflags(detMcpl);
   mcplParticle = mcpl_get_empty_particle(detMcpl);
 

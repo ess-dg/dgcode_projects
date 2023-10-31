@@ -10,7 +10,7 @@ submitJobRange = [0, 500] #limit how many jobs are submitted at once (prevent DM
 
 queue = 'newlong' #DMSC queue
 # The command to run, with input parameters
-cmdbase = ['ess_lokisim_simanachain'
+cmdbase = ['sb_lokisim_simanachain'
           ,'results'
           ,'event_gen=flood'
           ,'aiming_bank_id=3']
@@ -21,7 +21,7 @@ for i in range(nJobs):
     continue
 
   cmd = cmdbase+['-n%i'%nEventsPerJob,'-s%i'%(7999954+483*i)]
-  cmd = ['ess_dmscutils_submit',queue,os.path.join(outputdir,'job%04i'%i)]+cmd
+  cmd = ['sb_dmscutils_submit',queue,os.path.join(outputdir,'job%04i'%i)]+cmd
   MyOut = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   stdout, stderr = MyOut.communicate()
   print(stdout)
