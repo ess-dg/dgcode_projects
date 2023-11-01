@@ -136,7 +136,7 @@ class LoadLokiDetectionEvents(PythonAlgorithm):
       print("    Assuming Mantid GUI execution")
       args = parser.parse_args(self._getInputsForArgParser())
 
-      import dgbuild.cfg as cfg
+      import simplebuild.cfg as cfg
       import os
       os.environ["SBLD_DATA_DIR"]=str(cfg.dirs.datadir) #This is set by the bootstrap.sh script for dgcode cli execution
     mcplFile = self._resolveFilename(args.filename, 'G4PROC_MCPL_BASEDIR_LOKI')
