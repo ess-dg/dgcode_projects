@@ -16,7 +16,7 @@ namespace {
   }
 }
 
-PYTHON_MODULE3
+PYTHON_MODULE( mod )
 {
   py::class_<AimHelper>(mod, "AimHelper")
     .def(py::init<double>())
