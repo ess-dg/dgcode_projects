@@ -1,7 +1,6 @@
-package(USEPKG G4Units MCPL LokiMasking LOKI USEEXT Mantidpython )
+package(USEPKG Units MCPL LokiMasking LOKI USEEXT Mantidpython )
 
 ######################################################################
-
 
 Package providing scripts to produce Mantid nexus files from LOKI detector simulations.
 

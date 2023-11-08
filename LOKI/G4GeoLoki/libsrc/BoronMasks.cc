@@ -1,5 +1,5 @@
 #include "G4GeoLoki/BoronMasks.hh"
-#include "G4Units/Units.hh"
+#include "Units/Units.hh"
 #include <cmath>
 #include <iostream>
 #include <array>
@@ -141,7 +141,7 @@ double BoronMasks::getPosition(const int bankId, const int maskId, const int axi
   return getBoronMaskParameter(bankId, maskId, axisIndex + 3);
 }
 double BoronMasks::getRotation(const int bankId, const int maskId) {
-  return getBoronMaskParameter(bankId, maskId, 6) *Units::degree;
+  return getBoronMaskParameter(bankId, maskId, 6) *Units::deg;
 }
 
 /// triangular masks ///

@@ -8,7 +8,7 @@
 #include "GriffB10Common/DetHitApproximation.hh"
 #include "Utils/ArrayMath.hh"
 #include "Utils/NeutronMath.hh"
-#include "G4Units/Units.hh"
+
 #include "Core/FPE.hh"
 // #include "TMath.h"
 // #include <TFile.h>
@@ -376,7 +376,7 @@ int main (int argc, char**argv) {
                   h_neutron_xy_incident->fill(xIncident, yIncident, weigth_incident);
 
                   auto thetaIncident = Utils::theta(tubeWallSegment->firstStep()->preMomentumArray());
-                  h_neutron_theta_incident->fill(thetaIncident/Units::degree, weigth_incident);
+                  h_neutron_theta_incident->fill(thetaIncident/Units::deg, weigth_incident);
 
                   auto tofIncident = neutron->segmentBegin()->endTime();
                   h_neutron_tof_incident->fill(tofIncident/Units::ms, weigth_incident);

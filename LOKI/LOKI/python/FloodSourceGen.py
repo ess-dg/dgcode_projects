@@ -1,6 +1,6 @@
-from __future__ import print_function
+
 import G4CustomPyGen
-import G4Units.Units as Units
+from Units import units
 import Utils.NeutronMath
 import math
 import numpy as np
@@ -56,17 +56,17 @@ class FloodSourceGen(G4CustomPyGen.GenBase):
   def generate_event(self,gun):
     # Energy - uniform wavelength distribution between min and max parameters
     wavelength = (self.neutron_wavelength_min_aangstrom + self.rand()*(self.neutron_wavelength_max_aangstrom - self.neutron_wavelength_min_aangstrom))
-    gun.set_energy(Utils.NeutronMath.neutronWavelengthToEKin(wavelength *Units.angstrom))
+    gun.set_energy(Utils.NeutronMath.neutronWavelengthToEKin(wavelength *units.angstrom))
 
     # Initial TOF - in accordance with the assumed preGeant4 simulation distance and the sampled wavelength(velocity)
     velocity = Utils.NeutronMath.neutron_angstrom_to_meters_per_second(wavelength)
-    gun.set_time((self.nominal_source_sample_distance_meters + self.gen_z_offset_meters) / velocity *Units.second)
+    gun.set_time((self.nominal_source_sample_distance_meters + self.gen_z_offset_meters) / velocity *units.second)
 
     # Source position - uniform surface source (could be volume)
     x_meters = self.gen_x_offset_meters + self.gen_x_width_meters *(self.rand()-0.5)
     y_meters = self.gen_y_offset_meters + self.gen_y_width_meters *(self.rand()-0.5)
     z_meters = self.gen_z_offset_meters
-    gun.set_position(x_meters *Units.m, y_meters *Units.m, z_meters *Units.m)
+    gun.set_position(x_meters *units.m, y_meters *units.m, z_meters *units.m)
 
     # Direction - uniform within a cone with an opening angle of alpha
     cos_alpha = math.cos(self.cone_opening_deg*math.pi/180)

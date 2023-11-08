@@ -126,7 +126,7 @@ G4LogicalVolume * GeoBCS::createTubeLV()
   auto tube_wall_material = getParameterMaterial("tube_wall_material");
   auto tube_inner_gas = getParameterMaterial("tube_inner_gas");
 
-  // const double tube_rotation = getParameterDouble("tube_rotation_deg")*Units::degree;
+  // const double tube_rotation = getParameterDouble("tube_rotation_deg")*Units::deg;
   //const double tube_box = getParameterDouble("tube_box_mm")*Units::mm;
   //auto tube_box_fill_material = getParameterMaterial("tube_box_fill_material");
 
@@ -240,7 +240,7 @@ G4VPhysicalVolume* GeoBCS::Construct()
   //rot->rotateY(M_PI/2.0);
 
 
-  const double tube_rotation = getParameterDouble("tube_rotation_deg")*Units::degree; //OFFforGeoShot//
+  const double tube_rotation = getParameterDouble("tube_rotation_deg")*Units::deg; //OFFforGeoShot//
   const double tube_box = getParameterDouble("tube_box_mm")*Units::mm;
   auto tube_box_fill_material = getParameterMaterial("tube_box_fill_material"); //OFFforGeoShot//
 
@@ -260,7 +260,7 @@ G4VPhysicalVolume* GeoBCS::Construct()
 
       G4Transform3D trftube( G4Translate3D(0, (i*tube_box - (number_of_tubes-1)*0.5*tube_box+sum_offset), sdd + j*tube_box)
                              * G4Rotate3D(0, G4Vector3D(1,0,0))//last G4Rotate3D rotations is executed first
-                             * G4Rotate3D(90.0*Units::degree, G4Vector3D(0,1,0))
+                             * G4Rotate3D(90.0*Units::deg, G4Vector3D(0,1,0))
                              );
 
       int copyNumber= 100*j+i;
@@ -285,7 +285,7 @@ G4VPhysicalVolume* GeoBCS::Construct()
                                                   afterburner_material,"TubeBox");
     G4Transform3D trAfterburner( G4Translate3D(0, 0, sdd + 4.5*tube_box + 0.5*afterburner_thickness)
                                  * G4Rotate3D(0, G4Vector3D(1,0,0))//last G4Rotate3D rotations is executed first
-                                 * G4Rotate3D(90.0*Units::degree, G4Vector3D(0,1,0))
+                                 * G4Rotate3D(90.0*Units::deg, G4Vector3D(0,1,0))
                                  );
 
     place(lv_Afterburner_box, trAfterburner, lvWorld, BLUE, 666);

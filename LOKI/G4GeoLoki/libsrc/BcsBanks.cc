@@ -1,6 +1,6 @@
 
 #include "G4GeoLoki/BcsBanks.hh"
-#include "G4Units/Units.hh"
+#include "Units/Units.hh"
 #include <cmath>
 #include <iostream>
 #include <array>
@@ -66,7 +66,7 @@ const double BcsBanks::bankTiltAngle[9] = {
 
 double BcsBanks::calcBankRotation(const int bankId){ //27.5+ (80-90)
   assert(0 <= bankId && bankId <= 8);
-  return (90 - (bankTiltAngle[bankId] - bankPositionAngle[bankId])) *Units::degree;
+  return (90 - (bankTiltAngle[bankId] - bankPositionAngle[bankId])) *Units::deg;
 }
 
 const double BcsBanks::bankRotation[9][3] = { // all in mm
@@ -95,13 +95,13 @@ const double BcsBanks::bankDistance[9] = {
 
 double BcsBanks::calcBankPositionZ(const int bankId) {
   assert(0 <= bankId && bankId <= 8);
-  double intendedPosition = bankDistance[bankId] * std::cos(bankPositionAngle[bankId]*Units::degree);
+  double intendedPosition = bankDistance[bankId] * std::cos(bankPositionAngle[bankId]*Units::deg);
   double bankCentreOffsetZ = detectorSystemCentreOffsetInBank(bankId, 2) * std::cos(calcBankRotation(bankId)) - detectorSystemCentreOffsetInBank(bankId, 1) * std::sin(calcBankRotation(bankId));
   return intendedPosition + bankCentreOffsetZ;
 }
 double BcsBanks::calcBankPositionXY(const int bankId) {
   assert(0 <= bankId && bankId <= 8);
-  double intendedPosition = bankDistance[bankId] * std::sin(bankPositionAngle[bankId]*Units::degree);
+  double intendedPosition = bankDistance[bankId] * std::sin(bankPositionAngle[bankId]*Units::deg);
   double bankCentreOffsetXY = detectorSystemCentreOffsetInBank(bankId, 2) * std::sin(calcBankRotation(bankId)) + detectorSystemCentreOffsetInBank(bankId, 1) * std::cos(calcBankRotation(bankId));
 
   return intendedPosition + bankCentreOffsetXY;
@@ -337,7 +337,7 @@ double BcsBanks::getTriangularBoronMaskPosition(const int maskId, const int axis
   const double verticalPosInBank = BoronMasks::getPosInBankOfTriangularMask(maskId, 1);
 
   const double rotation = bankRotation[bankId][2];
-  const double bankPosAngle = bankPositionAngle[bankId] *Units::degree;
+  const double bankPosAngle = bankPositionAngle[bankId] *Units::deg;
   const double detFrontBankFrontDistance = detectorSystemFrontDistanceFromBankFront(bankId);
 
   if(axisIndex == 0){//x direction

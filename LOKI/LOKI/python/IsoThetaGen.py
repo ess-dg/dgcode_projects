@@ -1,6 +1,5 @@
-from __future__ import print_function
 import G4CustomPyGen
-import G4Units.Units as Units
+from Units import units
 import Utils.NeutronMath
 import math
 
@@ -13,8 +12,8 @@ class IsoThetaGen(G4CustomPyGen.GenBase):
     def init_generator(self,gun):
         gun.set_type('neutron')
         self.thetaMax = self.cone_opening_deg * math.pi/180.
-        gun.set_position(0,0,self.fixed_z_meters*Units.mm)
-        wl = self.neutron_wavelength_aangstrom*Units.angstrom
+        gun.set_position(0,0,self.fixed_z_meters*units.mm)
+        wl = self.neutron_wavelength_aangstrom*units.angstrom
         gun.set_energy(Utils.NeutronMath.neutronWavelengthToEKin(wl))
     def generate_event(self,gun):
         theta = self.rand() * self.thetaMax

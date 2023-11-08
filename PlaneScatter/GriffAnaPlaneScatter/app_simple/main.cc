@@ -7,7 +7,7 @@
 #include "SimpleHists/HistCollection.hh"
 #include "Utils/Format.hh"
 #include "Utils/ArrayMath.hh"
-#include "G4Units/Units.hh"
+#include "Units/Units.hh"
 
 int main (int argc,char**argv) {
 
@@ -52,8 +52,8 @@ int main (int argc,char**argv) {
         continue;//protect against NaN (in case of null vectors)
 
       //Only fill when actual scattering occured, otherwise the first bin will dominate wildly:
-      if (fabs(scat_angle)>0.00001*Units::degree)
-        h_scat->fill(scat_angle/Units::degree);
+      if (fabs(scat_angle)>0.00001*Units::deg)
+        h_scat->fill(scat_angle/Units::deg);
     }
   }
 

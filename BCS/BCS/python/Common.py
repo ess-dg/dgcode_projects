@@ -1,5 +1,4 @@
 import G4CustomPyGen
-import G4Units.Units as Units
 
 def launch(geo):
     import G4Launcher

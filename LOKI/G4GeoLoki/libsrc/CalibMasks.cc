@@ -1,5 +1,5 @@
 #include "G4GeoLoki/CalibMasks.hh"
-#include "G4Units/Units.hh"
+
 #include <cmath>
 #include <cassert>
 

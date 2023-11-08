@@ -1,5 +1,5 @@
 #include "GriffAnaUtils/All.hh"
-#include "G4Units/Units.hh"
+
 #include "Core/FPE.hh"
 #include "Utils/ArrayMath.hh"
 #include "Utils/NeutronMath.hh"
@@ -24,7 +24,7 @@ double calculateWavelength(const double* initialPosition, const double* position
                                                     std::pow((position_hit[2] - initialPosition[2]), 2));
   double velocity_calculated = -1;
   if (tof > 0.0) {
-    velocity_calculated = ((sampleToPositionDistance + preGeant4Distance)/Units::m) / (tof/Units::s);
+    velocity_calculated = ((sampleToPositionDistance + preGeant4Distance)/Units::m) / (tof/Units::second);
   }
   else {
     printf("Error in hit tof value, tof zero or negative \n");
@@ -275,7 +275,7 @@ int main(int argc, char**argv) {
       const double initialPosition[] = {stepFirst->preGlobalX(), stepFirst->preGlobalY(), stepFirst->preGlobalZ()};
 
       auto dir_true = stepFirst->preMomentumArray();
-      const double theta_true = Utils::theta(dir_true)/Units::degree;
+      const double theta_true = Utils::theta(dir_true)/Units::deg;
       h_neutron_theta->fill(theta_true, neutron->weight());
 
       const double ekinMcpl = segBegin->startEKin();
@@ -284,7 +284,7 @@ int main(int argc, char**argv) {
 
       double lambdaMcplCalculated = 0.0;
       if (gen.getName()=="G4MCPLPlugins/MCPLGen"){ //works only for non-zero initial TOF
-        const double velocityMcplCalculated = (preGeant4Distance / Units::m) / (stepFirst->preTime() / Units::s);
+        const double velocityMcplCalculated = (preGeant4Distance / Units::m) / (stepFirst->preTime() / Units::second);
         lambdaMcplCalculated = Utils::neutron_meters_per_second_to_angstrom(velocityMcplCalculated);
         h_mcpl_lambda->fill(lambdaMcplCalculated, neutron->weight());
       }
@@ -388,7 +388,7 @@ int main(int argc, char**argv) {
           h_neutron_zy_hit->fill(position_hit[2]/Units::mm, position_hit[1]/Units::cm, hit.eventHitWeight());
           h_neutron_xy_hit->fill(-position_hit[0]/Units::mm, position_hit[1]/Units::mm, hit.eventHitWeight());
 
-          const double theta_hit = Utils::theta(hit.eventHitPosition())/Units::degree;
+          const double theta_hit = Utils::theta(hit.eventHitPosition())/Units::deg;
           h_neutron_theta_hit->fill(theta_hit, hit.eventHitWeight());
 
           const int pixelId = banks->getPixelId(0, tubeId_conv, strawId_conv, position_hit[0], position_hit[1]);

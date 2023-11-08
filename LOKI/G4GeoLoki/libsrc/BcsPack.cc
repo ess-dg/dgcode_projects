@@ -1,13 +1,13 @@
 #include "G4GeoLoki/BcsPack.hh"
-#include "G4Units/Units.hh"
+#include "Units/Units.hh"
 #include <cmath>
 #include <cassert>
 
 const double BcsPack::tubeGridParallelogramBase = 27.00 *Units::mm;
 const double BcsPack::tubeGridParallelogramSide = 28.40 *Units::mm;
-const double BcsPack::tubeGridParallelogramAngle = 13.45 *Units::degree; // 90-76.55=13.45
+const double BcsPack::tubeGridParallelogramAngle = 13.45 *Units::deg; // 90-76.55=13.45
 
-const double BcsPack::tubeRotationAngle = (8.45-30) *Units::degree; //8.45 degree should be the final roataion after the pack is rotated, pack rotation must be subtracted // -30 degree needed because of different default positioning;
+const double BcsPack::tubeRotationAngle = (8.45-30) *Units::deg; //8.45 degree should be the final roataion after the pack is rotated, pack rotation must be subtracted // -30 degree needed because of different default positioning;
 
 const double BcsPack::packBoxWidth = 265.7 *Units::mm; //excluding the handle
 const double BcsPack::packBoxHeight = 55.20 *Units::mm;

@@ -1,6 +1,5 @@
-
 import G4GeoLoki.LokiAimHelper as LokiAim
-import G4Units.Units as Units
+from Units import units
 import numpy as np
 
 def launch(geo):
@@ -38,7 +37,7 @@ def launch(geo):
           tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
           for blobkey in tmp_myfile.blobs:
             launcher.setUserData(blobkey, str(tmp_myfile.blobs[blobkey].decode("utf-8")))
-          
+
           gen.dz_meter = 0.2 #default nominal sample position to mcpl_output mcstas component distance. New mcpl files store this value with the 'sample_mcpl_distance_m' key, the default is needed for older mcpl files
           if('sample_mcpl_distance_m' in tmp_myfile.blobs):
             gen.dz_meter = float(tmp_myfile.blobs['sample_mcpl_distance_m'])
@@ -58,7 +57,7 @@ def launch(geo):
             angleRange = (10.5, 49.6)
           else: #single banks [0,8]
             bankId = int(bankFilter)
-            aimHelper = LokiAim.AimHelper(5*Units.m) #rear det distance shouldn't really matter
+            aimHelper = LokiAim.AimHelper(5*units.m) #rear det distance shouldn't really matter
             bankCentre = [aimHelper.getBankPosition(bankId, 0), aimHelper.getBankPosition(bankId, 1), aimHelper.getBankPosition(bankId, 2)]
             gen.ref_dir_x, gen.ref_dir_y, gen.ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
             bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now

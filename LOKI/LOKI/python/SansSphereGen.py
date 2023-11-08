@@ -1,6 +1,5 @@
-from __future__ import print_function
 import G4CustomPyGen
-import G4Units.Units as Units
+from Units import units
 import Utils.NeutronMath
 import math
 from SansUtils.SansSphereGen import genSansSphereQR
@@ -23,17 +22,17 @@ class SansSphereGen(G4CustomPyGen.GenBase):
         #NB: we generate q-values and relate to scattering angle theta by:
         #  q = (4pi/lambda) * sin(theta/2)
 
-        wl = self.neutron_wavelength_aa*Units.angstrom
-        sphere_radius = self.sphere_radius_aa*Units.angstrom
+        wl = self.neutron_wavelength_aa*units.angstrom
+        sphere_radius = self.sphere_radius_aa*units.angstrom
         self._k1 = self.neutron_wavelength_aa / ( self.sphere_radius_aa * 4.0 * math.pi )
-        self._scatmin = max(0.0,self.polar_angle_min_degree*Units.degree)
-        self._scatmax = min(math.pi,self.polar_angle_max_degree*Units.degree)
+        self._scatmin = max(0.0,self.polar_angle_min_degree*units.deg)
+        self._scatmax = min(math.pi,self.polar_angle_max_degree*units.deg)
         assert self._scatmax>self._scatmin
         self._qrmin = math.sin( 0.5 * self._scatmin) / self._k1
 
-        self._fixphi = self.fix_phi_degree * Units.degree if self.fix_phi_degree >= 0.0 else None
+        self._fixphi = self.fix_phi_degree * units.deg if self.fix_phi_degree >= 0.0 else None
         gun.set_type('neutron')
-        gun.set_position(0,0,self.zpos_mm*Units.mm)
+        gun.set_position(0,0,self.zpos_mm*units.mm)
         gun.set_energy(Utils.NeutronMath.neutronWavelengthToEKin(wl))
         self._nwarn = 10
 

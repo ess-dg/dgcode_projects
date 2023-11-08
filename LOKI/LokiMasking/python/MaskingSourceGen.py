@@ -1,6 +1,5 @@
-from __future__ import print_function
 import G4CustomPyGen
-import G4Units.Units as Units
+from Units import units
 import G4GeoLoki.LokiAimHelper as LokiAim
 import G4Interfaces
 
@@ -17,7 +16,7 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
     def init_generator(self,gun):
         gun.set_type('geantino')
 
-        self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *Units.m, self.aiming_straw_pixel_number)
+        self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *units.m, self.aiming_straw_pixel_number)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
         bank_pixel_id_min = self.aimHelper.getBankPixelOffset(self.aiming_bank_id)
         number_of_pixels_in_bank = self.aimHelper.getNumberOfPixels(self.aiming_bank_id)
@@ -48,8 +47,8 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         if(self.m_nprocs == 0): #only the first time
            self.delayed_init()
         # Source position -
-        sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *Units.m + self.gen_x_offset_meters *Units.m
-        sourcePositionY = self.gen_y_width_meters *(self.rand()-0.5) *Units.m
+        sourcePositionX = self.gen_x_width_meters *(self.rand()-0.5) *units.m + self.gen_x_offset_meters *units.m
+        sourcePositionY = self.gen_y_width_meters *(self.rand()-0.5) *units.m
         sourcePositionZ = 0.0
         gun.set_position(sourcePositionX, sourcePositionY, sourcePositionZ)
 

@@ -1,5 +1,5 @@
 #include "G4GeoLoki/PixelatedBanks.hh"
-#include "G4Units/Units.hh"
+
 #include <cmath>
 #include <iostream>
 #include <array>

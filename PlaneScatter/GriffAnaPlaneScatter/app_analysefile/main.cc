@@ -2,8 +2,7 @@
 #include "GriffDataRead/DumpObj.hh"
 #include "Utils/Format.hh"
 #include "Utils/ArrayMath.hh"
-// #include "G4Units/Constants.hh"
-#include "G4Units/Units.hh"
+#include "Units/Units.hh"
 #include <cmath>
 //Update March 2014: ROOT hists were not actually used. If needed, migrate to SimpleHists instead.
 // #include "TH1D.h"
@@ -36,7 +35,7 @@ int main (int argc,char**argv) {
   //   return 1;
 
   const double eini = gen.getParameterDouble("fixed_energy_eV")*Units::eV;
-  const double theta_ini = gen.getParameterDouble("fixed_polarangle_deg")*Units::degree;
+  const double theta_ini = gen.getParameterDouble("fixed_polarangle_deg")*Units::deg;
   const double thickness = geo.getParameterDouble("thickness_mm")*Units::mm;
   //const double transverse_extent = geo.getParameterDouble("transverse_extent_m")*Units::m;
   const std::string material_name = geo.getParameterString("material");
@@ -45,7 +44,7 @@ int main (int argc,char**argv) {
   Utils::string_format(title,"%g meV %s with theta=%g degree passing through %g cm of %s [%s]",
                        eini/(0.001*Units::eV),
                        gen.getParameterString("particleName").c_str(),//fixme: make sure it is not pdgCode based
-                       theta_ini/Units::degree,
+                       theta_ini/Units::deg,
                        thickness/Units::cm,
                        geo.getParameterString("material").c_str(),
                        setup->metaData("G4PhysicsList").c_str());

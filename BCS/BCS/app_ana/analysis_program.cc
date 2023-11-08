@@ -1,5 +1,5 @@
 #include "GriffAnaUtils/All.hh"
-#include "G4Units/Units.hh"
+
 #include "Core/FPE.hh"
 #include "Utils/ArrayMath.hh"
 #include "Utils/NeutronMath.hh"
@@ -751,13 +751,13 @@ int main(int argc, char**argv) {
       auto step0 = seg0->firstStep();
 
       auto dir_true = step0->preMomentumArray();
-      const double phi_true = Utils::phi(dir_true)/Units::degree;
-      const double theta_true = Utils::theta(dir_true)/Units::degree;
+      const double phi_true = Utils::phi(dir_true)/Units::deg;
+      const double theta_true = Utils::theta(dir_true)/Units::deg;
       const double ekin_true = step0->preEKin();
       const double lambda_true = Utils::neutronEKinToWavelength(ekin_true)/Units::angstrom;
 
       // Q doesn't make sense for the FlexGen
-      const double Q_true = 4 * M_PI * sin(0.5 * theta_true *Units::degree) / Utils::neutronEKinToWavelength(ekin_true);
+      const double Q_true = 4 * M_PI * sin(0.5 * theta_true *Units::deg) / Utils::neutronEKinToWavelength(ekin_true);
 
       const double positionExact_source[] = {step0->preGlobalX(), step0->preGlobalY(), step0->preGlobalZ()};
 
@@ -1026,11 +1026,11 @@ int main(int argc, char**argv) {
 
         //auto lastStepDir_cov = stepL->preMomentumArray();
         //const double thetaVelocityDir_conv = Utils::theta(lastStepDir_cov);
-        //h_neutron_dthVelocity_conv->fill(thetaVelocityDir_conv/Units::degree - theta_true , neutron->weight());
+        //h_neutron_dthVelocity_conv->fill(thetaVelocityDir_conv/Units::deg - theta_true , neutron->weight());
 
 
         const double theta_conv = Utils::theta(dir_conv);
-        const double phi_conv = Utils::phi(dir_conv)/Units::degree;
+        const double phi_conv = Utils::phi(dir_conv)/Units::deg;
         //const double theta_conv = Utils::theta(stepL->postGlobalArray());
         const double ekin_conv = stepL->preEKin(); // postEKin() returns 0 since the neutron stops
         const double lambdaGeant_conv =  Utils::neutronEKinToWavelength(ekin_conv)/Units::angstrom;
@@ -1042,10 +1042,10 @@ int main(int argc, char**argv) {
         const int strawNumberConv = segL->volumeCopyNumber(1);
         double position_conv[3] = {stepL->postGlobalX(), stepL->postGlobalY(), stepL->postGlobalZ()};
 
-        const double rho_conv = position_conv[2]/Units::cm * tan(theta_true *Units::degree);
-        //const double rho = positionOnWire_hit[2]/Units::cm * tan(theta_true *Units::degree);
-        const double xFromOriginalDirProjectedToConvPositionZ = rho_conv * cos(phi_true *Units::degree) + positionExact_source[0]/Units::cm; //[cm]
-        const double yFromOriginalDirProjectedToConvPositionZ = rho_conv * sin(phi_true *Units::degree) + positionExact_source[1]/Units::cm; //[cm]
+        const double rho_conv = position_conv[2]/Units::cm * tan(theta_true *Units::deg);
+        //const double rho = positionOnWire_hit[2]/Units::cm * tan(theta_true *Units::deg);
+        const double xFromOriginalDirProjectedToConvPositionZ = rho_conv * cos(phi_true *Units::deg) + positionExact_source[0]/Units::cm; //[cm]
+        const double yFromOriginalDirProjectedToConvPositionZ = rho_conv * sin(phi_true *Units::deg) + positionExact_source[1]/Units::cm; //[cm]
 
 
         h_neutron_x_conv->fill(position_conv[0]/Units::cm, neutron->weight());
@@ -1060,7 +1060,7 @@ int main(int argc, char**argv) {
         h_neutron_zy_conv->fill(stepL->postGlobalZ()/Units::mm, stepL->postGlobalY()/Units::cm, neutron->weight());
         h_neutron_zx_conv->fill(stepL->postGlobalZ()/Units::mm, stepL->postGlobalX()/Units::cm, neutron->weight());
         */
-        h_neutron_theta_conv->fill(theta_conv/Units::degree, neutron->weight());
+        h_neutron_theta_conv->fill(theta_conv/Units::deg, neutron->weight());
         //h_neutron_true_theta_conv->fill(theta_true, neutron->weight());
         h_neutron_phi_conv->fill(phi_conv, neutron->weight());
         //h_neutron_true_phi_conv->fill(phi_true, neutron->weight());
@@ -1068,12 +1068,12 @@ int main(int argc, char**argv) {
         dphi_conv += ((dphi_conv<-180)-(dphi_conv>180)) * 360; //correct dphi_conv because of the 'periodic boundary condition' (0==360)
         h_neutron_dphi_conv->fill(dphi_conv, neutron->weight());
 
-        //h_neutron_phivstheta_conv->fill(theta_conv/Units::degree, phi_conv, neutron->weight());
-        //h_neutron_dthetavsthetatrue_conv->fill(theta_true, theta_conv/Units::degree - theta_true, neutron->weight());
-        //h_neutron_dthetavstheta_conv->fill(theta_conv/Units::degree, theta_conv/Units::degree - theta_true, neutron->weight());
-        //h_neutron_dthetavsz_conv->fill(position_conv[2]/Units::mm, theta_conv/Units::degree - theta_true, neutron->weight());
+        //h_neutron_phivstheta_conv->fill(theta_conv/Units::deg, phi_conv, neutron->weight());
+        //h_neutron_dthetavsthetatrue_conv->fill(theta_true, theta_conv/Units::deg - theta_true, neutron->weight());
+        //h_neutron_dthetavstheta_conv->fill(theta_conv/Units::deg, theta_conv/Units::deg - theta_true, neutron->weight());
+        //h_neutron_dthetavsz_conv->fill(position_conv[2]/Units::mm, theta_conv/Units::deg - theta_true, neutron->weight());
 
-        h_neutron_dth_conv->fill(theta_conv/Units::degree - theta_true, neutron->weight());
+        h_neutron_dth_conv->fill(theta_conv/Units::deg - theta_true, neutron->weight());
         //h_neutron_dy_conv->fill(position_conv[1]/Units::cm - positionExact_source[1]/Units::cm, neutron->weight()); //TODO This is WRONG
 
         h_neutron_ekin_conv->fill(ekin_conv/Units::meV, neutron->weight());
@@ -1089,14 +1089,14 @@ int main(int argc, char**argv) {
 
 
 
-        //const double rho_conv = position_conv[2] *Units::mm * tan(theta_true *Units::degree);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //const double xFromOriginalDirProjectedToConvPositionZ = rho_conv * cos(phi_true *Units::degree);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //const double yFromOriginalDirProjectedToConvPositionZ = rho_conv * sin(phi_true *Units::degree);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //const double rho_conv = position_conv[2] *Units::mm * tan(theta_true *Units::deg);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //const double xFromOriginalDirProjectedToConvPositionZ = rho_conv * cos(phi_true *Units::deg);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //const double yFromOriginalDirProjectedToConvPositionZ = rho_conv * sin(phi_true *Units::deg);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         //const double sourceToProjectedConvPositionDistance = sqrt( xFromOriginalDirProjectedToConvPositionZ *Units::mm * xFromOriginalDirProjectedToConvPositionZ *Units::mm +
         //                                                           yFromOriginalDirProjectedToConvPositionZ *Units::mm * yFromOriginalDirProjectedToConvPositionZ *Units::mm +
         //                                                           position_conv[2] *Units::mm * position_conv[2] *Units::mm );//[mm]
-        const double sourceToProjectedConvPositionDistance = position_conv[2] *Units::mm / cos(theta_true *Units::degree);
+        const double sourceToProjectedConvPositionDistance = position_conv[2] *Units::mm / cos(theta_true *Units::deg);
         const double TofProjetcedConv = sourceToProjectedConvPositionDistance/*[mm]*/ / Utils::neutron_angstrom_to_meters_per_second(lambda_true) /*[m/s]*/; //[ms]
 
 
@@ -1112,7 +1112,7 @@ int main(int argc, char**argv) {
         const double sample_to_convPoint_distance = sqrt( position_conv[0] *Units::mm * position_conv[0] *Units::mm +
                                                           position_conv[1] *Units::mm * position_conv[1] *Units::mm +
                                                           position_conv[2] *Units::mm * position_conv[2] *Units::mm );//[mm]
-        const double velocity_conv = ((source_to_sample_distance + sample_to_convPoint_distance)/Units::m) / (tof_conv *Units::ms /Units::s);
+        const double velocity_conv = ((source_to_sample_distance + sample_to_convPoint_distance)/Units::m) / (tof_conv *Units::ms /Units::second);
         const double lambda_conv = Utils::neutron_meters_per_second_to_angstrom(velocity_conv);
 
         h_neutron_lambda_conv->fill(lambda_conv, neutron->weight());
@@ -1154,11 +1154,11 @@ int main(int argc, char**argv) {
                                                                      positionOnWire_hit[2] * positionOnWire_hit[2] );
 
           //const double theta_hit = Utils::theta(hit.eventHitPosition());
-          const double theta_hit = Utils::theta(positionOnWire_hit)/Units::degree;
-          const double theta_hit_noSmearing = Utils::theta(hit.eventHitPosition())/Units::degree;
+          const double theta_hit = Utils::theta(positionOnWire_hit)/Units::deg;
+          const double theta_hit_noSmearing = Utils::theta(hit.eventHitPosition())/Units::deg;
 
-          const double phi_hit = Utils::phi(positionOnWire_hit)/Units::degree;
-          const double phi_hit_noSmearing = Utils::phi(hit.eventHitPosition())/Units::degree;
+          const double phi_hit = Utils::phi(positionOnWire_hit)/Units::deg;
+          const double phi_hit_noSmearing = Utils::phi(hit.eventHitPosition())/Units::deg;
           const double tof_hit = hit.eventHitTime()/Units::ms;
 
           auto panelNumber_conv = (int)tubeNumberConv / 100; //panel number is the same for conversion and hit
@@ -1166,8 +1166,8 @@ int main(int argc, char**argv) {
           double velocity = -1;
           double velocityNoSmearing = -1;
           if(tof_hit){
-            velocity = ((sampleToWireWithSmearPositionDistance + source_to_sample_distance)/Units::m) / (hit.eventHitTime()/Units::s); //source_to_sample_distance=0
-            velocityNoSmearing = ((sampleToWireNoSmearPositionDistance + source_to_sample_distance)/Units::m) / (hit.eventHitTime()/Units::s);
+            velocity = ((sampleToWireWithSmearPositionDistance + source_to_sample_distance)/Units::m) / (hit.eventHitTime()/Units::second); //source_to_sample_distance=0
+            velocityNoSmearing = ((sampleToWireNoSmearPositionDistance + source_to_sample_distance)/Units::m) / (hit.eventHitTime()/Units::second);
           }
           else{
               printf("Error in hit tof value, tof zero or negative \n");
@@ -1176,13 +1176,13 @@ int main(int argc, char**argv) {
 
           const double lambdaHit = Utils::neutron_meters_per_second_to_angstrom(velocity);
           const double lambdaHitNoSmearing = Utils::neutron_meters_per_second_to_angstrom(velocityNoSmearing);
-          const double Q_hit = 4 * M_PI * sin(0.5 * theta_hit*Units::degree) / lambdaHit;
-          const double Q_hit_noSmearing = 4 * M_PI * sin(0.5 * theta_hit_noSmearing*Units::degree) / lambdaHitNoSmearing;
+          const double Q_hit = 4 * M_PI * sin(0.5 * theta_hit*Units::deg) / lambdaHit;
+          const double Q_hit_noSmearing = 4 * M_PI * sin(0.5 * theta_hit_noSmearing*Units::deg) / lambdaHitNoSmearing;
 
-          const double rho = hit.eventHitPositionZ()/Units::cm * tan(theta_true *Units::degree);
-          //const double rho = positionOnWire_hit[2]/Units::cm * tan(theta_true *Units::degree);
-          const double xFromOriginalDirProjectedToHitPositionZ = rho * cos(phi_true *Units::degree) + positionExact_source[0]/Units::cm; //[cm]
-          const double yFromOriginalDirProjectedToHitPositionZ = rho * sin(phi_true *Units::degree) + positionExact_source[1]/Units::cm; //[cm]
+          const double rho = hit.eventHitPositionZ()/Units::cm * tan(theta_true *Units::deg);
+          //const double rho = positionOnWire_hit[2]/Units::cm * tan(theta_true *Units::deg);
+          const double xFromOriginalDirProjectedToHitPositionZ = rho * cos(phi_true *Units::deg) + positionExact_source[0]/Units::cm; //[cm]
+          const double yFromOriginalDirProjectedToHitPositionZ = rho * sin(phi_true *Units::deg) + positionExact_source[1]/Units::cm; //[cm]
 
           h_neutron_x_hit->fill(positionOnWire_hit[0]/Units::cm, hit.eventHitWeight());
           const double dx_hit = positionOnWire_hit[0]/Units::cm - xFromOriginalDirProjectedToHitPositionZ;
@@ -1262,7 +1262,7 @@ int main(int argc, char**argv) {
           //     const double sourceToProjectedHitPositionDistance = sqrt( xFromOriginalDirProjectedToHitPositionZ *Units::cm * xFromOriginalDirProjectedToHitPositionZ *Units::cm +
           //                                                          yFromOriginalDirProjectedToHitPositionZ *Units::cm * yFromOriginalDirProjectedToHitPositionZ *Units::cm +
           //                                                          positionOnWire_hit[2] *Units::mm * positionOnWire_hit[2] *Units::mm );//[mm]
-          const double sourceToProjectedHitPositionDistance = hit.eventHitPositionZ() / cos(theta_true *Units::degree); // positionOnWire_hit[2] / cos(theta_true *Units::degree);
+          const double sourceToProjectedHitPositionDistance = hit.eventHitPositionZ() / cos(theta_true *Units::deg); // positionOnWire_hit[2] / cos(theta_true *Units::deg);
           const double tofProjetcedHit = sourceToProjectedHitPositionDistance/*[mm]*/ / Utils::neutron_angstrom_to_meters_per_second(lambda_true) /*[m/s]*/; //[ms]
           h_neutron_tofProjected_hit->fill(tofProjetcedHit, hit.eventHitWeight());
           const double dtof_hit = tof_hit - tofProjetcedHit;
