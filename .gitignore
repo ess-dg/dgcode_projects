@@ -10,11 +10,8 @@
 .vscode
 
 #ignore any build output and user files:
-/install/
-/.bld/
-/.system/depfix/bld/
+/simplebuild_cache/
 *.orig
-/bootstrap_extraconf.sh
 
 #Extra protection against adding in build output created by custom user commands:
 *.so
