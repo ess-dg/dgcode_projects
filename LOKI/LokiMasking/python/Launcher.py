@@ -6,7 +6,7 @@ def launch(geo):
     launcher.addParameterInt("analysis_straw_pixel_number", 256)
     launcher.addParameterDouble("gen_x_offset_meters", 0.0)
     launcher.addParameterBoolean('masking_only',False)
-    # launcher.addParameterString('aiming_bank_id','') #aim only at a certain bank of group of banks(rear detector('rear'), mid-detector('mid), front detector('front))
+    launcher.addParameterInt('aiming_bank_id',-1) #aim only at a certain bank
 
     #geometry:
     launcher.setGeo(geo)
@@ -16,7 +16,8 @@ def launch(geo):
     gen = Gen()
     gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
     gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
-    gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')  
+    gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
+    gen.aiming_bank_id = launcher.getParameterInt('aiming_bank_id')
     gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
     launcher.setGen(gen)
 
@@ -29,15 +30,15 @@ def launch(geo):
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
-      # launcher.setUserData("aiming_bank_id", str(launcher.getParameterString('aiming_bank_id')))
-          
+      launcher.setUserData("aiming_bank_id", str(launcher.getParameterInt('aiming_bank_id')))
+
     launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 
     #filter:
     if not launcher.getParameterBoolean('masking_only'):#TODO reduced material list should be the default
         launcher.setOutput('loki_masking','REDUCED')
-    else: 
+    else:
         griff_output_volumes = ["Converter", "B4CPanel", "AlPanel", #TODO Added 'AlPanel', but not tested
         "BoronMask-triangular-7-3", "BoronMask-triangular-7-2", "BoronMask-triangular-5-0", "BoronMask-triangular-5-1",
         "BoronMask-8-0", "BoronMask-8-1", "BoronMask-8-2", "BoronMask-8-3",  "BoronMask-8-4", "BoronMask-8-5", "BoronMask-8-6", "BoronMask-8-7",

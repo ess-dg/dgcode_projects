@@ -64,8 +64,17 @@ int main(int argc, char **argv) {
   auto countTestGeantino = h_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_counters->addCounter("geantino_in_Mask");
 
+
+  const int aiming_bank_id = std::stoi(userData["aiming_bank_id"]);
+  const int numberOfBanks = 9; //TODO?
+
+  std::vector<int> bankPixelLimits(numberOfBanks+1);
+  for(int i=0; i<=numberOfBanks; i++) {
+    bankPixelLimits[i] = banks->getBankPixelOffset(i);
+  }
+
   const int indexOffset = 1; //detector IDs in the IDF (and ICD) file starts from 1 (as opposed to the zero-based numbering in the Geant4 geometry)
-  MaskFileCreator masking("maskFile.xml", numberOfPixels, indexOffset);
+  MaskFileCreator masking("maskFile.xml", indexOffset, bankPixelLimits, aiming_bank_id);
 
   while (dr.loopEvents()) {
     while (auto trk_geantino = primary_geantinos.next()) {

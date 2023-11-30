@@ -9,7 +9,7 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         self.addParameterDouble("gen_x_width_meters", 0.0)
         self.addParameterDouble("gen_y_width_meters", 0.0)
         #self.addParameterDouble("z_width_meters", 0.001)
-        self.addParameterInt("aiming_bank_id", 0, 0, 8)
+        self.addParameterInt("aiming_bank_id", -1, -1, 8)
         self.addParameterInt("aiming_pixel_id_min", -1)
         self.addParameterInt("aiming_straw_pixel_number", 512) #used only for aiming, NOT for analysis
 
@@ -18,12 +18,15 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
 
         self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *units.m, self.aiming_straw_pixel_number)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
-        bank_pixel_id_min = self.aimHelper.getBankPixelOffset(self.aiming_bank_id)
-        number_of_pixels_in_bank = self.aimHelper.getNumberOfPixels(self.aiming_bank_id)
+        loc_aiming_bank_id = self.aiming_bank_id if self.aiming_bank_id >= 0 else 0
+        bank_pixel_id_min = self.aimHelper.getBankPixelOffset(loc_aiming_bank_id)
+        number_of_pixels_in_bank = self.aimHelper.getNumberOfPixels(loc_aiming_bank_id)
 
-        print(f"Total number of pixels in full geometry: {self.totalNumberOfPixels} (set -n accordingly to cover the whole geometry!)")
-        print(f"Number of pixels in bank{self.aiming_bank_id}: {number_of_pixels_in_bank} (set -n accordingly to cover the whole bank!)")
-        print(f"Lowest pixel id in bank{self.aiming_bank_id}: {bank_pixel_id_min}")
+        if(self.aiming_bank_id < 0):
+          print(f"Total number of pixels in full geometry: {self.totalNumberOfPixels} (set -n accordingly to cover the whole geometry!)")
+        else:
+          print(f"Number of pixels in bank{self.aiming_bank_id}: {number_of_pixels_in_bank} (set -n accordingly to cover the whole bank!)")
+          print(f"Lowest pixel id in bank{self.aiming_bank_id}: {bank_pixel_id_min}")
 
         self.id_min_offset = bank_pixel_id_min
         if(self.aiming_pixel_id_min>=0):

@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   }
 
   const int numberOfPixels = 1568 * strawPixelNumber; //fixed 1568 straws in the geometry; (802816/1605632 for 512/1024)
-  
+
   printf("Rear bank pixel number for analysis: %d in total, %d per straw, \n", numberOfPixels, strawPixelNumber);
 
   PixelatedBanks banks = PixelatedBanks(rearDetectorDistance, strawPixelNumber);
@@ -75,8 +75,9 @@ int main(int argc, char **argv) {
   auto countTestGeantino = h_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_counters->addCounter("geantino_in_Mask");
 
+  std::vector<int> bankPixelLimits = {0, numberOfPixels};
   const int indexOffset = 11;
-  MaskFileCreator masking("maskFile.xml", numberOfPixels, indexOffset);
+  MaskFileCreator masking("maskFile.xml", indexOffset, bankPixelLimits);
 
   ///const double xWidthVacuumTankEnd = 687.4 *Units::mm;
   ///const double yHeightVacuumTankEnd = 600 *Units::mm;

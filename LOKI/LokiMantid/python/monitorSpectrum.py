@@ -7,9 +7,6 @@ def neutron_angstrom_to_meters_per_second(l_aangstrom):
   #NOTE from TK: What is wrong with the same function in Utils.NeutronMath ?
   if l_aangstrom==0:
     return m.inf
-  h_Planck = 6.62606896e-34 *Units.joule*Units.second
-  c_light = 2.99792458e+8 *Units.m/Units.s
-  neutron_mass_c2 = 939.56536 *Units.MeV
   u,c = units, constants
   return c.h_Planck * u.second * c.c_squared / (u.m * u.angstrom * c.neutron_mass_c2 * l_aangstrom)
 

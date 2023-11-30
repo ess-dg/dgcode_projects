@@ -70,8 +70,9 @@ int main(int argc, char **argv) {
   auto countTestGeantino = h_counters->addCounter("all_geantino");
   auto countTestGeantinoAbsInMask = h_counters->addCounter("geantino_in_Mask");
 
+  std::vector<int> bankPixelLimits = {0,numberOfPixels};
   const int indexOffset = 11;
-  MaskFileCreator masking("maskFile.xml", numberOfPixels, indexOffset);
+  MaskFileCreator masking("maskFile.xml", indexOffset, bankPixelLimits);
 
   while (dr.loopEvents()) {
     while (auto trk_geantino = primary_geantinos.next()) {
