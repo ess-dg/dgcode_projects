@@ -82,5 +82,5 @@ double CalibMasks::CalibMasksBase::getWidth() const{
   return std::accumulate(this->m_pattern.begin(), this->m_pattern.end(), decltype(this->m_pattern)::value_type(0));
 }
 
-G4Material* CalibMasks::maskMaterial = NamedMaterialProvider::getMaterial("ESS_B4C:b10_enrichment=0.95");
+G4Material* CalibMasks::maskMaterial = NamedMaterialProvider::getMaterial("MAT_B4C:b10_enrichment=0.95");
 G4Material* CalibMasks::maskBoxMaterial = NamedMaterialProvider::getMaterial("G4_Vacuum");

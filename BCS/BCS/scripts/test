@@ -5,6 +5,6 @@
 #silently doesn't do anything when the Geant4 framework is not present.
 
 if [ -d $SBLD_INSTALL_PREFIX/include/G4Launcher/ ]; then
-   sb_bcs_sim -t -lESS_Empty  number_of_tubes=2 number_of_panels=3 && \
-   sb_bcs_simanachain rundir --cleanup -n1 -lESS_Empty
+   sb_bcs_sim -t -lPL_Empty  number_of_tubes=2 number_of_panels=3 && \
+   sb_bcs_simanachain rundir --cleanup -n1 -lPL_Empty
 fi

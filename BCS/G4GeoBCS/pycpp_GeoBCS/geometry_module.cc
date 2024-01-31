@@ -46,14 +46,14 @@ GeoBCS::GeoBCS()
   addParameterDouble("tube_wall_mm", 0.94);
 
   addParameterDouble("afterburner_thickness_mm", 0,0,50);
-  addParameterString("afterburner_material", "ESS_POLYETHYLENE");
+  addParameterString("afterburner_material", "MAT_POLYETHYLENE");
 
   addParameterDouble("converter_thickness_um", 1);
 
   addParameterDouble("tube_box_mm", 25.4,25.4,50); //default value=2*tube_outer_radius (for default tube paramaters)
   addParameterString("tube_box_fill_material", "G4_Vacuum");
 
-  addParameterString("converter_material","ESS_B4C:b10_enrichment=0.95");
+  addParameterString("converter_material","MAT_B4C:b10_enrichment=0.95");
 
   addParameterString("straw_wall_material", "NCrystal:cfg=Cu_sg225.ncmat");
   addParameterString("tube_wall_material", "NCrystal:cfg=Al_sg225.ncmat");

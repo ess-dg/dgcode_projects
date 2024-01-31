@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-sb_loki_sim_larmor2020 -t -lESS_Empty && \
-sb_loki_sim_larmor2020 gen_x_offset_meters=-0.040 cone_opening_deg=10.4753 withBeamstop=True event_gen=flood -lESS_Empty |grep '^G4Launcher::Launcher'
+sb_loki_sim_larmor2020 -t -lPL_Empty && \
+sb_loki_sim_larmor2020 gen_x_offset_meters=-0.040 cone_opening_deg=10.4753 withBeamstop=True event_gen=flood -lPL_Empty |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
     sb_loki_ana_larmor2020 larmor.griff
 else

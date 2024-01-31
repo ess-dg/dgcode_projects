@@ -74,7 +74,7 @@ double BcsPack::getVerticalTubeOffset(const int inPackTubeId) {
 
 
 /// B4C panel parts ///
-G4Material* BcsPack::B4CPanelMaterial = NamedMaterialProvider::getMaterial("ESS_B4C:b10_enrichment=0.95"); //TODO B4C S-DOUGH IS AN 18% EPOXY RESIN, 82% BORON CARBIDE MIX.IT IS MANUFACTURED BY STFC's ADVANCED MATERIALS GROUP.
+G4Material* BcsPack::B4CPanelMaterial = NamedMaterialProvider::getMaterial("MAT_B4C:b10_enrichment=0.95"); //TODO B4C S-DOUGH IS AN 18% EPOXY RESIN, 82% BORON CARBIDE MIX.IT IS MANUFACTURED BY STFC's ADVANCED MATERIALS GROUP.
 const double BcsPack::B4CLengthOverStrawOnOneEnd = 12.0 *Units::mm;
 const double BcsPack::B4CDistanceFromLastTubeCentre = 23.0 *Units::mm;
 

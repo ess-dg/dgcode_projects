@@ -50,7 +50,7 @@ GeoBCS::GeoBCS()
   addParameterDouble("generator_detector_distance_cm", 400, 0, 1000); //
 
   addParameterString("world_material","G4_Vacuum");
-  addParameterString("B4C_panel_material","ESS_B4C:b10_enrichment=0.95"); //TODO  B4C S-DOUGH IS AN 18% EPOXY RESIN, 82% BORON CARBIDE MIX.IT IS MANUFACTURED BY STFC's ADVANCED MATERIALS GROUP.
+  addParameterString("B4C_panel_material","MAT_B4C:b10_enrichment=0.95"); //TODO  B4C S-DOUGH IS AN 18% EPOXY RESIN, 82% BORON CARBIDE MIX.IT IS MANUFACTURED BY STFC's ADVANCED MATERIALS GROUP.
 }
 
 G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLength){

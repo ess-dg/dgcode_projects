@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sb_loki_sim_det -lESS_Empty |grep '^G4Launcher::Launcher'
+sb_loki_sim_det -lPL_Empty |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
     sb_loki_ana_det lokibcs_CountingGas_Converter.griff
 else

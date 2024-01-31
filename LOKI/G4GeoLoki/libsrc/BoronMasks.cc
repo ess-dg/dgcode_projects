@@ -5,7 +5,7 @@
 #include <array>
 #include <cassert>
 
-G4Material* BoronMasks::maskMaterial = NamedMaterialProvider::getMaterial("ESS_B4C:b10_enrichment=0.95");
+G4Material* BoronMasks::maskMaterial = NamedMaterialProvider::getMaterial("MAT_B4C:b10_enrichment=0.95");
 
 /// regular rectangular masks ///
 

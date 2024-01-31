@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ARGS="det_only=true"
-sb_loki_sim_larmor2020 $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'
+sb_loki_sim_larmor2020 $ARGS -lPL_Empty |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
     sb_loki_ana_larmor2020_det larmor_CountingGas_Converter.griff
 else

@@ -54,7 +54,7 @@ GeoBCS::GeoBCS()
   addParameterBoolean("old_tube_numbering", false);
 
   addParameterString("world_material","G4_Vacuum");
-  addParameterString("B4C_panel_material","ESS_B4C:b10_enrichment=0.95");
+  addParameterString("B4C_panel_material","MAT_B4C:b10_enrichment=0.95");
 }
 
 G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLength){

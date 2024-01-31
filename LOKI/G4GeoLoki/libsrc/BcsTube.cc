@@ -6,7 +6,7 @@
 G4Material* BcsTube::tubeWallMaterial = NamedMaterialProvider::getMaterial("NCrystal:cfg=Al_sg225.ncmat");
 G4Material* BcsTube::tubeInnerGas = NamedMaterialProvider::getMaterial("IdealGas:formula=0.8*Ar+0.2*CO2:pressure_atm=0.7");
 G4Material* BcsTube::strawWallMaterial = NamedMaterialProvider::getMaterial("NCrystal:cfg=Cu_sg225.ncmat");
-G4Material* BcsTube::converterMaterial = NamedMaterialProvider::getMaterial("ESS_B4C:b10_enrichment=0.95");
+G4Material* BcsTube::converterMaterial = NamedMaterialProvider::getMaterial("MAT_B4C:b10_enrichment=0.95");
 G4Material* BcsTube::countingGas = NamedMaterialProvider::getMaterial("IdealGas:formula=0.8*Ar+0.2*CO2:pressure_atm=0.7");
 
 const double BcsTube::strawOuterRadius = 3.75 *Units::mm;

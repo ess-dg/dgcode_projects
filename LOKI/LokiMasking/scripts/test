@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ARGS="rear_detector_distance_m=10 aiming_straw_pixel_number=32 analysis_straw_pixel_number=64 beamstop_id=3"
-sb_lokimasking_sim $ARGS -lESS_Empty |grep '^G4Launcher::Launcher'
+sb_lokimasking_sim $ARGS -lPL_Empty |grep '^G4Launcher::Launcher'
 if [ ${PIPESTATUS[0]} == 0 ]; then
     sb_lokimasking_ana loki_masking.griff
 else
