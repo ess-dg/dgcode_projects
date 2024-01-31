@@ -99,6 +99,6 @@ int AimHelper::getStrawId(const int pixelId, const int bankId, const int tubeId)
 double AimHelper::getPixelPositionInStraw(const int pixelId, const int bankId) {
   const int locPixelId = pixelId % getNumberOfPixelsInStraw(bankId);
   const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
-
-  return - 0.5* getStrawLengthByBankId(bankId) + (locPixelId + 0.5) * pixelLength;
+  const double position = - 0.5* getStrawLengthByBankId(bankId) + (locPixelId + 0.5) * pixelLength;
+  return areTubesInverselyNumbered(bankId) ? - position : position;
 }
