@@ -3,7 +3,7 @@
 import csv
 import xml.etree.ElementTree as ET
 import argparse
-from LokiMasking.PixelIdConverters import Larmor2022GeometryConverter, Larmor2022TubeNumberingConverter
+from LokiUtils.PixelIdConverters import Larmor2022GeometryConverter, Larmor2022TubeNumberingConverter
 
 parser = argparse.ArgumentParser(description = 'Merge and convert LOKI maskfiles to Larmor2022 experiment maskfile by reading multiple maskfiles and outputing one that has the intersection of the masked IDs. (Any pixelID that is missing from a file must have been reached by a geantino without going through an absorbing layer.)')
 parser.add_argument('filenames', nargs = '+',  help = 'Input maskfile names.')
@@ -31,7 +31,7 @@ for index, fileName in enumerate(args.filenames):
 
     idStringList = list(detidsElement.text.split(","))
     idList_fullGeom = [int(idString)-pixelOffset for idString in idStringList]
-    
+
     if args.convert_old_to_new_tube_numbering:
       idList_fullGeom = [tubeNumberingConverter.getNewPixelId(id) for id in idList_fullGeom]
 

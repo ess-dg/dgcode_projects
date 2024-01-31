@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Although the real Larmor 2022 measurements were carried out with several
+# detector packs removed from the LOKI rear detector bank, the simulations were
+# done with all detectors in place, taking into account the reduced geometry
+# only at the data analysis level. This test ensures that all detectors of the
+# simulation geometry (complete rear bank) are intact. Straw pixel number is
+# reduced to 2 from 512 for the maintainable log file size.
+sb_g4geoloki_writepixelfile --larmor2022experiment --larmor2022fullGeomOutput --strawPixelNumber=2 --print

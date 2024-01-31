@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+import json
+import numpy as np
+import argparse
+
+parser = argparse.ArgumentParser(description = 'Comparing pixel positions defined in a JSON (nexus template) geometry file to the pixel positions in the Geant4 geometry.')
+parser.add_argument('--json', required=True, help = 'Input JSON file')
+parser.add_argument('--geant4', help = 'Geant4 pixel position file to use (created with writePixelFile) instead of generating positions.')
+parser.add_argument('--larmor2022experiment', action = 'store_true', help = 'User Larmor 2022 experiment setup (uses 512 pixels by default)')
+parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, help = 'Rear detector distance [m] (defaults to 5 m)')
+parser.add_argument('-s', '--strawPixelNumber', type=int, help = 'Pixel number per straw (defaults to the value defined in the PixelatedBanks class)')
+parser.add_argument('-t', '--tolerance', default=0.0001, type=float, help = 'Absolute difference in pixel position to tolerate [m].')
+parser.add_argument('--printPixelNumber', default=8, type=int, help = 'Number of first N pixels to print the positions of in each bank.')
+args = parser.parse_args()
+
+
+def getJsonPixels(filename, bankId):
+  with open(filename) as file:
+    jsonGeom = json.load(file)
+
+  jsonPixelIds = jsonGeom['children'][0]['children'][0]['children'][bankId]['children'][0]['config']['values']
+
+  trans_1 = jsonGeom['children'][0]['children'][0]['children'][bankId]['children'][5]['children'][0]
+  bankOffsetMagnitude = trans_1['config']['values']
+  bankOffsetDir = np.array(trans_1['attributes'][3]['values'])
+  bankOffset = bankOffsetDir * bankOffsetMagnitude
+  # print(bankId,f"{bankOffset=}")
+
+  datasets = jsonGeom['children'][0]['children'][0]['children'][bankId]['children']
+  x_pixel_offset = datasets[2]['config']['values'] #'names'='x_pixel_offset'
+  y_pixel_offset = datasets[3]['config']['values'] #'names'='y_pixel_offset'
+  z_pixel_offset = datasets[4]['config']['values'] #'names'='z_pixel_offset'
+
+  jsonPixels = np.column_stack((x_pixel_offset, y_pixel_offset, z_pixel_offset))
+  jsonPixels += bankOffset
+  return jsonPixelIds, jsonPixels
+
+def getBankPixelRange(bankId):
+  if args.larmor2022experiment:
+    assert bankId==0
+    pixelMin, pixelMax = 0, 458752
+  else:
+    import G4GeoLoki.LokiAimHelper as LokiAim
+    if args.strawPixelNumber:
+      aimHelper = LokiAim.AimHelper(5000, args.strawPixelNumber)
+    else:
+      aimHelper = LokiAim.AimHelper(5000)
+    pixelMin = aimHelper.getBankPixelOffset(bankId)
+    pixelMax = aimHelper.getBankPixelOffset(bankId + 1)
+  return pixelMin, pixelMax
+
+def getGeant4PixelsFromFile():
+  import csv
+  with open(args.geant4, 'r') as file: #Open file to get number of pixels (number of lines)
+    numberOfPixels = sum(1 for _ in file)
+    geant4PixelIds = np.empty(numberOfPixels, dtype=int)
+    geant4Pixels = np.empty((numberOfPixels, 3))
+  with open(args.geant4, 'r') as file:
+    reader = csv.reader(file)
+    for lineNumber, line in enumerate(reader):
+      geant4PixelIds[lineNumber] = int(line[0])
+      geant4Pixels[lineNumber] = [float(line[1]), float(line[2]), float(line[3])]
+  return geant4PixelIds, geant4Pixels
+
+def createWritePixelFileCommad(isLarmor2022experiment, rearDetectorDistance, strawPixelNumber, bankId):
+  command = 'sb_g4geoloki_writepixelfile --print'
+  if isLarmor2022experiment:
+    command += ' --larmor2022experiment --strawPixelNumber=512'
+  else: #LOKI detector banks geometry
+    command += f' --rearDetectorDistance={rearDetectorDistance} --bankId={bankId}'
+    if args.strawPixelNumber:
+      command += f' --strawPixelNumber={strawPixelNumber}'
+  print(command)
+  return command
+
+def getGeant4Pixels(bankId, command):
+  import subprocess
+  pixelMin, pixelMax = getBankPixelRange(bankId)
+  numberOfPixels = pixelMax - pixelMin
+  geant4PixelIds = np.empty(numberOfPixels, dtype=int)
+  geant4Pixels = np.empty((numberOfPixels, 3))
+
+  try:
+    proc = subprocess.Popen(command, shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for lineNumber, line in enumerate(proc.stdout):
+      line = line.decode().split(',')
+      geant4PixelIds[lineNumber] = int(line[0])
+      geant4Pixels[lineNumber] = [float(line[1]), float(line[2]), float(line[3])]
+  except subprocess.CalledProcessError as cpe:
+    proc = cpe.output
+  return geant4PixelIds, geant4Pixels
+
+def verifyPixelIds(bankId, jsonPixelIds, geant4PixelIds):
+  pixelMin, pixelMax = getBankPixelRange(bankId)
+  realPixelMin, realPixelMax = pixelMin+1, pixelMax+1 #Pixel id numbering is 1-based, not zero-based
+  expectedPixelIds = np.array(range(realPixelMin, realPixelMax))
+  if not np.array_equal(jsonPixelIds, expectedPixelIds):
+    print(f"JSON pixel ids don't agree with expected values! First and last expected ids: {expectedPixelIds[0]}, {expectedPixelIds[-1]}, first and last ids in JSON file: {jsonPixelIds[0]}, {jsonPixelIds[-1]}")
+  if not np.array_equal(geant4PixelIds, expectedPixelIds):
+    print(f"Geant4 pixel ids don't agree with expected values! First and last expected ids: {expectedPixelIds[0]}, {expectedPixelIds[-1]}, first and last ids in Geant4 file: {geant4PixelIds[0]}, {geant4PixelIds[-1]}")
+  if not np.array_equal(jsonPixelIds, geant4PixelIds):
+    print(f"JSON pixel ids don't agree with Geant4 pixel ids. First and last id in JSON file: {jsonPixelIds[0], jsonPixelIds[-1]}, first id in Geant4 file: {geant4PixelIds[0], geant4PixelIds[-1]}")
+  else:
+    print("Pixel ids in the JSON and Geant4 files are the same.")
+    print(f"First {args.printPixelNumber} pixels:")
+    # onlyTubeCentres = True #TODO possible future input option
+    for id in range(args.printPixelNumber):
+      # if(onlyTubeCentres and id%7!=3):
+      #   continue
+      print(f"  pixelId: {geant4PixelIds[id]}, json: {jsonPixels[id]}, Geant4: {geant4Pixels[id]}")
+
+def verifyPixelPositions(jsonPixels,geant4Pixels, tolerance):
+  if jsonPixels.shape[0] != geant4Pixels.shape[0]:
+    print(f"Number of pixels in JSON({jsonPixels.shape[0]}) doesn't agree with number of pixel in Geant4({geant4Pixels.shape[0]})")
+  else:
+    are_close = np.allclose(jsonPixels, geant4Pixels, atol=tolerance)
+    if are_close:
+      print(f"The pixel positions are equal within the given tolerance: {tolerance*1000} [mm].")
+    else:
+      print(f"The pixel positions are NOT equal within the given tolerance: {tolerance*1000} [mm].")
+      mask = np.isclose(jsonPixels, geant4Pixels, atol=tolerance)
+      not_close = np.where(~mask)
+      print("The first 10 pixels that are not within the limits are:")
+      i = 0
+      for id in zip(*not_close):
+        print(f"{id=}, json: {jsonPixels[id]}, geant4: {geant4Pixels[id]}")
+        i += 1
+        if i == 10:
+          break
+
+
+bankIdMin = 0
+bankIdMax = 8 if not args.larmor2022experiment else 0
+# bankIdMax = 1 #FIXME debugging
+
+for bankId in range(bankIdMin, bankIdMax+1):
+  print(f"\nBank id: {bankId}")
+  jsonPixelIds, jsonPixels = getJsonPixels(args.json, bankId)
+
+  if args.geant4: #Use Geant4 pixel position file if provided
+    geant4PixelIds, geant4Pixels = getGeant4PixelsFromFile()
+  else: #Generate Geant4 pixel positions on the fly with the writePixelFile script
+    command = createWritePixelFileCommad(args.larmor2022experiment, args.rearDetectorDistance, args.strawPixelNumber, bankId)
+    geant4PixelIds, geant4Pixels = getGeant4Pixels(bankId, command)
+
+  verifyPixelIds(bankId, jsonPixelIds, geant4PixelIds)
+
+  verifyPixelPositions(jsonPixels,geant4Pixels, args.tolerance)

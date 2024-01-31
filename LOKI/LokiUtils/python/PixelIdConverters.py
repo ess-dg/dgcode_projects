@@ -6,7 +6,7 @@ class Larmor2022GeometryConverter:
   tubeLowerCut = 2*2 #Pack 1-2
   tubeUpperCut = 18*2 #Pack 19-28
   reductedTubePerLayer = tubeLowerCut + (tubePerLayer - tubeUpperCut) #number of tubes not present in the larmor2022 geometry (per layer)
-  
+
   def __init__(self, pixelPerStraw):
     self.pixelPerStraw = int(pixelPerStraw)
     self.pixelPerTube = 7 * self.pixelPerStraw
@@ -22,6 +22,7 @@ class Larmor2022GeometryConverter:
      return self.getLayer(id) * self.pixelPerLayer + self.tubeUpperCut * self.pixelPerTube
 
   def getReductionPixelOffset_newGeom(self, id):
+    '''Negative pixel offset (depending on the detector layer) to compensate for the extra pixels present in the full Geant4 simulation geometry.'''
     return self.getLayer(id) * self.reductedTubePerLayer * self.pixelPerTube + self.tubeLowerCut * self.pixelPerTube
 
   def isPixelInLarmor2022Geom(self, id):

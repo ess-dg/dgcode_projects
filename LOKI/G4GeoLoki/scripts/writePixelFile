@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
 import G4GeoLoki.LokiAimHelper as LokiAim
-import argparse, os
+import argparse
 
 parser = argparse.ArgumentParser(description = 'Exporting 3D pixel positions of the LOKI detector array based on the Geant4 geometry. The resulting file is a csv file with the following columns: pixelId, pixelCentreX [m], pixelCentreY [m], pixelCentreZ [m]. Axes represent the beam\'s point of view: X - horizontal (positive to the left), Y - vertical (positive up), Z - distance along the beam (by default distance from the sample position).')
 parser.add_argument('-f', '--fileName', default='LokiPixelFile', help = 'Output file name (.txt appended)')
 parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, help = 'Rear detector distance [m] (defaults to 5 m)')
 parser.add_argument('-ssd', '--sourceSampleDistance', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
-parser.add_argument('-n', '--strawPixelNumber', type=int, help = 'Rear detector pixel number (defaults the the value defined in the PixelatedBanks class)')
-parser.add_argument('-opn', '--oldPixelNumbering', action = 'store_true', help = 'Use old pixel (tube) numbering')
-parser.add_argument('-le', '--larmor2022experiment', action = 'store_true', help = 'User Larmor 2022 experiment setup (uses 512 pixels by default)')
-parser.add_argument('-t', '--test', action = 'store_true', help = 'Print out pixel positions for testing')
+parser.add_argument('-n', '--strawPixelNumber', type=int, help = 'Rear detector pixel number (defaults to the value defined in the PixelatedBanks class)')
+parser.add_argument('--bankId', type=int, default=None, help = 'Provide bank id [0,8] to output pixels only for the selected bank. Default is to output info for all banks.')
+parser.add_argument('--larmor2022experiment', action = 'store_true', help = 'User Larmor 2022 experiment setup (uses 512 pixels by default)')
+parser.add_argument('--larmor2022fullGeomOutput', action = 'store_true', default=False, help = 'Output all pixels in the detector model, not just those which were present in the Larmor 2022 experiment setup')
+parser.add_argument('--oldPixelNumbering', action = 'store_true', help = 'Use old pixel (tube) numbering')
+parser.add_argument('--print', action = 'store_true', help = 'Print pixel positions to output insted of a file.')
 
 args = parser.parse_args()
 
 rearBankDistance = args.rearDetectorDistance
 strawPixelNumber = args.strawPixelNumber
-numbeOfBanks = None #use default
+numberOfBanks = None #use default
 
 if args.larmor2022experiment:
   rearBankDistance = 4.099
-  numbeOfBanks = 1
+  numberOfBanks = 1
   if strawPixelNumber is None:
     strawPixelNumber = 512
 
-if numbeOfBanks is not None:
-  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numbeOfBanks)
+if numberOfBanks is not None:
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numberOfBanks)
 elif strawPixelNumber is not None:
   aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber)
 else:
@@ -36,18 +38,33 @@ ssd = args.sourceSampleDistance
 
 fileName = f"{args.fileName}.txt"
 with open(fileName, "w") as pixelFile:
-  numberOfPixels = aimHelper.getTotalNumberOfPixels()
-  for pixelId in range(numberOfPixels):
+  if args.bankId is not None:
+    pixelMin = aimHelper.getBankPixelOffset(args.bankId)
+    pixelMax = aimHelper.getBankPixelOffset(args.bankId + 1)
+  else:
+    pixelMin = 0
+    pixelMax = aimHelper.getTotalNumberOfPixels()
+
+  pixelIdConverter = lambda id : id + 1 # +1 because the detector IDs in the IDF (and ICD) file start from 1 (as opposed to the zero-based numbering in the Geant4 geometry);
+  skipPixelFilter = lambda _ : False
+
+  if larmor2022 and not args.larmor2022fullGeomOutput:
+    from LokiUtils.PixelIdConverters import Larmor2022GeometryConverter
+    converter = Larmor2022GeometryConverter(strawPixelNumber)
+    pixelIdConverter = lambda id : id + 1 - converter.getReductionPixelOffset_newGeom(id)
+    skipPixelFilter = lambda id : not converter.isPixelInLarmor2022Geom(id)
+
+  for pixelId in range(pixelMin, pixelMax):
+    if skipPixelFilter(pixelId):
+      continue
     pixelCentreX, pixelCentreY, pixelCentreZ = aimHelper.getPixelCentreCoordinates(pixelId, oldNumbering, larmor2022)
     pixelCentreZ = pixelCentreZ + ssd *1000 #Larmor SSD is 25.61 (source to sample distance)
 
-    pixelFile.write( f"{pixelId}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}" )
-    if(pixelId != numberOfPixels-1):
-      pixelFile.write('\n')
+    pixelFile.write( f"{pixelIdConverter(pixelId)}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}\n")
 
 
-if not args.test:
+if not args.print:
   print(f"File created: {fileName}")
 else:
   with open(fileName, 'r') as f:
-    print(f.read())
+    print(f.read().strip())
