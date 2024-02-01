@@ -126,10 +126,10 @@ const double BcsBanks::bankPositionOffset[9][3] = {
     {0.0, 0.0, 0.0}, // 2 - mid left
     {0.0, 0.0, 0.0},  // 3 - mid bottom
     {0.0, 0.0, 0.0}, // 4 - mid right
-    {100.50, 0.0, 0.0}, // 5 - front top
-    {0.0, -14.57, 0.0}, // 6 - front left
-    {-100.50, 0.0, 0.0}, // 7 - front bottom
-    {0.0, 51.43, 0.0}, // 8 - front right
+    {100.0, 0.0, 0.0}, // 5 - front top
+    {0.0, -15.0, 0.0}, // 6 - front left
+    {-100.0, 0.0, 0.0}, // 7 - front bottom
+    {0.0, 50.0, 0.0}, // 8 - front right
 };
 const double BcsBanks::bankSize[9][3] = { // x (width), y (height), z (depth)  //NOTE: x-y swap for vertical banks
     {1265.0, 1806.0, 285.00+15}, //0 - rear  {1265, 870+870+66, 285} //+20mm to avoid volume overlap of packs and the bank
