@@ -61,27 +61,35 @@ jobs:
           echo "sb --version: "$(sb --version)
           echo "geant4 version: "$(geant4-config  --version)
 
-###TMP      - name: Build and test Core only
-###TMP        id: build-and-test-core-only
-###TMP        run: |
-###TMP          set -eu
-###TMP          mkdir test_core && cd test_core
-###TMP          sb --init core_val
-###TMP          sb -t --testexcerpts=100 --requirepkg=CoreTests
-###TMP
-###TMP      - name: Build and test release mode
-###TMP        id: build-and-test-release-mode
-###TMP        run: |
-###TMP          set -eu
-###TMP          cd ./src_co
-###TMP          sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,G4SimPlaneScatter
-###TMP          sbenv sb_core_extdeps --require ZLib NCrystal Geant4
-###TMP
-###TMP      - name: Build-and-test-debug-mode
-###TMP        id: build-and-test-debug-mode
-###TMP        run: |
-###TMP          set -eu
-###TMP          echo TODO
+      - name: Build and test Core only
+        id: build-and-test-core-only
+        run: |
+          set -eu
+          mkdir test_core && cd test_core
+          sb --init core_val
+          sb -t --testexcerpts=100 --requirepkg=CoreTests
+
+      - name: Build dgcode_projects
+        id: build-dgcode-projects
+        run: |
+          set -eu
+          cd ./src_co
+          sb --requirepkg=DGCodeRecommended,G4SimPlaneScatter
+          sbenv sb_core_extdeps --require ZLib NCrystal Geant4
+
+      - name: Launch unit tests for dgcode_projects
+        id: test-dgcode-projects
+        run: |
+          set -eu
+          cd ./src_co
+          sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,G4SimPlaneScatter
+          sbenv sb_core_extdeps --require ZLib NCrystal Geant4
+
+#TODO      - name: Build-and-test-debug-mode
+#TODO        id: build-and-test-debug-mode
+#TODO        run: |
+#TODO          set -eu
+#TODO          echo TODO
 
       - name: Setup tmate session for manual debugging
         uses: mxschmitt/action-tmate@v3
