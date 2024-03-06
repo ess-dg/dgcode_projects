@@ -1,0 +1,88 @@
+name: condatest
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 9 * * 2'  # 09:30 every Tuesday
+
+  workflow_dispatch:
+    inputs:
+      manual-debugging:
+        type: boolean
+        description: Launch manual debugging tmate session on failure
+        default: false
+
+jobs:
+
+  build:
+    strategy:
+      #fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9'  }
+          - { os: ubuntu-latest,     CC: gcc2,   CXX: g++,          python: '3.11' }
+          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.10" }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+      CONDA_SOLVER: libmamba
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./src_co
+
+      - name: Checkout simplebuild-dgcode repo
+        uses: actions/checkout@v4
+        with:
+          repository: mctools/simplebuild-dgcode
+          path: ./src_co_sbdgcode
+
+      - name: Setup conda environment
+        uses: ./src_co_sbdgcode/.github/actions/setup
+        with:
+          PYTHON_VERSION: ${{ matrix.python }}
+          USE_MAMBA: true
+          CACHED_NOARCH_DEF_PY_FILE: ./src_co_sbdgcode/.github/resources/cached_noarch_definitions.py
+          CONDA_ENV_FILE : ./src_co_sbdgcode/.github/resources/conda-setup.yml
+
+      - name: Install simplebuild and dgcode
+        run: |
+          set -eu
+          conda install --yes simple-build-dgcode
+          echo "sb --version: "$(sb --version)
+          echo "geant4 version: "$(geant4-config  --version)
+
+      - name: Build and test Core only
+        id: build-and-test-core-only
+        run: |
+          set -eu
+          mkdir test_core && cd test_core
+          sb --init core_val
+          sb -t --testexcerpts=100 --requirepkg=CoreTests
+
+      - name: Build and test release mode
+        id: build-and-test-release-mode
+        run: |
+          set -eu
+          cd ./src_co
+          sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,G4SimPlaneScatter
+          sbenv sb_core_extdeps --require ZLib NCrystal Geant4
+
+      - name: Build-and-test-debug-mode
+        id: build-and-test-debug-mode
+        run: |
+          set -eu
+          echo TODO
+
+      - name: Setup tmate session for manual debugging
+        uses: mxschmitt/action-tmate@v3
+        if: always() && inputs.manual-debugging == true && (steps.build-and-test-core-only.outcome != 'success' || steps.build-and-test-release-mode.outcome != 'success' || steps.build-and-test-debug-mode.outcome != 'success')
+        with:
+          limit-access-to-actor: true
