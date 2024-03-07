@@ -19,10 +19,10 @@ jobs:
       #fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9'  }
-          - { os: ubuntu-latest,     CC: gcc2,   CXX: g++,          python: '3.11' }
-          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.10" }
-    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}
+          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9',   bldmode: 'release'  }
+          - { os: ubuntu-latest,     CC: gcc2,     CXX: g++,        python: '3.11',  bldmode: 'debug' }
+          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.10",  bldmode: 'release' }
+    name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}.${{ matrix.bldmode }}-bld
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -31,6 +31,7 @@ jobs:
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
       CONDA_SOLVER: libmamba
+      THE_BLD_MODE: ${{ matrix.bldmode }}
 
     steps:
       - name: Checkout
@@ -38,12 +39,14 @@ jobs:
         with:
           path: ./src_co
 
-      #we need actions and .yml files in the simplebuild-dgcode repo:
+      #we need a few files from .github in the simplebuild-dgcode repo:
       - name: Checkout simplebuild-dgcode repo
         uses: actions/checkout@v4
         with:
           repository: mctools/simplebuild-dgcode
           path: ./src_co_sbdgcode
+          sparse-checkout: |
+            .github
 
       - name: Setup conda environment
         uses: ./src_co_sbdgcode/.github/actions/setup
@@ -61,20 +64,27 @@ jobs:
           echo "sb --version: "$(sb --version)
           echo "geant4 version: "$(geant4-config  --version)
 
-      - name: Build and test Core only
-        id: build-and-test-core-only
+      - name: Configure build mode
+        id: configure-build-mode
         run: |
           set -eu
-          mkdir test_core && cd test_core
-          sb --init core_val
-          sb -t --testexcerpts=100 --requirepkg=CoreTests
+          cd ./src_co
+          cat simplebuild.cfg |sed 's#^\s*mode\s*=\s*'"'release'#  mode = '${THE_BLD_MODE}'#" > sb_cfg_edited.cfg
+          set -x
+          diff simplebuild.cfg sb_cfg_edited.cfg || true
+          mv -f sb_cfg_edited.cfg simplebuild.cfg
 
       - name: Build dgcode_projects
         id: build-dgcode-projects
         run: |
           set -eu
           cd ./src_co
-          sb --requirepkg=DGCodeRecommended,G4SimPlaneScatter
+          set -x
+          python3 -c 'import _simple_build_system.cfglocate as cl; print(cl.locate_master_cfg_file())'
+          cat simplebuild.cfg
+          set +x
+          sb --exportcmds cmds.json --requirepkg=DGCodeRecommended,G4SimPlaneScatter
+          test -f cmds.json
           sbenv sb_core_extdeps --require ZLib NCrystal Geant4
 
       - name: Launch unit tests for dgcode_projects
@@ -85,11 +95,22 @@ jobs:
           sb -t --testexcerpts=100 --requirepkg=DGCodeRecommended,G4SimPlaneScatter
           sbenv sb_core_extdeps --require ZLib NCrystal Geant4
 
-#TODO      - name: Build-and-test-debug-mode
-#TODO        id: build-and-test-debug-mode
-#TODO        run: |
-#TODO          set -eu
-#TODO          echo TODO
+      - name: Install cppcheck
+        run: conda install --yes cppcheck
+
+      - name: Run cppcheck
+        run: |
+          set -eux
+          cd ./src_co
+          test -f cmds.json
+          mkdir ./cppcheck_cache
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            #macos runners are already slow enough
+            export tmp_cppcheck_level="normal"
+          else
+            export tmp_cppcheck_level="exhaustive"
+          fi
+          cppcheck --inline-suppr --project=cmds.json --check-level=${tmp_cppcheck_level} -j4 --cppcheck-build-dir="$PWD"/cppcheck_cache -q --suppress='*:'"$CONDA_PREFIX"'/include/*' --error-exitcode=1
 
       - name: Setup tmate session for manual debugging
         uses: mxschmitt/action-tmate@v3
