@@ -3,7 +3,7 @@ import mantid.simpleapi as api
 from mantid.kernel import DateAndTime
 import numpy as np
 import sys
-import MCPL
+import mcpl
 from datetime import datetime
 from math import inf as infinity
 
@@ -62,7 +62,7 @@ def addMcplDetectionEventsToWorkspaces(workspaces, filename, idConverter=(lambda
   tof = np.array([])
   detids = np.array([])
   print(f'    Loading detection events from {filename}')
-  with MCPL.MCPLFile(filename, blocklength=readBlockLength) as myfile:
+  with mcpl.MCPLFile(filename, blocklength=readBlockLength) as myfile:
     oldFile = myfile.opt_userflags #This could break if new detection files are created with userflags for some reason
     for p in myfile.particle_blocks:
       detids = np.append(detids, (p.ekin.astype(int) if not oldFile else p.userflags.astype(int)))
@@ -103,7 +103,7 @@ def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda i
   detids = np.array([])
   if verbose:
     print(f'    Loading detection events from {filename}')
-  with MCPL.MCPLFile(filename, blocklength=readBlockLength) as myfile:
+  with mcpl.MCPLFile(filename, blocklength=readBlockLength) as myfile:
     oldFile = myfile.opt_userflags #This could break if new detection files are created with userflags for some reason
     for p in myfile.particle_blocks:
       detids = np.append(detids, (p.ekin.astype(int) if not oldFile else p.userflags.astype(int)))

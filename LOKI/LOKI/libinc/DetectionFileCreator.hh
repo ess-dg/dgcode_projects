@@ -1,7 +1,7 @@
 #ifndef LOKI_DetectionFileCreator_hh
 #define LOKI_DetectionFileCreator_hh
 
-#include "MCPL/mcpl.h"
+#include "mcpl.h"
 #include "GriffDataRead/Setup.hh"
 #include <iostream>
 

@@ -9,7 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include "MCPL/mcpl.h"
+#include "mcpl.h"
 
 // #include "G4GeoLoki/BcsBanks.hh"
 //Griff analysis. See https://confluence.esss.lu.se/display/DG/Griff for more info.

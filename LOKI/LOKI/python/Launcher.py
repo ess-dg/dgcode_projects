@@ -30,11 +30,11 @@ def launch(geo):
     #generator:
     if launcher.getParameterString('event_gen')=='mcpl': #McStas+Geant4 simulation
         import G4MCPLPlugins.MCPLGen as Gen
-        import MCPL
+        import mcpl
         gen = Gen.create()
         if(launcher.getParameterString('input_file')):
           gen.input_file = launcher.getParameterString('input_file')
-          tmp_myfile = MCPL.MCPLFile(gen.getParameterString('input_file'))
+          tmp_myfile = mcpl.MCPLFile(gen.getParameterString('input_file'))
           for blobkey in tmp_myfile.blobs:
             launcher.setUserData(blobkey, str(tmp_myfile.blobs[blobkey].decode("utf-8")))
 

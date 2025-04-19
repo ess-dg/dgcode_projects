@@ -1,13 +1,13 @@
 
-import MCPL
+import mcpl
 
 class ParamHandler:
   '''Handles parameters (userinput, MCPL metadata, defaults) for mantidpython processing'''
 
   def __init__(self, mcplFile, userInputs, defaultParams, verbose): #add enforce option to
     self.mcplFile = mcplFile
-    self.mcplEventNr = MCPL.MCPLFile(mcplFile).nparticles
-    self.mcplMetadata = MCPL.MCPLFile(mcplFile).blobs
+    self.mcplEventNr = mcpl.MCPLFile(mcplFile).nparticles
+    self.mcplMetadata = mcpl.MCPLFile(mcplFile).blobs
     self.mcplMetadata.update((k, v.decode()) for k,v in self.mcplMetadata.items() if isinstance(v, bytes)) #decode MCPL byte strings
     def getMetadataValueOrDefault(key,default): #default if key doesn't exist, or value is empty/none
       return default if (key not in self.mcplMetadata or self.mcplMetadata[key]=='') else self.mcplMetadata[key]

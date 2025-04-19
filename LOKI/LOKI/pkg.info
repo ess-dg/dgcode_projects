@@ -1,4 +1,4 @@
-package(USEPKG ScanUtils GriffAnaUtils SimpleHists PyAnaUtils MCPL G4GeoLoki GriffB10Common)
+package(USEPKG ScanUtils GriffAnaUtils SimpleHists PyAnaUtils G4GeoLoki GriffB10Common USEEXT MCPL)
 
 ######################################################################
 

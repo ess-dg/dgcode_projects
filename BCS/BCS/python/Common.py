@@ -17,7 +17,7 @@ def launch(geo):
     if launcher.getParameterString('event_gen')=='mcpl':
         import G4MCPLPlugins.MCPLGen as Gen
         gen = Gen.create()
-        #gen.input_file = 'MCPLTests/reffile_1.mcpl'
+        #gen.input_file = 'MCPLTestData/reffile_1.mcpl'
         gen.input_file ='sample8_coh_withTransmission_onlyTrasmissionNeutrons.mcpl.gz.mcpl.gz'
         #gen.input_file ='sample8_coh_withTransmission.mcpl.gz'
     elif launcher.getParameterString('event_gen')=='ascii':
