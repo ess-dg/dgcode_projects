@@ -1,0 +1,13 @@
+--- rear=5.0 m, 256 pixels/straw, banks=9, larmor2022=False
+  bank 0: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000); 43904 pixel id checks
+  bank 1: proper rotation, local z = -straw direction, local z axis (1.000000, 0.000000, 0.000000); 12544 pixel id checks
+  bank 2: proper rotation, local z = -straw direction, local z axis (0.000000, -1.000000, 0.000000); 9408 pixel id checks
+  bank 3: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000); 12544 pixel id checks
+  bank 4: proper rotation, local z = +straw direction, local z axis (0.000000, 1.000000, 0.000000); 9408 pixel id checks
+  bank 5: proper rotation, local z = -straw direction, local z axis (1.000000, 0.000000, 0.000000); 21952 pixel id checks
+  bank 6: proper rotation, local z = -straw direction, local z axis (0.000000, -1.000000, 0.000000); 25088 pixel id checks
+  bank 7: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000); 15680 pixel id checks
+  bank 8: proper rotation, local z = +straw direction, local z axis (0.000000, 1.000000, 0.000000); 25088 pixel id checks
+--- rear=4.099 m, 512 pixels/straw, banks=1, larmor2022=True
+  bank 0: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000); 43904 pixel id checks
+checks performed: 219630, failures: 0

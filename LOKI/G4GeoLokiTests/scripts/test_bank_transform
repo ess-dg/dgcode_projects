@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+# BcsBanks::getBankTransform (the single bank placement used by the Geant4
+# geometry, AimHelper and PixelatedBanks) and the 3D pixel id from the hit
+# position in the bank frame (PixelatedBanks::getPixelId(bank, tube, straw, x, y, z),
+# used by the analysis programs).
+#
+# Checks for every bank (rear 5 m, 256 pixels per straw; and the Larmor 2022 setup):
+#   * the rotation is orthonormal with determinant +1 (a proper rotation, no
+#     reflection: the upside-down banks 1, 2, 5, 6 are rotated, not mirrored),
+#   * the bank-local z axis is the straw axis: the AimHelper pixel centres of a
+#     straw advance along +z (normal banks) or -z (upside-down banks),
+#   * the translation is the bank position (getBankPosition / Larmor 2022 height),
+#   * the 3D pixel id equals the (x, y) pixel id and the expected id at the pixel
+#     centres, at +-0.49 / +-0.51 pixel pitch along the straw and 3 mm
+#     perpendicular to it, for the first, middle and last pixel of every straw.
+
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import NSTRAWS, Checker, straw_axis_dir, perpendicular_dirs, add, fmt
+
+chk = Checker()
+
+def dot(a, b):
+    return sum(a[i] * b[i] for i in range(3))
+
+def run(rear_mm, N, nbanks, larmor):
+    aim = LokiAim.AimHelper(rear_mm, N) if nbanks == 9 else LokiAim.AimHelper(rear_mm, N, nbanks)
+    pc = TU.PixelCalc(rear_mm, N, nbanks)
+    print(f'--- rear={rear_mm/1000} m, {N} pixels/straw, banks={nbanks}, larmor2022={larmor}')
+    for b in range(nbanks):
+        rows, t = pc.getBankTransform(b, larmor)
+        cols = [[rows[i][j] for i in range(3)] for j in range(3)]
+        for i in range(3):
+            for j in range(3):
+                chk.check(abs(dot(cols[i], cols[j]) - (1.0 if i == j else 0.0)) < 1e-12,
+                          f'bank {b}: columns {i},{j} not orthonormal')
+        x, y, z = cols
+        det = dot([x[1]*y[2]-x[2]*y[1], x[2]*y[0]-x[0]*y[2], x[0]*y[1]-x[1]*y[0]], z)
+        chk.check(abs(det - 1.0) < 1e-12, f'bank {b}: determinant {det}')
+        expected_t = (pc.getBankPosition(b, 0),
+                      TU.getLarmor2022ExperimentBankPositionY() if larmor else pc.getBankPosition(b, 1),
+                      pc.getBankPosition(b, 2))
+        chk.check(max(abs(t[i] - expected_t[i]) for i in range(3)) < 1e-9, f'bank {b}: translation {t}')
+        sign = -1.0 if TU.areTubesInverselyNumbered(b) else 1.0
+        ncheck0 = chk.nchecks
+        for tube in range(TU.getNumberOfTubes(b)):
+            for s in range(NSTRAWS):
+                base = aim.getBankPixelOffset(b) + (tube * NSTRAWS + s) * N
+                for j in (0, N // 2, N - 1):
+                    pid = base + j
+                    c = aim.getPixelCentreCoordinates(pid, False, larmor)
+                    u, pitch = straw_axis_dir(aim, pid, N, False, larmor)
+                    chk.check(dot(u, z) * sign > 1.0 - 1e-12, f'pixel {pid}: straw axis {u} vs local z {z}')
+                    def ids(p):
+                        return pc.getPixelId3D(b, tube, s, p[0], p[1], p[2]), pc.getPixelId(b, tube, s, p[0], p[1])
+                    points = [(c, pid)]
+                    points += [(add(c, u, f * pitch), pid + d) for f, d in ((0.49, 0), (-0.49, 0), (0.51, 1), (-0.51, -1))
+                               if 0 <= j + d < N]
+                    for d in perpendicular_dirs(u):
+                        points += [(add(c, d, 3.0), pid), (add(c, d, -3.0), pid)]
+                    for p, expected in points:
+                        id3, id2 = ids(p)
+                        chk.check(id3 == expected and id2 == expected,
+                                  f'pixel {pid}: 3D id {id3}, (x, y) id {id2}, expected {expected}')
+        print(f'  bank {b}: proper rotation, local z = {"-" if sign < 0 else "+"}straw direction,'
+              f' local z axis ({fmt(z[0], 6)}, {fmt(z[1], 6)}, {fmt(z[2], 6)}); {chk.nchecks - ncheck0} pixel id checks')
+
+run(5000.0, 256, 9, False)
+run(4099.0, 512, 1, True)
+
+chk.finish()

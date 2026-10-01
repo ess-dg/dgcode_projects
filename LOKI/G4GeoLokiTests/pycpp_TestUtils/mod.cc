@@ -92,6 +92,16 @@ namespace {
     PixelatedBanks pb;
     PixelCalc(double rear, int n, int nbanks) : pb(rear, n, nbanks) {}
     int getPixelId(int bank, int tube, int straw, double x, double y) const { return pb.getPixelId(bank,tube,straw,x,y); }
+    int getPixelId3D(int bank, int tube, int straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
+    //bank transform: (rotation as 3 rows, translation)
+    py::tuple getBankTransform(int bank, bool larmor2022) const {
+      const BankTransform t = pb.getBankTransform(bank, larmor2022);
+      const auto& R = t.rotation;
+      return py::make_tuple( py::make_tuple( py::make_tuple(R[0][0],R[0][1],R[0][2]),
+                                             py::make_tuple(R[1][0],R[1][1],R[1][2]),
+                                             py::make_tuple(R[2][0],R[2][1],R[2][2]) ),
+                             py::make_tuple(t.translation[0],t.translation[1],t.translation[2]) );
+    }
     double getBankPosition(int bank, int axis) const { return pb.getBankPosition(bank,axis); }
     int getTotalNumberOfPixels() { return pb.getTotalNumberOfPixels(); }
     int getNumberOfBanks() const { return pb.getNumberOfBanks(); }
@@ -108,6 +118,8 @@ PYTHON_MODULE( mod )
   py::class_<PixelCalc>(mod, "PixelCalc")
     .def(py::init<double,int,int>())
     .def("getPixelId", &PixelCalc::getPixelId)
+    .def("getPixelId3D", &PixelCalc::getPixelId3D)
+    .def("getBankTransform", &PixelCalc::getBankTransform)
     .def("getBankPosition", &PixelCalc::getBankPosition)
     .def("getTotalNumberOfPixels", &PixelCalc::getTotalNumberOfPixels)
     .def("getNumberOfBanks", &PixelCalc::getNumberOfBanks)
