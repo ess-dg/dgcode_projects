@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+# Test-only simulation script (used by test_simana_pixelid): GeoBCSBanks geometry
+# with the PixelTargetGen generator shooting from the origin at AimHelper pixel
+# centres. Embeds the user data needed by sb_loki_ana.
+
+import G4GeoLoki.GeoBCSBanks as GEO
+from G4GeoLokiTests.PixelTargetGen import PixelTargetGen
+import G4Launcher
+
+geo = GEO.create()
+gen = PixelTargetGen()
+launcher = G4Launcher(geo, gen)
+launcher.addParameterInt("analysis_straw_pixel_number", 256)
+
+def addUserData():
+    launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
+    launcher.setUserData("rear_detector_distance_m", str(geo.getParameterDouble("rear_detector_distance_m")))
+launcher.addPrePreInitHook(addUserData)
+launcher.setOutput('pixeltargets', 'REDUCED')
+launcher.go()

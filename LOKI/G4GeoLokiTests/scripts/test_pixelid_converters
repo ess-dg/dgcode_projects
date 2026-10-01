@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+# Cross-checks the pixel id converters of LokiUtils.PixelIdConverters (used for
+# the Larmor 2022 data) against AimHelper:
+#  * Larmor2022TubeNumberingConverter (old -> new tube numbering) must map each
+#    pixel to the pixel with the same centre position: AimHelper centre of the
+#    old-numbering id == AimHelper centre of the converted new-numbering id
+#    (all straws of the rear bank, first/middle/last pixel, 512 pixels/straw).
+#  * Larmor2022GeometryConverter (full rear bank -> reduced Larmor 2022 bank):
+#    summary of the kept id ranges and offsets per layer, and the check that the
+#    kept pixels are exactly those of packs 3..18 (1-based "Pack 3-18").
+
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from LokiUtils.PixelIdConverters import Larmor2022TubeNumberingConverter, Larmor2022GeometryConverter
+from G4GeoLokiTests.testhelpers import Checker, NSTRAWS, fmtvec
+
+chk = Checker()
+N = 512
+aim = LokiAim.AimHelper(4099.0, N, 1)
+conv = Larmor2022TubeNumberingConverter(N)
+nTubes = TU.getNumberOfTubes(0)
+for t_old in range(nTubes):
+    for s in range(NSTRAWS):
+        for j in (0, N // 2, N - 1):
+            p_old = (t_old * NSTRAWS + s) * N + j
+            p_new = conv.getNewPixelId_zeroBased(p_old)
+            chk.check(conv.getNewPixelId(p_old + 1) == p_new + 1, f'1-based conversion of {p_old}')
+            c_old = aim.getPixelCentreCoordinates(p_old, True, True)
+            c_new = aim.getPixelCentreCoordinates(p_new, False, True)
+            chk.check(max(abs(c_old[i] - c_new[i]) for i in range(3)) < 1e-9,
+                      f'old id {p_old} -> new id {p_new}: centres {c_old} != {c_new}')
+print(f'Tube numbering converter: examples (old -> new):',
+      ', '.join(f'{p}->{conv.getNewPixelId_zeroBased(p)}' for p in (0, N, 7 * N, 4 * 7 * N, 8 * 7 * N, 223 * 7 * N + N - 1)))
+
+g = Larmor2022GeometryConverter(N)
+kept = [p for p in range(0, nTubes * NSTRAWS * N, N) if g.isPixelInLarmor2022Geom(p)]  # first pixel of every straw
+print(f'Geometry converter: straws kept {len(kept)} of {nTubes * NSTRAWS}')
+rows = 2 * TU.getNumberOfPacksByBankId(0)
+for layer in range(4):
+    lk = [p for p in kept if (p // (N * NSTRAWS)) // rows == layer]
+    print(f'  layer {layer}: kept full-geometry ids {lk[0]}..{lk[-1] + N - 1},'
+          f' reduced ids {lk[0] + 1 - g.getReductionPixelOffset_newGeom(lk[0])}..{lk[-1] + N - g.getReductionPixelOffset_newGeom(lk[-1])} (1-based)')
+    for p in lk:
+        row = (p // (N * NSTRAWS)) % rows
+        chk.check(4 <= row < 36, f'kept straw in row {row}')
+# reduced ids must be a contiguous 1-based range:
+red = sorted(p + 1 - g.getReductionPixelOffset_newGeom(p) for p in kept)
+chk.check(red == list(range(1, len(kept) * N + 1, N)), 'reduced ids are not contiguous')
+c_first = aim.getPixelCentreCoordinates(kept[0], False, True)
+c_last = aim.getPixelCentreCoordinates(kept[-1] + N - 1, False, True)
+print(f'  centre of first/last kept pixel [mm]: {fmtvec(c_first)} / {fmtvec(c_last)}')
+chk.finish()

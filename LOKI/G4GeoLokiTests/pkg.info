@@ -1,0 +1,13 @@
+package(USEPKG G4GeoLoki LokiUtils G4Interfaces G4Launcher G4CustomPyGen SimpleHists LokiMasking LOKI)
+
+######################################################################
+
+Regression tests (test-only package) pinning the current behaviour of the
+LOKI/BCS geometry (G4GeoLoki), the pixel-id logic (AimHelper,
+PixelatedBanks) and the hit -> pixel mapping used in the analyses. Contains no
+production code: only a small pycpp helper module exposing internals needed by
+the tests, a python helper module and test scripts with reference logs.
+
+Run with: sb -t --testfilter='sb_g4geolokitests_*'
+
+Primary author: milan.klausz@ess.eu

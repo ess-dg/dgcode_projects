@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+# Round trip AimHelper pixel centre -> PixelatedBanks::getPixelId, i.e. the
+# function all analysis programs (LOKI/app_ana*, LokiMasking/app_ana*) use to
+# convert a hit (global x/y position + bank/tube/straw copy numbers from the
+# Geant4 touchable) into a pixel id. No Geant4 geometry is needed here (the
+# consistency with the built geometry is tested in test_geo_navigation).
+#
+# For every straw of every bank and a set of pixels along each straw
+# (first, second, middle, last), both tube numberings, it checks that:
+#   * the pixel centre maps back to the pixel id,
+#   * points displaced along the straw by +-0.49 pixel pitch map to the same
+#     pixel, by +-0.51 pitch to the neighbouring pixel ids (+-1),
+#   * points displaced perpendicular to the straw (3 mm, i.e. still inside the
+#     straw, in two directions) map to the same pixel.
+# Displacements beyond the ends of the straw are reported (current behaviour:
+# no range check, the returned id spills into the neighbouring straw).
+# Done for rear 5 m / 256 pixels per straw (all straws), 10 m / 512 pixels
+# (all straws, fewer pixels per straw) and the Larmor 2022 setup.
+
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import NBANKS, NSTRAWS, Checker, straw_axis_dir, perpendicular_dirs, add
+
+chk = Checker()
+
+def run(rear_mm, N, nbanks, larmor, numberings, inStrawList, perp):
+    if nbanks == 9:
+        aim = LokiAim.AimHelper(rear_mm, N)
+    else:
+        aim = LokiAim.AimHelper(rear_mm, N, nbanks)
+    pc = TU.PixelCalc(rear_mm, N, nbanks)
+    print(f'--- rear={rear_mm/1000} m, {N} pixels/straw, banks={nbanks}, larmor2022={larmor}, total pixels={pc.getTotalNumberOfPixels()}')
+    for old in numberings:
+        for b in range(nbanks):
+            ncheck0 = chk.nchecks
+            endspill = set()
+            for t in range(TU.getNumberOfTubes(b)):
+                for s in range(NSTRAWS):
+                    base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * N
+                    for j in inStrawList(N):
+                        pid = base + j
+                        c = aim.getPixelCentreCoordinates(pid, old, larmor)
+                        gp = lambda p: pc.getPixelId(b, t, s, p[0], p[1])
+                        chk.check(gp(c) == pid, f'centre of pixel {pid} (bank {b} tube {t} straw {s} old={old}) -> {gp(c)}')
+                        u, pitch = straw_axis_dir(aim, pid, N, old, larmor)
+                        for f, expect in ((0.49, pid), (-0.49, pid), (0.51, pid + 1), (-0.51, pid - 1)):
+                            r = gp(add(c, u, f * pitch))
+                            if (j == 0 and f < -0.5) or (j == N - 1 and f > 0.5):
+                                endspill.add(r - base)  # beyond the straw end
+                                chk.check(r == expect, f'beyond straw end pixel {pid} f={f} -> {r}')
+                            else:
+                                chk.check(r == expect, f'pixel {pid} displaced {f} pitch -> {r} (expected {expect})')
+                        if perp:
+                            v, w = perpendicular_dirs(u)
+                            for d in (v, w):
+                                for sgn in (3.0, -3.0):
+                                    r = gp(add(c, d, sgn))
+                                    chk.check(r == pid, f'pixel {pid} displaced perpendicular -> {r}')
+            print(f'  {"old" if old else "new"} tube numbering, bank {b}: {chk.nchecks - ncheck0} checks done,'
+                  f' local pixel index returned beyond the straw ends: {sorted(endspill)}')
+
+run(5000.0, 256, 9, False, (False, True), lambda N: (0, 1, N // 2, N - 1), True)
+run(10000.0, 512, 9, False, (False,), lambda N: (0, N - 1), False)
+run(4099.0, 512, 1, True, (False, True), lambda N: (0, 1, N // 2, N - 1), True)
+
+chk.finish()
