@@ -35,17 +35,10 @@ std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int 
   positionY += getPackPositionInBank(bankId, packId, 1);
   positionZ += getPackPositionInBank(bankId, packId, 0);
 
-  ///////// bank position /////////
-  // apply bank rotations
-  coordinateRotation(positionY, positionX, getBankRotation(bankId, 2)); // Assuming left-handed coordinate sytem
-  coordinateRotation(positionZ, positionY, getBankRotation(bankId, 0));
-  coordinateRotation(positionZ, positionX, -getBankRotation(bankId, 1));
-  // place bank in world
-  positionX += getBankPosition(bankId, 0);
-  positionY += !isLarmor2022Experiment ? getBankPosition(bankId, 1) : getLarmor2022ExperimentBankPositionY();
-  positionZ += getBankPosition(bankId, 2);
+  ///////// bank in world /////////
+  const auto global = getBankTransform(bankId, isLarmor2022Experiment).toGlobal({positionX, positionY, positionZ});
 
-  return { positionX, positionY, positionZ };
+  return { global[0], global[1], global[2] };
 }
 
 void AimHelper::coordinateRotation(double &x, double &y, const double angle) {

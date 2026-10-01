@@ -7,6 +7,17 @@
 #include "G4GeoLoki/BoronMasks.hh"
 #include "G4GeoLoki/CalibMasks.hh"
 
+/// Placement of a bank in the world: p_world = rotation * p_local + translation.
+/// rotation[i][j] is the world component i of the bank-local axis j (the columns are
+/// the images of the local x (depth), y (across the tubes) and z (along the tubes) axes);
+/// translation is the centre of the bank box in the world [Geant4 length units].
+struct BankTransform {
+  std::array<std::array<double,3>,3> rotation;
+  std::array<double,3> translation;
+  std::array<double,3> toGlobal(const std::array<double,3>& local) const;
+  std::array<double,3> toLocal(const std::array<double,3>& global) const;
+};
+
 class BcsBanks {
 public:
   BcsBanks(double rearBankDistance, int numberOfBanks = 9);
@@ -21,6 +32,9 @@ public:
 
   static double getBankRotation(const int bankId, const int axisIndex); // 0 - x, 1 - y, 2 - z
   double getBankPosition(const int bankId, const int axisIndex) const; // 0 - x, 1 - y, 2 - z
+  /// The placement of a bank (single source for the Geant4 geometry, AimHelper and PixelatedBanks).
+  /// Nominal: built from getBankRotation / getBankPosition (and the Larmor 2022 bank height).
+  BankTransform getBankTransform(const int bankId, const bool isLarmor2022Experiment = false) const;
   static double getBankSize(const int bankId, const int axisIndex); // 0 - x, 1 - y, 2 - z
 
   static double detectorSystemFrontDistanceFromBankFront(const int bankId);

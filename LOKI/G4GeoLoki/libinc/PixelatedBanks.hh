@@ -11,6 +11,9 @@ public:
 
   int getTotalNumberOfPixels();
   int getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY) const;
+  /// Pixel id from the global position of a hit (x, y, z): the pixel along the straw is taken from the
+  /// position along the tubes in the bank frame (getBankTransform), so it also holds for rotated banks.
+  int getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY, const double positionZ) const;
   static int getNumberOfPixels(const int bankId);
   static int getNumberOfPixelsInStraw(const int bankId);
 
@@ -22,6 +25,7 @@ public:
 private:
   static int numberOfPixelsInStraw[9];
   int getPositionPixelId(const int bankId, const double positionX, const double positionY) const;
+  int getLocalPositionPixelId(const int bankId, const double positionX, const double positionY, const double positionZ) const;
 };
 
 #endif

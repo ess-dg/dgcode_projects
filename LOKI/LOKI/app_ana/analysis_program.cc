@@ -420,7 +420,7 @@ int main(int argc, char**argv) {
           const double theta_hit = Utils::theta(hit.eventHitPosition())/Units::deg;
           h_neutron_theta_hit->fill(theta_hit, hit.eventHitWeight());
 
-          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, position_hit[0], position_hit[1]);
+          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, position_hit[0], position_hit[1], position_hit[2]);
           //h_neutron_pixel_hit_count->fill(pixelId, 1);
           //h_neutron_pixel_hit_weight->fill(pixelId, hit.eventHitWeight());
           h_neutron_pixel_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());

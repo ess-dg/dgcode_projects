@@ -298,14 +298,16 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   for (int bankId = 0; bankId < banks->getNumberOfBanks(); bankId++){
     auto lv_bank = createBankLV(bankId);
 
-    auto rotation = new G4RotationMatrix();
-    rotation->rotateY(banks->getBankRotation(bankId, 1));
-    rotation->rotateX(banks->getBankRotation(bankId, 0));
-    rotation->rotateZ(banks->getBankRotation(bankId, 2));
+    // bank placement (the same transform as used by AimHelper and PixelatedBanks)
+    const BankTransform transform = banks->getBankTransform(bankId, larmor2022experiment);
+    const auto& R = transform.rotation;
+    const G4RotationMatrix bankRotation(G4ThreeVector(R[0][0], R[1][0], R[2][0]),
+                                       G4ThreeVector(R[0][1], R[1][1], R[2][1]),
+                                       G4ThreeVector(R[0][2], R[1][2], R[2][2]));
+    // G4PVPlacement takes the frame rotation, i.e. the inverse of the bank rotation
+    auto rotation = new G4RotationMatrix(bankRotation.inverse());
 
-    const double verticalBankPosition = !larmor2022experiment ? banks->getBankPosition(bankId, 1) : banks->getLarmor2022ExperimentBankPositionY();
-
-    place(lv_bank, banks->getBankPosition(bankId, 0), verticalBankPosition, banks->getBankPosition(bankId, 2), lvWorld, ORANGE, bankId, 0, rotation);
+    place(lv_bank, transform.translation[0], transform.translation[1], transform.translation[2], lvWorld, ORANGE, bankId, 0, rotation);
   }
 
   // Add 4 triangular boron masks (added to the World instead of the banks)

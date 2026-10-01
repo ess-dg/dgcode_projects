@@ -94,7 +94,7 @@ int main(int argc, char**argv) {
 
         h_neutron_xy_hit->fill(-hit.eventHitPositionX()/Units::mm, hit.eventHitPositionY()/Units::mm, hit.eventHitWeight());
 
-        const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, hit.eventHitPositionX(), hit.eventHitPositionY());
+        const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, hit.eventHitPositionX(), hit.eventHitPositionY(), hit.eventHitPositionZ());
 
         mcplParticle->time = hit.eventHitTime()/Units::ms;
         mcplParticle->weight = hit.eventHitWeight();

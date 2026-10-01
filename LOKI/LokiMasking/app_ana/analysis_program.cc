@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
           const int bankId_conv = seg->volumeCopyNumber(5);
 
           auto step = seg->lastStep();
-          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY());
+          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY(), step->postGlobalZ());
 
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
             h_geantino_pixel_enter_masked->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);

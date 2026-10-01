@@ -197,6 +197,53 @@ double BcsBanks::getBankPosition(const int bankId, const int axisIndex) const {
     return bankPosition[bankId][axisIndex] + bankPositionOffset[bankId][axisIndex];
   }
 }
+std::array<double,3> BankTransform::toGlobal(const std::array<double,3>& local) const {
+  std::array<double,3> global;
+  for (int i = 0; i < 3; i++)
+    global[i] = rotation[i][0] * local[0] + rotation[i][1] * local[1] + rotation[i][2] * local[2] + translation[i];
+  return global;
+}
+
+std::array<double,3> BankTransform::toLocal(const std::array<double,3>& global) const {
+  std::array<double,3> local;
+  for (int j = 0; j < 3; j++)
+    local[j] = rotation[0][j] * (global[0] - translation[0])
+             + rotation[1][j] * (global[1] - translation[1])
+             + rotation[2][j] * (global[2] - translation[2]);
+  return local;
+}
+
+namespace {
+  // active rotation of the (x, y) components of a point by angle (as AimHelper::coordinateRotation)
+  void rotateInPlane(double &x, double &y, const double angle) {
+    const double tempX = std::cos(angle) * x - std::sin(angle) * y;
+    const double tempY = std::sin(angle) * x + std::cos(angle) * y;
+    x = tempX;
+    y = tempY;
+  }
+}
+
+BankTransform BcsBanks::getBankTransform(const int bankId, const bool isLarmor2022Experiment) const {
+  assert(0 <= bankId && bankId <= 8);
+  BankTransform transform;
+  // The nominal bank rotation: the inverse of the Geant4 frame rotation
+  // rotateY(a1) -> rotateX(a0) -> rotateZ(a2), i.e. Ry(-a1) Rx(-a0) Rz(-a2), applied to the
+  // local unit vectors (the same sequence that AimHelper used to apply to every point).
+  for (int axis = 0; axis < 3; axis++) {
+    double v[3] = {0., 0., 0.};
+    v[axis] = 1.;
+    rotateInPlane(v[1], v[0], getBankRotation(bankId, 2));
+    rotateInPlane(v[2], v[1], getBankRotation(bankId, 0));
+    rotateInPlane(v[2], v[0], -getBankRotation(bankId, 1));
+    for (int i = 0; i < 3; i++)
+      transform.rotation[i][axis] = v[i];
+  }
+  transform.translation = {getBankPosition(bankId, 0),
+                           !isLarmor2022Experiment ? getBankPosition(bankId, 1) : getLarmor2022ExperimentBankPositionY(),
+                           getBankPosition(bankId, 2)};
+  return transform;
+}
+
 double BcsBanks::getBankSize(const int bankId, const int axisIndex) {
   assert(0 <= bankId && bankId <= 8);
   assert(0 <= axisIndex && axisIndex <= 2);

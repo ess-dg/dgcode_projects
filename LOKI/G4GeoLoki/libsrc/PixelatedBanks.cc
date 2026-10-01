@@ -79,6 +79,22 @@ int PixelatedBanks::getPositionPixelId(const int bankId, const double positionX,
   }
 }
 
+int PixelatedBanks::getLocalPositionPixelId(const int bankId, const double positionX, const double positionY, const double positionZ) const{
+  const double strawLength = getStrawLengthByBankId(bankId);
+  const double pixelLength = strawLength / getNumberOfPixelsInStraw(bankId);
+  // bank-local z is the straw axis, centred on the straw (see AimHelper::getPixelPositionInStraw)
+  const double localZ = getBankTransform(bankId).toLocal({positionX, positionY, positionZ})[2];
+  const double distanceFromFirstPixelEnd = areTubesInverselyNumbered(bankId) ? 0.5 * strawLength - localZ
+                                                                             : localZ + 0.5 * strawLength;
+  return std::floor(distanceFromFirstPixelEnd / pixelLength);
+}
+
+int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY, const double positionZ) const{
+  const int bankPixelOffset = getBankPixelOffset(bankId);
+  const int strawPixelOffset = (tubeId * 7 + strawId) * getNumberOfPixelsInStraw(bankId);
+  return bankPixelOffset + strawPixelOffset + getLocalPositionPixelId(bankId, positionX, positionY, positionZ);
+}
+
 int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY) const{
   const int bankPixelOffset = getBankPixelOffset(bankId);
   const int strawPixelOffset = (tubeId * 7 + strawId) * getNumberOfPixelsInStraw(bankId);
