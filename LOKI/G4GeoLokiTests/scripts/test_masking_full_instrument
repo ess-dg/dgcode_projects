@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+# The production masking chain for the WHOLE instrument (long):
+#   sb_lokimasking_sim: MaskingSourceGen aims one geantino at the AimHelper centre
+#   of every pixel of all 9 banks (8 pixels per straw, rear bank at 5 m);
+#   sb_lokimasking_ana: pixels entered without crossing an absorber are visible,
+#   all others are written as masked, one Mantid mask file per bank.
+#
+# Checks for every bank mask file (bank<N>_maskFile.xml):
+#   * valid XML: <detector-masking><group><detids> ... </detids></group></detector-masking>;
+#   * the ids are 1-based detector numbers (as in the NeXus detector_number / ICD),
+#     strictly increasing, without duplicates and within the pixel id range of the bank;
+#   * they are exactly the complement (+1) of the pixels entered without crossing an
+#     absorber (h_geantino_pixel_enter_masked histogram of the analysis);
+#   * every pixel was reached by a geantino (no coverage warning).
+# Pinned: the number of masked pixels per bank, a checksum of every mask file, and
+# the analysis counters (all geantinos, geantinos stopped in a mask before any straw).
+
+import hashlib
+import os
+import subprocess
+import xml.etree.ElementTree as ET
+import numpy as np
+import SimpleHists as sh
+import G4GeoLoki.LokiAimHelper as LokiAim
+from G4GeoLokiTests.testhelpers import Checker
+
+chk = Checker()
+N = 8
+aim = LokiAim.AimHelper(5000.0, N)
+total = aim.getTotalNumberOfPixels()
+d = 'run_full_instrument'
+os.makedirs(d, exist_ok=True)
+args = ['-lPL_Empty', f'-n{total}', '-j1', f'aiming_straw_pixel_number={N}', f'analysis_straw_pixel_number={N}',
+        'rear_detector_distance_m=5', 'masking_only=False']
+sim = subprocess.run(['sb_lokimasking_sim'] + args, cwd=d, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+if chk.check(sim.returncode == 0, f'simulation failed:\n{sim.stdout[-3000:]}'):
+    ana = subprocess.run(['sb_lokimasking_ana', 'loki_masking.griff'], cwd=d, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, text=True)
+    if chk.check(ana.returncode == 0, f'analysis failed:\n{ana.stdout[-3000:]}'):
+        print(f'{total} pixels aimed at ({N} per straw), rear bank at 5 m')
+        warnings = [line for line in ana.stdout.splitlines() if line.startswith('WARNING')]
+        chk.check(not warnings, 'coverage warnings: ' + '; '.join(warnings))
+        hc = sh.HistCollection(os.path.join(d, 'bcsloki_masking.shist'))
+        counters = hc.hist('geantino_counters')
+        for c in counters.counters:
+            print(f'counter {c.label}: {c.value:.0f}')
+        content = np.asarray(hc.hist('h_geantino_pixel_enter_masked').contents())  # (pixel in straw, straw id)
+        visible = {int(straw * N + j) for j, straw in np.argwhere(content > 0)}
+        for b in range(9):
+            lo, hi = aim.getBankPixelOffset(b), aim.getBankPixelOffset(b + 1)
+            path = os.path.join(d, f'bank{b}_maskFile.xml')
+            with open(path, 'rb') as f:
+                raw = f.read()
+            root = ET.fromstring(raw)
+            group = root.find('group')
+            ok = root.tag == 'detector-masking' and group is not None and group.find('detids') is not None
+            if not chk.check(ok, f'bank {b}: unexpected XML structure'):
+                continue
+            ids = [int(e) for e in group.find('detids').text.split(',') if e.strip()]
+            chk.check(ids == sorted(set(ids)), f'bank {b}: ids not strictly increasing')
+            chk.check(all(lo + 1 <= i <= hi for i in ids), f'bank {b}: ids outside the bank range {lo + 1}..{hi}')
+            expected = [p + 1 for p in range(lo, hi) if p not in visible]
+            chk.check(ids == expected, f'bank {b}: mask is not the complement of the visible pixels')
+            print(f'bank {b}: {hi - lo} pixels, {len(ids)} masked ({100 * len(ids) / (hi - lo):.1f} %), '
+                  f'detector numbers {lo + 1}..{hi}, file sha256 {hashlib.sha256(raw).hexdigest()[:16]}')
+
+chk.finish()

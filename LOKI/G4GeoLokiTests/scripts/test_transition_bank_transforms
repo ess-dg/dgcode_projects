@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+
+# TRANSITION TEST (nominal geometry): the current bank placement code
+# (BcsBanks::getBankTransform, used by the Geant4 geometry, AimHelper and
+# PixelatedBanks) must reproduce the ORIGINAL implementation exactly, as frozen
+# in G4GeoLokiTests.Legacy (a copy of the pre-BankTransform code):
+#
+#   * for every bank and setup: the transform rotation equals the inverse of the
+#     original Geant4 frame rotation rotateY(a1) rotateX(a0) rotateZ(a2), and the
+#     translation equals the original bank position (incl. Larmor 2022 height);
+#   * in the BUILT Geant4 geometry (GeoBCSBanks), every bank is placed with the
+#     original frame rotation and translation.
+#
+# The other volumes placed directly in the world (triangular boron masks, the
+# Larmor 2022 calibration mask) are listed with their transforms: they still use
+# their own formulas and must not change before they are moved to the bank
+# transform (plan step 3).
+
+import G4GeoLoki.GeoBCSBanks as GEO
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.Legacy import Legacy
+from G4GeoLokiTests.testhelpers import Checker, captured_fd_output, fmt
+
+chk = Checker()
+TOL = 1e-12
+
+def maxdiff(a, b):
+    return max(abs(x - y) for x, y in zip(a, b))
+
+setups = [  # (description, rear distance [mm], pixels per straw, banks, Larmor 2022, geometry parameters)
+    ('LOKI, rear 5 m', 5000.0, 256, 9, False, dict()),
+    ('LOKI, rear 10 m, old tube numbering', 10000.0, 512, 9, False, dict(rear_detector_distance_m=10.0, old_tube_numbering=True)),
+    ('LOKI, rear 7.3 m, beamstop, calibration slits', 7300.0, 256, 9, False,
+     dict(rear_detector_distance_m=7.3, beamstop_id=3, with_calibration_slits=True)),
+    ('Larmor 2022', 4099.0, 512, 1, True, dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1,
+                                               with_calibration_slits=True)),
+]
+
+for title, rear, n, nbanks, larmor, params in setups:
+    print('=' * 90)
+    print(title)
+    legacy = Legacy(rear, n, nbanks)
+    pc = TU.PixelCalc(rear, n, nbanks)
+    for b in range(nbanks):
+        rows, t = pc.getBankTransform(b, larmor)
+        frame = Legacy.frameRotation(b)
+        # transform rotation R = inverse(frame) = transpose(frame)
+        d_rot = max(abs(rows[i][j] - frame[j][i]) for i in range(3) for j in range(3))
+        d_pos = maxdiff(t, legacy.bankPosition(b, larmor))
+        chk.check(d_rot <= TOL and d_pos <= 1e-9, f'bank {b}: rotation diff {d_rot}, position diff {d_pos}')
+        print(f'  bank {b}: transform vs original: rotation {"OK" if d_rot <= TOL else d_rot}, '
+              f'translation {"OK" if d_pos <= 1e-9 else d_pos} '
+              f'({fmt(t[0], 3)}, {fmt(t[1], 3)}, {fmt(t[2], 3)}) mm')
+
+    geo = GEO.create()
+    for k, v in params.items():
+        setattr(geo, k, v)
+    with captured_fd_output():
+        TU.construct_world(geo)
+    nbanks_placed = 0
+    for name, copy, lvname, frame_rows, trans in TU.world_daughters():
+        if lvname == 'Bank':
+            b = copy
+            d_rot = max(abs(frame_rows[i][j] - Legacy.frameRotation(b)[i][j]) for i in range(3) for j in range(3))
+            d_pos = maxdiff(trans, legacy.bankPosition(b, larmor))
+            chk.check(d_rot <= TOL and d_pos <= 1e-9, f'built bank {b}: rotation diff {d_rot}, position diff {d_pos}')
+            nbanks_placed += 1
+        else:
+            r = ', '.join(fmt(x, 9) for row in frame_rows for x in row)
+            print(f'  world daughter {name} (copy {copy}, {lvname}): translation '
+                  f'({fmt(trans[0], 6)}, {fmt(trans[1], 6)}, {fmt(trans[2], 6)}) mm, frame rotation rows [{r}]')
+    chk.check(nbanks_placed == nbanks, f'{nbanks_placed} banks placed, expected {nbanks}')
+    print(f'  built geometry: {nbanks_placed} banks placed with the original frame rotation and translation')
+
+chk.finish()

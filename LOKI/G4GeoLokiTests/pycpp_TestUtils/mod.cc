@@ -14,11 +14,13 @@
 // Nothing in here is used by production code.
 
 #include "Core/Python.hh"
+#include <pybind11/stl.h>
 #include "G4Interfaces/GeoConstructBase.hh"
 #include "G4GeoLoki/PixelatedBanks.hh"
 #include "G4GeoLoki/BcsBanks.hh"
 #include "G4GeoLoki/BcsPack.hh"
 #include "G4GeoLoki/BcsTube.hh"
+#include "LokiMasking/MaskFileCreator.hh"
 
 #include "G4VPhysicalVolume.hh"
 #include "G4LogicalVolume.hh"
@@ -86,6 +88,55 @@ namespace {
                            py::make_tuple(org.x(),org.y(),org.z()) );
   }
 
+  //The volumes placed directly in the world of the geometry built with construct_world:
+  //[(physvolname, copynumber, logvolname, frame rotation as 3 rows, translation (x,y,z) [mm]), ...]
+  //(the frame rotation is what G4PVPlacement stores: the inverse of the object rotation).
+  py::list world_daughters()
+  {
+    if (!s_world)
+      throw std::runtime_error("world_daughters: call construct_world first");
+    py::list out;
+    auto lv = s_world->GetLogicalVolume();
+    for (size_t i = 0; i < lv->GetNoDaughters(); ++i) {
+      auto pv = lv->GetDaughter(i);
+      const G4RotationMatrix* r = pv->GetRotation();
+      G4RotationMatrix identity;
+      if (!r) r = &identity;
+      const G4ThreeVector t = pv->GetTranslation();
+      out.append(py::make_tuple(std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()),
+                                py::make_tuple(py::make_tuple(r->xx(), r->xy(), r->xz()),
+                                               py::make_tuple(r->yx(), r->yy(), r->yz()),
+                                               py::make_tuple(r->zx(), r->zy(), r->zz())),
+                                py::make_tuple(t.x(), t.y(), t.z())));
+    }
+    return out;
+  }
+
+  //Every physical volume of the geometry built with construct_world, depth first:
+  //[(depth, physvolname, copynumber, logvolname, global translation (x,y,z) [mm],
+  //  global object rotation as 3 rows), ...] (depth 0 = the world).
+  void addTree(py::list& out, const G4VPhysicalVolume* pv, int depth, const G4RotationMatrix& Rp, const G4ThreeVector& tp)
+  {
+    const G4RotationMatrix R = Rp * pv->GetObjectRotationValue();
+    const G4ThreeVector t = tp + Rp * pv->GetObjectTranslation();
+    out.append(py::make_tuple(depth, std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()),
+                              py::make_tuple(t.x(), t.y(), t.z()),
+                              py::make_tuple(py::make_tuple(R.xx(), R.xy(), R.xz()),
+                                             py::make_tuple(R.yx(), R.yy(), R.yz()),
+                                             py::make_tuple(R.zx(), R.zy(), R.zz()))));
+    auto lv = pv->GetLogicalVolume();
+    for (size_t i = 0; i < lv->GetNoDaughters(); ++i)
+      addTree(out, lv->GetDaughter(i), depth + 1, R, t);
+  }
+  py::list world_tree()
+  {
+    if (!s_world)
+      throw std::runtime_error("world_tree: call construct_world first");
+    py::list out;
+    addTree(out, s_world, 0, G4RotationMatrix(), G4ThreeVector());
+    return out;
+  }
+
   //Thin wrapper around PixelatedBanks (the class used by the analysis programs
   //to convert hits to pixel ids).
   struct PixelCalc {
@@ -114,6 +165,18 @@ PYTHON_MODULE( mod )
 
   mod.def("construct_world", &construct_world);
   mod.def("locate", &locate);
+  mod.def("world_daughters", &world_daughters);
+  mod.def("world_tree", &world_tree);
+
+  //the mask file writer of the masking analysis (LokiMasking)
+  py::class_<MaskFileCreator>(mod, "MaskFileCreator")
+    .def(py::init([](const std::string& fileName, int indexOffset, const std::vector<int>& bankPixelLimits, int aimingBankId) {
+      return new MaskFileCreator(fileName.c_str(), indexOffset, bankPixelLimits, aimingBankId); }))
+    .def("isPixelEntered", &MaskFileCreator::isPixelEntered)
+    .def("setPixelEntered", &MaskFileCreator::setPixelEntered)
+    .def("isPixelEnteredAimingCheck", &MaskFileCreator::isPixelEnteredAimingCheck)
+    .def("setPixelEnteredAimingCheck", &MaskFileCreator::setPixelEnteredAimingCheck)
+    .def("createMaskFile", &MaskFileCreator::createMaskFile);
 
   py::class_<PixelCalc>(mod, "PixelCalc")
     .def(py::init<double,int,int>())

@@ -1,0 +1,8 @@
+rear 5.0 m, 256 px/straw, 9 banks, new numbering, Larmor 2022 False: 1605632 pixels, largest pixel centre deviation from the original < 1e-9 mm, 14438144 pixel id checks, 0 failures
+rear 5.0 m, 256 px/straw, 9 banks, old numbering, Larmor 2022 False: 1605632 pixels, largest pixel centre deviation from the original < 1e-9 mm, 14438144 pixel id checks, 0 failures
+rear 5.0 m, 512 px/straw, 9 banks, new numbering, Larmor 2022 False: 3211264 pixels, largest pixel centre deviation from the original < 1e-9 mm, 28888832 pixel id checks, 0 failures
+rear 7.3 m, 256 px/straw, 9 banks, new numbering, Larmor 2022 False: 1605632 pixels, largest pixel centre deviation from the original < 1e-9 mm, 14438144 pixel id checks, 0 failures
+rear 10.0 m, 512 px/straw, 9 banks, old numbering, Larmor 2022 False: 3211264 pixels, largest pixel centre deviation from the original < 1e-9 mm, 28888832 pixel id checks, 0 failures
+rear 4.099 m, 512 px/straw, 1 banks, new numbering, Larmor 2022 True: 802816 pixels, largest pixel centre deviation from the original < 1e-9 mm, 7222208 pixel id checks, 0 failures
+rear 4.099 m, 512 px/straw, 1 banks, old numbering, Larmor 2022 True: 802816 pixels, largest pixel centre deviation from the original < 1e-9 mm, 7222208 pixel id checks, 0 failures
+checks performed: 128381568, failures: 0
