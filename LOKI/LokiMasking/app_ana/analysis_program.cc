@@ -81,14 +81,20 @@ int main(int argc, char **argv) {
       countTestGeantino += 1;
 
       bool geantinoAbsorbed = false;
+      bool converterReached = false;
       for (auto seg = trk_geantino->segmentBegin(); seg != trk_geantino->segmentEnd(); ++seg) {
 
         if (!geantinoAbsorbed && (seg->volumeName().find("BoronMask-") != std::string::npos || seg->volumeName() == "B4CPanel" || seg->volumeName() == "AlPanel")) {
-          countTestGeantinoAbsInMask += 1;
+          // counted as "in mask" only if the absorber is crossed before any straw is reached
+          // (the B4C panel behind the tubes of a bank is crossed by every geantino after its straws)
+          if (!converterReached) {
+            countTestGeantinoAbsInMask += 1;
+          }
           geantinoAbsorbed = true;
           //break;
         }
         else if (seg->volumeName() == "Converter") {
+          converterReached = true;
           const int strawId_conv = seg->volumeCopyNumber(1);
           const int tubeId_conv = seg->volumeCopyNumber(3);
           const int bankId_conv = seg->volumeCopyNumber(5);

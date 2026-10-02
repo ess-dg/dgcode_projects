@@ -16,23 +16,31 @@ MaskFileCreator::MaskFileCreator(const char* fileName, const int indexOffset, co
     }
 }
 
+// Pixel numbers outside the geometry are ignored (reported as entered, and never set),
+// so that they cannot read or write outside the arrays.
 bool MaskFileCreator::isPixelEntered(const int pixelNumber) const {
+  if(pixelNumber < 0 || pixelNumber >= m_numberOfPixels) {
+    return true;
+  }
   return m_enteredPixels[pixelNumber];
 }
 
 void MaskFileCreator::setPixelEntered(const int pixelNumber) {
-  if(pixelNumber < m_numberOfPixels) {
+  if(0 <= pixelNumber && pixelNumber < m_numberOfPixels) {
     m_enteredPixels[pixelNumber] = true;
   }
   //TODO handle error
 }
 
 bool MaskFileCreator::isPixelEnteredAimingCheck(const int pixelNumber) const {
+  if(pixelNumber < 0 || pixelNumber >= m_numberOfPixels) {
+    return true;
+  }
   return m_enteredPixelsAimingCheck[pixelNumber];
 }
 
 void MaskFileCreator::setPixelEnteredAimingCheck(const int pixelNumber) {
-  if(pixelNumber < m_numberOfPixels) {
+  if(0 <= pixelNumber && pixelNumber < m_numberOfPixels) {
     m_enteredPixelsAimingCheck[pixelNumber] = true;
   }
   //TODO handle error
@@ -55,12 +63,16 @@ void MaskFileCreator::createMaskFile() const {
     maskFile << "\t<group>\n";
     maskFile << "\t\t<detids> ";
 
+    bool anyMasked = false;
     for (int i = m_bankPixelLimits[bankId]; i < m_bankPixelLimits[bankId+1]; i++) {
       if (m_enteredPixels[i] == false) {
         maskFile << i + m_indexOffset << ", ";
+        anyMasked = true;
       }
     }
-    maskFile.seekp(-2, std::ios_base::cur); //Go back with the write pointer to override the last coma and space ", "
+    if (anyMasked) {
+      maskFile.seekp(-2, std::ios_base::cur); //Go back with the write pointer to override the last coma and space ", "
+    }
     maskFile << " </detids>\n";
     maskFile << "\t</group>\n";
     maskFile << "</detector-masking>";
