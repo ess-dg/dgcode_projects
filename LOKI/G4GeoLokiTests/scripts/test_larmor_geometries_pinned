@@ -11,9 +11,10 @@
 # printed in full; the volumes inside each of them (tubes, straws, ...) are pinned
 # by their number and a checksum of their listing, so a change shows up in the log
 # diff at the pack it is in (and the repository limits the size of the log). The
-# nominal LOKI geometry (GeoBCSBanks, rear bank at 5 m) is pinned by the number of
-# volumes and a checksum of the whole listing (its banks are checked in detail by
-# the transition tests).
+# nominal LOKI geometry and the default one (the 2026-September-SAM-606 calibration;
+# GeoBCSBanks, rear bank at 5 m) are pinned by the number of volumes and a checksum of
+# the whole listing (their banks are checked in detail by the transition and calibration
+# tests).
 #
 # (Each geometry is built in its own process: the two geometry modules cannot be
 # imported into the same Python process.)
@@ -29,7 +30,8 @@ SETUPS = {
     'larmor2022': ('Larmor 2022 (GeoBCSBanks, larmor_2022_experiment, rear 4.099 m, beamstop 1, calibration slits)',
                    'GeoBCSBanks', dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1,
                                        with_calibration_slits=True)),
-    'loki': ('LOKI (GeoBCSBanks, defaults)', 'GeoBCSBanks', {}),
+    'loki': ('LOKI (GeoBCSBanks, bank_calibration=nominal-geometry)', 'GeoBCSBanks', dict(bank_calibration='nominal-geometry')),
+    'loki_default': ('LOKI (GeoBCSBanks, defaults: bank_calibration=2026-September-SAM-606)', 'GeoBCSBanks', {}),
 }
 
 def listing(key):
@@ -66,7 +68,7 @@ def summary(lines):
 
 if len(sys.argv) == 2:  # child process: one geometry
     title, lines = listing(sys.argv[1])
-    if sys.argv[1] == 'loki':
+    if sys.argv[1].startswith('loki'):
         print(f'{title}: {len(lines)} volumes, sha256 of the listing '
               f'{hashlib.sha256(chr(10).join(line for _, line in lines).encode()).hexdigest()}')
     else:

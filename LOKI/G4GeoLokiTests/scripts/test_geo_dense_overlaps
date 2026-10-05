@@ -12,8 +12,8 @@
 # calibration masks, beamstop) are inside the bank solid (for the banks 6 and 8: not in the notch);
 # printed: the smallest distance of the content of banks 6 and 8 from their notch.
 #
-# Configurations: the nominal geometry (with and without beamstop / calibration slits), the
-# Larmor 2022 setup.
+# Configurations: the nominal geometry and the 2026-September-SAM-606 bank calibration (with
+# and without beamstop / calibration slits), the Larmor 2022 setup.
 #
 # Sensitivity / notch checks with calibration files made here from the nominal placement:
 #  * bank 2 moved 400 mm towards bank 4: the overlap must be found;
@@ -31,6 +31,8 @@ import G4GeoLokiTests.TestUtils as TU
 from G4GeoLokiTests.testhelpers import Checker, captured_fd_output, NSTRAWS
 
 chk = Checker()
+NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+
 NPOINTS = 500000
 TOLERANCE = 1e-6  # mm
 
@@ -47,6 +49,7 @@ def build(pars):
     return problems, notes
 
 def run(title, pars, expect_overlap=False):
+    pars = dict(bank_calibration=NOMINAL, **pars) if 'bank_calibration' not in pars else pars
     problems, notes = build(pars)
     overlaps = TU.dense_world_overlaps(NPOINTS, TOLERANCE)
     outside = TU.dense_bank_containment(100000, TOLERANCE)
@@ -75,6 +78,9 @@ def run(title, pars, expect_overlap=False):
 run('nominal, defaults', dict())
 run('nominal, rear 10 m, beamstop 3, calibration slits', dict(rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True))
 run('Larmor 2022, beamstop 1, calibration slits', dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1, with_calibration_slits=True))
+run('2026-September-SAM-606, defaults', dict(bank_calibration='2026-September-SAM-606'))
+run('2026-September-SAM-606, rear 10 m, beamstop 3, calibration slits',
+    dict(bank_calibration='2026-September-SAM-606', rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True))
 
 # calibration files from the nominal placement, with one bank moved
 def nominal_bank_line(b):

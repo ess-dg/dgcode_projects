@@ -5,8 +5,9 @@
 #
 #  1. Names and files: nominal-geometry (no calibrated bank, the default of the C++ classes), the
 #     default calibration of the geometry and the scripts, unknown names and invalid files are
-#     rejected with an error (C++ reader), the geometry module refuses a calibration for the
-#     Larmor 2022 setup and the (x, y) pixel id refuses calibrated banks.
+#     rejected with an error (C++ reader), the Larmor 2022 setup always uses the nominal
+#     geometry (with a note if another calibration than the default is requested) and the
+#     (x, y) pixel id refuses calibrated banks.
 #  2. The calibrated code path reproduces the nominal geometry: a calibration file made here
 #     from the NOMINAL AimHelper pixel centres (F, u, w, n computed the loki-geometry way:
 #     centre straw midpoints of the front layer tubes 0 and N-1) gives the nominal bank
@@ -16,6 +17,13 @@
 #  3. A calibrated rear bank (0), shifted in x / y and rotated: the z of its front face centre is
 #     the rear detector distance (not the z of the file), and the beamstop stays on the beam axis,
 #     5 cm in front of the detector front.
+#  4. The 2026-September-SAM-606 calibration (by name, all 9 banks; bank 0 from REFERENCE_BANKS_DATA,
+#     the same as nominal): the bank rotation is R = [n | s*w | -s*u] of the file's vectors (s = -1
+#     for the upside-down banks) and the front face centre is at F; the pixel centres equal the
+#     pixel positions of loki-geometry (hard-coded, computed with loki-geometry from the same
+#     survey) within 1e-6 mm; every pixel centre gives back its pixel id (3D getPixelId); the
+#     triangular masks keep their nominal placement relative to banks 5 and 7; the notches stay
+#     nominal and contain the bank overlap regions.
 
 
 import os
@@ -50,6 +58,7 @@ def max_pixel_difference(aim1, aim2, step):
                for p in range(0, aim1.getTotalNumberOfPixels(), step))
 
 def construct(**pars):
+    pars.setdefault('bank_calibration', NOMINAL)  # (the default of the geometry is a calibration)
     geo = GEO.create()
     for k, v in pars.items():
         setattr(geo, k, v)
@@ -106,9 +115,7 @@ error = raises(LokiAim.AimHelper, REAR, 256, 9, '2026-January-XYZ-1')
 chk.check(error is not None, 'unknown name accepted')
 
 # the geometry module validates the parameter (a failed validation ends the process: run it in a subprocess)
-for pars, expected_error in [(dict(bank_calibration='unknown-calibration'), 'Wrong bank_calibration value'),
-                             (dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, bank_calibration=ok_path),
-                              'only works with bank_calibration=nominal-geometry')]:
+for pars, expected_error in [(dict(bank_calibration='unknown-calibration'), 'Wrong bank_calibration value')]:
     code = ('import G4GeoLoki.GeoBCSBanks as GEO, G4GeoLokiTests.TestUtils as TU\n'
             'geo = GEO.create()\n' + ''.join(f'geo.{k} = {v!r}\n' for k, v in pars.items()) +
             'TU.construct_world(geo)\n')
@@ -117,6 +124,25 @@ for pars, expected_error in [(dict(bank_calibration='unknown-calibration'), 'Wro
     chk.check(result.returncode != 0 and message, f'{pars}: not rejected (exit code {result.returncode}: {result.stdout[-500:]})')
     shown = {k: (os.path.basename(v) if v == ok_path else v) for k, v in pars.items()}
     print(f'  geometry {shown}: rejected (exit code != 0: {result.returncode != 0}): {message[0].strip() if message else "NO"}')
+# the Larmor 2022 setup uses the nominal geometry, whatever bank_calibration is
+larmor = dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True)
+larmor_nominal = TU.world_tree() if construct(bank_calibration=NOMINAL, **larmor) is not None else None
+for value in (None, ok_path):  # the default calibration, a requested one
+    geo = GEO.create()
+    for k, v in larmor.items():
+        setattr(geo, k, v)
+    if value is not None:
+        geo.bank_calibration = value
+    with captured_fd_output() as lines:
+        TU.construct_world(geo)
+    tree = TU.world_tree()
+    same = [v[:4] for v in tree] == [v[:4] for v in larmor_nominal] and \
+        max(np.abs(np.array(a[4]) - np.array(b[4])).max() for a, b in zip(tree, larmor_nominal)) == 0.0
+    notes = [line for line in lines if 'is not used for the larmor_2022_experiment' in line]
+    chk.check(same and bool(notes) == (value is not None), f'Larmor 2022 with {value}: same {same}, notes {notes}')
+    shown = 'the default' if value is None else os.path.basename(value)
+    print(f'  Larmor 2022 with {shown} bank_calibration: the nominal geometry: {same}, note printed: {bool(notes)}')
+
 # the (x, y) pixel id assumes nominal banks
 pc_ok = TU.PixelCalc(REAR, 256, 9, ok_path)  # bank 3 calibrated
 error = raises(pc_ok.getPixelId, 3, 0, 3, 0.0, -500.0)
@@ -257,6 +283,118 @@ for rear_m in (5.0, 8.0):
     chk.check(nbad == 0, f'rear {rear_m} m: {nbad} bank 0 pixel centres not in their straw / other pixel id')
     print(f'  rear {rear_m:g} m: no overlaps (dense check): {not overlaps}, bank 0 pixel centres in their straw '
           f'with their pixel id: {nbad == 0}')
+
+
+print('=' * 90)
+print(f'4. The {SAM606} calibration')
+chk.check(not any(explicit.isBankCalibrated(b) for b in range(NBANKS)), 'nominal-geometry has calibrated banks')
+sam = LokiAim.AimHelper(REAR, 256, 9, SAM606)
+pc_sam = TU.PixelCalc(REAR, 256, 9, SAM606)
+print(f'{SAM606}: file {os.path.basename(pc_sam.getBankCalibrationFile())}, calibrated banks:',
+      [b for b in range(NBANKS) if sam.isBankCalibrated(b)])
+chk.check([b for b in range(NBANKS) if sam.isBankCalibrated(b)] == list(range(NBANKS)), 'SAM-606: not all banks')
+R0, t0 = transform(nominal, 0)
+R0s, t0s = transform(sam, 0)  # bank 0 of SAM-606 is REFERENCE_BANKS_DATA: the nominal placement
+chk.check(np.abs(R0 - R0s).max() < 1e-12 and np.abs(t0 - t0s).max() < 1e-9, 'SAM-606: bank 0 is not nominal')
+error = raises(pc_sam.getPixelId, 0, 0, 3, 0.0, 0.0)
+chk.check(error is not None, 'the 2D getPixelId accepted the calibrated rear bank')
+# the file values (read here independently of the C++ reader)
+fileF = {}
+with open(pc_sam.getBankCalibrationFile()) as f:
+    for line in f:
+        words = line.split()
+        if words and words[0] == 'bank':
+            values = np.array([float(v) for v in words[2:]])
+            fileF[int(words[1])] = values.reshape(4, 3)
+chk.check(sorted(fileF) == list(range(NBANKS)), 'the file does not have all 9 banks')
+for b in range(NBANKS):
+    F, u, w, n = fileF[b]
+    if b == 0:
+        F = np.array([F[0], F[1], REAR])  # the rear detector distance replaces the z of the file
+    s = -1.0 if b in UPSIDE_DOWN else 1.0
+    R, t = transform(sam, b)
+    chk.check(np.abs(R - np.column_stack([n, s * w, -s * u])).max() < 1e-15, f'bank {b}: rotation is not [n | s w | -s u]')
+    front = t + R @ np.array(TU.getFrontFaceCentreInBank(b))
+    chk.check(np.abs(front - F).max() < 1e-9, f'bank {b}: the front face centre is not F')
+    Rn, tn = transform(nominal, b)
+    angle = np.degrees(np.arccos(np.clip((np.trace(Rn.T @ R) - 1) / 2, -1, 1)))
+    print(f'  bank {b}: front face centre F {fmtvec(F, 3)} mm, bank centre moved by {fmtvec(t - tn, 3)} mm, '
+          f'rotated by {angle:.3f} deg from nominal')
+
+# Pixel positions of loki-geometry for the same survey (256 pixels per straw), hard-coded (banks 1-8; bank 0 is
+# REFERENCE_BANKS_DATA at z = 4999.8 mm in loki-geometry, Geant4 puts it at the rear detector distance):
+# compute_instrument_pixels(Detectors(get_measured_calibration_data(SAM606.path), True).formatted_data(decimals=12))
+# (pixel id = detector number - 1)
+LOKI_GEOMETRY_PIXELS = [
+    (401408, (496.326255, 710.454346, 2894.085240)),  # bank 1
+    (458829, (195.493490, 702.948630, 2947.270502)),  # bank 1
+    (516095, (-499.737467, 274.232101, 3030.251337)),  # bank 1
+    (516096, (536.619931, -250.309010, 3354.424904)),  # bank 2
+    (559181, (528.025926, -99.892536, 3407.663682)),  # bank 2
+    (602111, (211.189860, 247.997849, 3472.438523)),  # bank 2
+    (602112, (496.579326, -286.869033, 2934.778346)),  # bank 3
+    (659533, (195.776038, -279.687021, 2988.174609)),  # bank 3
+    (716799, (-499.312474, -699.567057, 2988.339350)),  # bank 3
+    (716800, (-225.518418, -249.875234, 3375.628210)),  # bank 4
+    (759885, (-217.116613, -99.402999, 3428.739943)),  # bank 4
+    (802815, (-523.508867, 248.047939, 3446.528306)),  # bank 4
+    (802816, (699.580079, 1092.452171, 1033.732948)),  # bank 5
+    (903245, (338.735694, 1095.711672, 1088.254358)),  # bank 5
+    (1003519, (-495.305032, 365.825460, 1354.211760)),  # bank 5
+    (1003520, (1192.550406, -614.694388, 1486.141780)),  # bank 6
+    (1118285, (1189.563705, -253.832893, 1540.565488)),  # bank 6
+    (1232895, (322.482482, 579.944908, 1743.400725)),  # bank 6
+    (1232896, (505.373319, -366.324032, 1254.012177)),  # bank 7
+    (1304653, (144.562282, -370.469061, 1308.693923)),  # bank 7
+    (1376255, (-689.051369, -891.882116, 1194.090183)),  # bank 7
+    (1376256, (-325.189538, -551.056837, 1645.128752)),  # bank 8
+    (1491021, (-323.054292, -190.161339, 1699.366736)),  # bank 8
+    (1605631, (-1189.239959, 642.836647, 1581.650662)),  # bank 8
+]
+worst = 0.0
+for p, expected in LOKI_GEOMETRY_PIXELS:
+    c = np.array(sam.getPixelCentreCoordinates(p, False, False))
+    worst = max(worst, np.abs(c - np.array(expected)).max())
+chk.check(worst < 1e-6, f'pixel centres differ from loki-geometry by {worst:.2e} mm')
+print(f'  pixel centres vs loki-geometry ({len(LOKI_GEOMETRY_PIXELS)} pixels, first / middle / last of banks 1-8): '
+      f'within 1e-6 mm: {worst < 1e-6}')
+
+for N in (8, 256):
+    a = LokiAim.AimHelper(REAR, N, 9, SAM606)
+    pc = TU.PixelCalc(REAR, N, 9, SAM606)
+    nbad = n = 0
+    for p in range(0, a.getTotalNumberOfPixels(), 1 if N == 8 else 13):
+        b = a.getBankId(p)
+        t = a.getTubeId(p, b)
+        s = a.getStrawId(p, b, t)
+        n += 1
+        if pc.getPixelId3D(b, t, s, *a.getPixelCentreCoordinates(p, False, False)) != p:
+            nbad += 1
+    chk.check(nbad == 0, f'{N} pixels/straw: {nbad} of {n} pixel centres give another pixel id')
+    print(f'  {N} pixels/straw: {n} pixel centres -> pixel id round trip OK: {nbad == 0}')
+
+# triangular masks: same placement relative to their bank as in the nominal geometry
+def masks_relative_to_bank(aim, **pars):
+    construct(**pars)
+    out = {}
+    for name, copy, lv, frame_rows, trans in TU.world_daughters():
+        if lv.startswith('BoronMask-triangular-'):
+            bank = int(lv.split('-')[2])
+            Rb, tb = transform(aim, bank)
+            Rm = np.array(frame_rows).T  # object rotation = inverse (transpose) of the frame rotation
+            out[lv] = (Rb.T @ Rm, Rb.T @ (np.array(trans) - tb))
+    return out
+masks_nominal = masks_relative_to_bank(nominal)
+masks_sam = masks_relative_to_bank(sam, bank_calibration=SAM606)
+chk.check(sorted(masks_nominal) == sorted(masks_sam) and len(masks_sam) == 4, 'triangular masks missing')
+for lv in sorted(masks_sam):
+    dR = np.abs(masks_nominal[lv][0] - masks_sam[lv][0]).max()
+    dt = np.abs(masks_nominal[lv][1] - masks_sam[lv][1]).max()
+    chk.check(dR < 1e-12 and dt < 1e-9, f'{lv}: placement in the bank changed ({dR:.1e}, {dt:.1e} mm)')
+    print(f'  {lv}: position in its bank {fmtvec(masks_sam[lv][1], 3)} mm, unchanged from nominal: {dR < 1e-12 and dt < 1e-9}')
+
+# notches: nominal, and they contain the overlap region of the bank boxes
+check_notches(SAM606, pc_sam)
 
 
 chk.finish()

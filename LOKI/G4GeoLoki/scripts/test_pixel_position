@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # Testing the pixel positions in all straws
-sb_g4geoloki_writepixelfile --rearDetectorDistance=5 --strawPixelNumber=2 --print
+sb_g4geoloki_writepixelfile --rearDetectorDistance=5 --strawPixelNumber=2 --bankCalibration=nominal-geometry --print

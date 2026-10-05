@@ -102,4 +102,6 @@ Larmor 2022 (GeoBCSBanks, larmor_2022_experiment, rear 4.099 m, beamstop 1, cali
 2 BoronMask-larmorCdCalibMask -5 BoronMask-larmorCdCalibMask (-297.500000, -7.027077, 4023.850000) [0.000000000 0.000000000 -1.000000000 0.000000000 1.000000000 0.000000000 1.000000000 0.000000000 0.000000000]
 2 BoronMask-larmorCdCalibMask -5 BoronMask-larmorCdCalibMask (-389.000000, -7.027077, 4023.850000) [0.000000000 0.000000000 -1.000000000 0.000000000 1.000000000 0.000000000 1.000000000 0.000000000 0.000000000]
 ==========================================================================================
-LOKI (GeoBCSBanks, defaults): 21364 volumes, sha256 of the listing 31a07fce082476f690359b0ce8a05060d1c83afc781a473c1c4a99ae69ae224d
+LOKI (GeoBCSBanks, bank_calibration=nominal-geometry): 21364 volumes, sha256 of the listing 31a07fce082476f690359b0ce8a05060d1c83afc781a473c1c4a99ae69ae224d
+==========================================================================================
+LOKI (GeoBCSBanks, defaults: bank_calibration=2026-September-SAM-606): 21364 volumes, sha256 of the listing 019e121bd345f150b12f623b769d9e491db5f3d5628830bd9d9d6edda19bf223

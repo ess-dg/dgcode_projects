@@ -17,7 +17,9 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
         gun.set_type('geantino')
 
         # bank placements of the geometry (exposed as geo_bank_calibration by the Launcher; nominal if not exposed)
-        bankCalibration = self.geo_bank_calibration if self.hasParameterString("geo_bank_calibration") else "nominal-geometry"
+        bankCalibration = self.geo_bank_calibration if self.hasParameterString("geo_bank_calibration") else LokiAim.NOMINAL_BANK_CALIBRATION
+        if self.geo_larmor_2022_experiment:  # the bank calibrations do not apply to the Larmor 2022 setup
+            bankCalibration = LokiAim.NOMINAL_BANK_CALIBRATION
         self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *units.m, self.aiming_straw_pixel_number, 9, bankCalibration)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
         loc_aiming_bank_id = self.aiming_bank_id if self.aiming_bank_id >= 0 else 0

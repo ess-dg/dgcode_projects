@@ -69,7 +69,7 @@ GeoBCS::GeoBCS()
 
   addParameterBoolean("old_tube_numbering", false);
   // bank placements: "nominal-geometry" or the name of a calibration in G4GeoLoki/data/bank_calibration_<name>.txt
-  // (or the path of such a file), see G4GeoLoki/BankCalibration.hh
+  // (or the path of such a file), see G4GeoLoki/BankCalibration.hh; not used for the larmor_2022_experiment
   addParameterString("bank_calibration", BankCalibration::defaultName);
 
   addParameterString("world_material","G4_Vacuum");
@@ -350,7 +350,11 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   const double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   const int numberOfBanks = larmor2022experiment ? 1 : 9;
-  banks = new BcsBanks(rear_detector_distance, numberOfBanks, getParameterString("bank_calibration"));
+  const std::string bankCalibration = BankCalibration::effectiveName(getParameterString("bank_calibration"), larmor2022experiment);
+  if (bankCalibration != getParameterString("bank_calibration") && getParameterString("bank_calibration") != BankCalibration::defaultName)
+    printf("GeoBCSBanks: bank_calibration=%s is not used for the larmor_2022_experiment (it uses %s)\n",
+           getParameterString("bank_calibration").c_str(), bankCalibration.c_str());
+  banks = new BcsBanks(rear_detector_distance, numberOfBanks, bankCalibration);
 
   // calculate a value that is big enough to fit your world volume, the "super mother"
   double big_dimension = 1.1*( 1 *Units::m + rear_detector_distance);
@@ -439,10 +443,6 @@ bool GeoBCS::validateParameters() {
   if(larmor2022experiment) {
     if (rear_detector_distance != 4.099 *Units::m) {
       printf("ERROR: Wrong rear_detector_distance_m value for the larmor_2022_experiment! (It should be 4.099)\n");
-      return false;
-    }
-    if (bankCalibration != BankCalibration::nominalName) {
-      printf("ERROR: The larmor_2022_experiment only works with bank_calibration=%s\n", BankCalibration::nominalName.c_str());
       return false;
     }
   }

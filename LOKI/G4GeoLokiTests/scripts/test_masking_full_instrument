@@ -15,6 +15,9 @@
 #   * every pixel was reached by a geantino (no coverage warning).
 # Pinned: the number of masked pixels per bank, a checksum of every mask file, and
 # the analysis counters (all geantinos, geantinos stopped in a mask before any straw).
+# Run for the nominal geometry and for the 2026-September-SAM-606 bank calibration
+# (survey-based placements, used by the geometry, the aiming and the analysis), with the
+# differences of the masks.
 
 import hashlib
 import os
@@ -26,18 +29,20 @@ import G4GeoLoki.LokiAimHelper as LokiAim
 from G4GeoLokiTests.testhelpers import Checker
 
 chk = Checker()
+NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+
 N = 8
 
-def run(calibration=None):
-    """calibration: None = nominal geometry (the default of the geometry), else bank_calibration=<name>"""
-    aim = LokiAim.AimHelper(5000.0, N) if calibration is None else LokiAim.AimHelper(5000.0, N, 9, calibration)
+def run(calibration=NOMINAL):
+    """calibration: the bank_calibration of the geometry (also used by the aiming and the analysis)"""
+    aim = LokiAim.AimHelper(5000.0, N) if calibration == NOMINAL else LokiAim.AimHelper(5000.0, N, 9, calibration)
     total = aim.getTotalNumberOfPixels()
-    d = 'run_full_instrument' if calibration is None else f'run_full_instrument_{calibration}'
+    d = 'run_full_instrument' if calibration == NOMINAL else f'run_full_instrument_{calibration}'
     os.makedirs(d, exist_ok=True)
     args = ['-lPL_Empty', f'-n{total}', '-j1', f'aiming_straw_pixel_number={N}', f'analysis_straw_pixel_number={N}',
             'rear_detector_distance_m=5', 'masking_only=False']
-    if calibration is not None:
-        args.append(f'bank_calibration={calibration}')  # also used by the aiming (MaskingSourceGen) and the analysis
+    args.append(f'bank_calibration={calibration}')  # also used by the aiming (MaskingSourceGen) and the analysis
+    if calibration != NOMINAL:
         print('=' * 90)
         print(f'bank_calibration={calibration}')
     sim = subprocess.run(['sb_lokimasking_sim'] + args, cwd=d, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -77,6 +82,11 @@ def run(calibration=None):
               f'detector numbers {lo + 1}..{hi}, file sha256 {hashlib.sha256(raw).hexdigest()[:16]}')
     return masked
 
-run()
+nominal = run()
+calibrated = run('2026-September-SAM-606')
+if nominal and calibrated:
+    print('Masked pixels with the SAM-606 calibration compared with the nominal geometry:')
+    for b in range(9):
+        print(f'  bank {b}: {len(calibrated[b] - nominal[b])} more masked, {len(nominal[b] - calibrated[b])} no longer masked')
 
 chk.finish()

@@ -96,8 +96,9 @@ int main(int argc, char**argv) {
     preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
 
-  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
-  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal; Larmor 2022: nominal)
+  const std::string bankCalibration = BankCalibration::effectiveName(geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName,
+                                                                   geo.hasParameterBoolean("larmor_2022_experiment") && geo.getParameterBoolean("larmor_2022_experiment"));
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;

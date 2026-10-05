@@ -20,6 +20,8 @@
 # masking would mask - with the absorbers crossed first, and the mean number of
 # straws crossed per geantino. (Most middle and rear bank pixels are seen from
 # the sample only past the boron masks / B4C panels of the banks in front.)
+# Run for the nominal geometry and for the 2026-September-SAM-606 bank calibration
+# (survey-based placements: geometry, aiming and analysis use the calibration).
 # Also checked: the exit point of every Converter crossing (the point the masking
 # analysis converts to a pixel id) gives a pixel of that same straw.
 
@@ -32,13 +34,16 @@ import G4GeoLokiTests.TestUtils as TU
 from G4GeoLokiTests.testhelpers import Checker, NSTRAWS
 
 chk = Checker()
+NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
-def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=None):
+
+def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=NOMINAL):
     print('=' * 90)
     print(title)
-    if calibration:  # the geometry, the aiming and the analysis use the same bank calibration
+    # the geometry, the aiming and the analysis use the same bank calibration
+    geo_args = geo_args + [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
+    if calibration != NOMINAL:
         aim = LokiAim.AimHelper(rear_m * 1000, n, nbanks, calibration)
-        geo_args = geo_args + [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
     else:
         aim = LokiAim.AimHelper(rear_m * 1000, n) if nbanks == 9 else LokiAim.AimHelper(rear_m * 1000, n, nbanks)
     targets = []
@@ -109,5 +114,9 @@ run('LOKI, rear 5 m, new numbering', 5.0, 256, 9, False, False, [])
 run('LOKI, rear 10 m, old numbering, beamstop', 10.0, 512, 9, True, False, ['old_tube_numbering=True', 'beamstop_id=3'])
 run('LOKI, rear 7.3 m, calibration slits', 7.3, 64, 9, False, False, ['with_calibration_slits=True'])
 run('Larmor 2022', 4.099, 512, 1, False, True, ['larmor_2022_experiment=True', 'beamstop_id=1'])
+run('LOKI SAM-606 bank calibration, rear 5 m, new numbering', 5.0, 256, 9, False, False, [],
+    calibration='2026-September-SAM-606')
+run('LOKI SAM-606 bank calibration, rear 10 m, old numbering, beamstop, calibration slits', 10.0, 64, 9, True, False,
+    ['old_tube_numbering=True', 'beamstop_id=3', 'with_calibration_slits=True'], calibration='2026-September-SAM-606')
 
 chk.finish()

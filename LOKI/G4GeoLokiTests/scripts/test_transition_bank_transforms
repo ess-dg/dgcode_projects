@@ -53,6 +53,7 @@ for title, rear, n, nbanks, larmor, params in setups:
               f'({fmt(t[0], 3)}, {fmt(t[1], 3)}, {fmt(t[2], 3)}) mm')
 
     geo = GEO.create()
+    geo.bank_calibration = 'nominal-geometry'  # the original geometry (not the default calibration)
     for k, v in params.items():
         setattr(geo, k, v)
     with captured_fd_output():
