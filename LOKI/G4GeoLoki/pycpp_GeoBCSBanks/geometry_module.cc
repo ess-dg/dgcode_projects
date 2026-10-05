@@ -68,7 +68,7 @@ GeoBCS::GeoBCS()
   addParameterBoolean("with_calibration_slits", false);
 
   addParameterBoolean("old_tube_numbering", false);
-  // bank placements: "nominal-geometry" or the name of a calibration in G4GeoLoki/data/bank_calibration_<name>.txt
+  // bank placements: "nominal-geant4-geometry" or the name of a calibration in G4GeoLoki/data/bank_calibration_<name>.txt
   // (or the path of such a file), see G4GeoLoki/BankCalibration.hh; not used for the larmor_2022_experiment
   addParameterString("bank_calibration", BankCalibration::defaultName);
 

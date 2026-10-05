@@ -30,7 +30,7 @@ SETUPS = {
     'larmor2022': ('Larmor 2022 (GeoBCSBanks, larmor_2022_experiment, rear 4.099 m, beamstop 1, calibration slits)',
                    'GeoBCSBanks', dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1,
                                        with_calibration_slits=True)),
-    'loki': ('LOKI (GeoBCSBanks, bank_calibration=nominal-geometry)', 'GeoBCSBanks', dict(bank_calibration='nominal-geometry')),
+    'loki': ('LOKI (GeoBCSBanks, bank_calibration=nominal-geant4-geometry)', 'GeoBCSBanks', dict(bank_calibration='nominal-geant4-geometry')),
     'loki_default': ('LOKI (GeoBCSBanks, defaults: bank_calibration=2026-September-SAM-606)', 'GeoBCSBanks', {}),
 }
 

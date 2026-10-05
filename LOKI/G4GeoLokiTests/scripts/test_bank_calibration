@@ -3,7 +3,7 @@
 # Tests of the named bank calibrations (geometry parameter bank_calibration, G4GeoLoki
 # BankCalibration + BcsBanks::getBankTransform):
 #
-#  1. Names and files: nominal-geometry (no calibrated bank, the default of the C++ classes), the
+#  1. Names and files: nominal-geant4-geometry (no calibrated bank, the default of the C++ classes), the
 #     default calibration of the geometry and the scripts, unknown names and invalid files are
 #     rejected with an error (C++ reader), the Larmor 2022 setup always uses the nominal
 #     geometry (with a note if another calibration than the default is requested) and the
@@ -37,7 +37,7 @@ from G4GeoLokiTests.testhelpers import Checker, captured_fd_output, fmtvec, NBAN
 
 chk = Checker()
 SAM606 = '2026-September-SAM-606'
-NOMINAL = 'nominal-geometry'
+NOMINAL = 'nominal-geant4-geometry'
 REAR = 5000.0
 UPSIDE_DOWN = (1, 2, 5, 6)
 
@@ -287,7 +287,7 @@ for rear_m in (5.0, 8.0):
 
 print('=' * 90)
 print(f'4. The {SAM606} calibration')
-chk.check(not any(explicit.isBankCalibrated(b) for b in range(NBANKS)), 'nominal-geometry has calibrated banks')
+chk.check(not any(explicit.isBankCalibrated(b) for b in range(NBANKS)), 'nominal-geant4-geometry has calibrated banks')
 sam = LokiAim.AimHelper(REAR, 256, 9, SAM606)
 pc_sam = TU.PixelCalc(REAR, 256, 9, SAM606)
 print(f'{SAM606}: file {os.path.basename(pc_sam.getBankCalibrationFile())}, calibrated banks:',

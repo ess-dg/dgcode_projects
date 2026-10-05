@@ -1,9 +1,9 @@
 ==========================================================================================
 1. Names and files
 default bank calibration (geometry parameter and scripts): 2026-September-SAM-606
-  bank_calibration='unknown-calibration': BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geometry' or the name of a file in G4GeoLoki/data)
-  bank_calibration='': BankCalibration: empty calibration name (use 'nominal-geometry' for the nominal geometry)
-  bank_calibration='nominal': BankCalibration: unknown bank calibration 'nominal' (no data file G4GeoLoki/bank_calibration_nominal.txt; use 'nominal-geometry' or the name of a file in G4GeoLoki/data)
+  bank_calibration='unknown-calibration': BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
+  bank_calibration='': BankCalibration: empty calibration name (use 'nominal-geant4-geometry' for the nominal geometry)
+  bank_calibration='nominal': BankCalibration: unknown bank calibration 'nominal' (no data file G4GeoLoki/bank_calibration_nominal.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
   no format line            : 3: the first line must be 'loki_bank_calibration <version>'
   unsupported version       : 3: unsupported format version 2 (supported: 1)
   bank before name          : 4: the 'name' line must come before the bank lines
@@ -20,7 +20,7 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   normal towards the sample : 5: the layer normal n must point away from the sample
   unknown line              : 5: unknown line 'banks'
   no name                   : 3: incomplete file (the 'loki_bank_calibration' and 'name' lines are required)
-  geometry {'bank_calibration': 'unknown-calibration'}: rejected (exit code != 0: True): ERROR: Wrong bank_calibration value: BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geometry' or the name of a file in G4GeoLoki/data)
+  geometry {'bank_calibration': 'unknown-calibration'}: rejected (exit code != 0: True): ERROR: Wrong bank_calibration value: BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
   Larmor 2022 with the default bank_calibration: the nominal geometry: True, note printed: False
   Larmor 2022 with good.txt bank_calibration: the nominal geometry: True, note printed: True
 ==========================================================================================
@@ -34,8 +34,8 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   built geometry defaults: 21364 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
   built geometry {'rear_detector_distance_m': 10.0, 'beamstop_id': 3, 'with_calibration_slits': True}: 21471 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
   built geometry {'old_tube_numbering': True}: 21364 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
-  nominal-geometry: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 0.38 mm), notch nominal: True
-  nominal-geometry: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 0.82 mm), notch nominal: True
+  nominal-geant4-geometry: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 0.38 mm), notch nominal: True
+  nominal-geant4-geometry: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 0.82 mm), notch nominal: True
 ==========================================================================================
 3. A calibrated rear bank, shifted and rotated
   rear 5 m: front face centre (3.000, -2.000, 5000.000) mm (z = rear distance), beamstop centre (0.000, 0.000, 4950.015) mm: on the beam axis and 50.000 mm in front of the detector front

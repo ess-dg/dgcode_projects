@@ -6,7 +6,7 @@
 
 /// Named calibration of the LOKI detector bank placements (e.g. from a survey).
 ///
-/// The name "nominal-geometry" means the built-in nominal bank placements (no file).
+/// The name "nominal-geant4-geometry" means the built-in nominal bank placements (no file).
 /// Any other name selects the data file G4GeoLoki/data/bank_calibration_<name>.txt; a value
 /// containing a '/' is used as the path of a calibration file directly.
 ///
@@ -33,7 +33,7 @@ public:
     std::array<double,3> layerNormal;     // n
   };
 
-  static const std::string nominalName; // "nominal-geometry"
+  static const std::string nominalName; // "nominal-geant4-geometry"
   /// The calibration used by default (the default of the bank_calibration geometry parameter and of the scripts).
   static const std::string defaultName;
   /// The calibration that is used for the bank_calibration parameter value name: the LOKI bank calibrations do not

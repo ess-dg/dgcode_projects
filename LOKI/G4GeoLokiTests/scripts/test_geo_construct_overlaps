@@ -20,7 +20,7 @@ import G4GeoLoki.GeoBCSBanks as GEO
 import G4GeoLokiTests.TestUtils as TU
 from G4GeoLokiTests.testhelpers import captured_fd_output
 
-NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 configs = [
     dict(bank_calibration=NOMINAL),
     dict(bank_calibration=NOMINAL, old_tube_numbering=True),

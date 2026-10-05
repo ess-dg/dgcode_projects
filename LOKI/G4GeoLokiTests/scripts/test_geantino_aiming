@@ -34,7 +34,7 @@ import G4GeoLokiTests.TestUtils as TU
 from G4GeoLokiTests.testhelpers import Checker, NSTRAWS
 
 chk = Checker()
-NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
 
 def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=NOMINAL):

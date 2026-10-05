@@ -1,5 +1,5 @@
 ================================================================================
-Configuration: bank_calibration=nominal-geometry
+Configuration: bank_calibration=nominal-geant4-geometry
 World daughters: 13
 Total placements checked for overlaps: 6579
    AlPanel                          checked:   224  problems: 0
@@ -25,7 +25,7 @@ Total placements checked for overlaps: 6579
    StrawWall                        checked:  1568  problems: 0
    TubeWall                         checked:   896  problems: 0
 ================================================================================
-Configuration: bank_calibration=nominal-geometry, old_tube_numbering=True
+Configuration: bank_calibration=nominal-geant4-geometry, old_tube_numbering=True
 World daughters: 13
 Total placements checked for overlaps: 6579
    AlPanel                          checked:   224  problems: 0
@@ -51,7 +51,7 @@ Total placements checked for overlaps: 6579
    StrawWall                        checked:  1568  problems: 0
    TubeWall                         checked:   896  problems: 0
 ================================================================================
-Configuration: bank_calibration=nominal-geometry, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True
+Configuration: bank_calibration=nominal-geant4-geometry, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True
 World daughters: 13
 Total placements checked for overlaps: 6686
    AlPanel                          checked:   224  problems: 0

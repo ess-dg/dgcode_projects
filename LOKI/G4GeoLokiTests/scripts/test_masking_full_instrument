@@ -29,7 +29,7 @@ import G4GeoLoki.LokiAimHelper as LokiAim
 from G4GeoLokiTests.testhelpers import Checker
 
 chk = Checker()
-NOMINAL = 'nominal-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
 N = 8
 
