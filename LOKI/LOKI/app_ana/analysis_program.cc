@@ -96,15 +96,17 @@ int main(int argc, char**argv) {
     preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
 
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
   if(userData.count("analysis_straw_pixel_number")){
     strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::getNumberOfPixelsInStraw(0), 9, bankCalibration);
     strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
   }
 

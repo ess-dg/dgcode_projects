@@ -111,13 +111,15 @@ int main(int argc, char**argv) {
 
   SimpleHists::HistCollection hc;
 
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
   PixelatedBanks* banks;
   if(userData.count("analysis_straw_pixel_number")){
     const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::getNumberOfPixelsInStraw(0), 9, bankCalibration);
   }
 
   DetectionFileCreator* detectionFile = nullptr;

@@ -9,6 +9,9 @@
 #include "G4Transform3D.hh"
 #include "G4Vector3D.hh"
 #include "G4SubtractionSolid.hh"
+#include "G4AffineTransform.hh"
+#include <algorithm>
+#include <stdexcept>
 #include <cmath>
 #include <string>
 #include <cassert>
@@ -39,6 +42,19 @@ private:
 // this line is necessary to be able to declare the geometry in the python simulation script
 PYTHON_MODULE( mod ) { GeoConstructPyExport::exportGeo<GeoBCS>(mod, "GeoBCSBanks"); }
 
+namespace {
+  // object rotation of a bank (the columns are the bank-local axes in the world)
+  G4RotationMatrix toG4Rotation(const BankTransform& transform) {
+    const auto& R = transform.rotation;
+    return G4RotationMatrix(G4ThreeVector(R[0][0], R[1][0], R[2][0]),
+                            G4ThreeVector(R[0][1], R[1][1], R[2][1]),
+                            G4ThreeVector(R[0][2], R[1][2], R[2][2]));
+  }
+  G4ThreeVector toG4Vector(const std::array<double,3>& v) {
+    return G4ThreeVector(v[0], v[1], v[2]);
+  }
+}
+
 ////////////////////////////////////////////
 // Implementation of our geometry module: //
 ////////////////////////////////////////////
@@ -52,6 +68,9 @@ GeoBCS::GeoBCS()
   addParameterBoolean("with_calibration_slits", false);
 
   addParameterBoolean("old_tube_numbering", false);
+  // bank placements: "nominal-geometry" or the name of a calibration in G4GeoLoki/data/bank_calibration_<name>.txt
+  // (or the path of such a file), see G4GeoLoki/BankCalibration.hh
+  addParameterString("bank_calibration", BankCalibration::defaultName);
 
   addParameterString("world_material","G4_Vacuum");
   addParameterString("B4C_panel_material","MAT_B4C:b10_enrichment=0.95");
@@ -186,10 +205,15 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
                                      BcsPack::packBoxFillMaterial, "Bank");
 
   // override lv_bank to subtract some empty part of front left and right banks where front top and bottom banks would overlap with them
-  if (bankId == 8 || bankId == 6) {
+  // (the notch is computed from the bank placements in use, see BcsBanks::getBankNotch)
+  if (banks->hasBankNotch(bankId)) {
+    const auto notch = banks->getBankNotch(bankId);
+    if (!notch.isNominal)
+      printf("GeoBCSBanks: bank %d: notch enlarged for bank_calibration=%s to the half sizes (%g, %g, %g) mm at (%g, %g, %g) mm (nominal: (15, 70, 60) mm at (-145, -42, -425) mm)\n",
+             bankId, banks->getBankCalibration().name().c_str(), notch.halfSize[0], notch.halfSize[1], notch.halfSize[2], notch.centre[0], notch.centre[1], notch.centre[2]);
     auto fullBankBox = new G4Box("EmptyPanelBox", bankSizeZHalf, bankSizeYHalf, bankSizeXHalf);
-    auto bankBoxCut = new G4Box("EmptyPanelBox", 15.0, 70.0, 60.0);
-    auto bankBox = new G4SubtractionSolid("EmptyPanelBox", fullBankBox, bankBoxCut, 0, G4ThreeVector(-145.0, -42.0, -425.0));
+    auto bankBoxCut = new G4Box("EmptyPanelBox", notch.halfSize[0], notch.halfSize[1], notch.halfSize[2]);
+    auto bankBox = new G4SubtractionSolid("EmptyPanelBox", fullBankBox, bankBoxCut, 0, G4ThreeVector(notch.centre[0], notch.centre[1], notch.centre[2]));
 
     lv_bank = new G4LogicalVolume(bankBox, BcsPack::packBoxFillMaterial, "Bank");
   }
@@ -228,9 +252,20 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     const double height = banks->getBeamstopSize(beamstopId, 1);
     const double thickness = banks->getBeamstopSize(beamstopId, 2);
 
+    // depth in the bank: 5 cm in front of the detector front
+    G4ThreeVector position(-bankSizeZHalf + detBankFrontDistance - distanceFromDetectorFront, -verticalPosition, 0);
+    if (banks->isBankCalibrated(bankId)) {
+      // keep it on the beam axis (x = y = 0): the point of the beam axis at that depth, in the bank frame
+      const BankTransform transform = banks->getBankTransform(bankId);
+      const auto& R = transform.rotation;
+      const auto& t = transform.translation;
+      const double z = (position.x() + R[0][0]*t[0] + R[1][0]*t[1] + R[2][0]*t[2]) / R[2][0]; // n.(P - t) = depth
+      const auto local = transform.toLocal({0.0, 0.0, z});
+      position = G4ThreeVector(local[0], local[1], local[2]);
+    }
     place(new G4Box(maskName, 0.5* thickness, 0.5* height, 0.5* width),
           BoronMasks::maskMaterial,
-          -bankSizeZHalf + detBankFrontDistance - distanceFromDetectorFront, -verticalPosition, 0,
+          position.x(), position.y(), position.z(),
           lv_bank, BLACK, -5, 0, new G4RotationMatrix());
   }
 
@@ -243,6 +278,38 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     place(lv_calibrationMask,
           banks->getCalibMaskPosition(calibMask, bankId, 2), banks->getCalibMaskPosition(calibMask, bankId, 1), banks->getCalibMaskPosition(calibMask, bankId, 0),
           lv_bank, PURPLE, -5, 0, new G4RotationMatrix());
+  }
+
+  // An enlarged notch must not cut into the content of the bank (packs, masks): it is only meant to remove empty
+  // space of the bank volume. (Conservative check with the bounding boxes of the daughters in the bank frame.)
+  if (banks->hasBankNotch(bankId) && !banks->getBankNotch(bankId).isNominal) {
+    const auto notch = banks->getBankNotch(bankId);
+    for (size_t i = 0; i < lv_bank->GetNoDaughters(); i++) {
+      const auto daughter = lv_bank->GetDaughter(i);
+      G4ThreeVector localMin, localMax;
+      daughter->GetLogicalVolume()->GetSolid()->BoundingLimits(localMin, localMax);
+      const G4RotationMatrix* frameRotation = daughter->GetRotation();
+      const G4AffineTransform toBank = frameRotation ? G4AffineTransform(frameRotation, daughter->GetTranslation()) : G4AffineTransform(daughter->GetTranslation());
+      G4ThreeVector low(1e99, 1e99, 1e99), high(-1e99, -1e99, -1e99);
+      for (int corner = 0; corner < 8; corner++) {
+        const G4ThreeVector p = toBank.TransformPoint(G4ThreeVector(corner & 1 ? localMax.x() : localMin.x(),
+                                                                    corner & 2 ? localMax.y() : localMin.y(),
+                                                                    corner & 4 ? localMax.z() : localMin.z()));
+        for (int k = 0; k < 3; k++) {
+          low[k] = std::min(low[k], p[k]);
+          high[k] = std::max(high[k], p[k]);
+        }
+      }
+      bool apart = false;
+      for (int k = 0; k < 3; k++)
+        if (high[k] <= notch.centre[k] - notch.halfSize[k] || low[k] >= notch.centre[k] + notch.halfSize[k])
+          apart = true;
+      if (!apart)
+        throw std::runtime_error("GeoBCSBanks: bank_calibration=" + banks->getBankCalibration().name() + ": the notch of bank "
+                                 + std::to_string(bankId) + ", enlarged because bank " + std::to_string(banks->getBankNotchNeighbour(bankId))
+                                 + " overlaps it, would cut into " + std::string(daughter->GetName())
+                                 + ": the two banks collide (check the calibration)");
+    }
   }
 
   return lv_bank;
@@ -283,7 +350,7 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   const double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   const int numberOfBanks = larmor2022experiment ? 1 : 9;
-  banks = new BcsBanks(rear_detector_distance, numberOfBanks);
+  banks = new BcsBanks(rear_detector_distance, numberOfBanks, getParameterString("bank_calibration"));
 
   // calculate a value that is big enough to fit your world volume, the "super mother"
   double big_dimension = 1.1*( 1 *Units::m + rear_detector_distance);
@@ -300,12 +367,8 @@ G4VPhysicalVolume* GeoBCS::Construct(){
 
     // bank placement (the same transform as used by AimHelper and PixelatedBanks)
     const BankTransform transform = banks->getBankTransform(bankId, larmor2022experiment);
-    const auto& R = transform.rotation;
-    const G4RotationMatrix bankRotation(G4ThreeVector(R[0][0], R[1][0], R[2][0]),
-                                       G4ThreeVector(R[0][1], R[1][1], R[2][1]),
-                                       G4ThreeVector(R[0][2], R[1][2], R[2][2]));
     // G4PVPlacement takes the frame rotation, i.e. the inverse of the bank rotation
-    auto rotation = new G4RotationMatrix(bankRotation.inverse());
+    auto rotation = new G4RotationMatrix(toG4Rotation(transform).inverse());
 
     place(lv_bank, transform.translation[0], transform.translation[1], transform.translation[2], lvWorld, ORANGE, bankId, 0, rotation);
   }
@@ -320,10 +383,23 @@ G4VPhysicalVolume* GeoBCS::Construct(){
 
       auto rotation = new G4RotationMatrix();
       rotation->rotateX(banks->getBankRotation(bankId, 2) * rotateDir);
+      G4ThreeVector position(banks->getTriangularBoronMaskPosition(maskId, 0), banks->getTriangularBoronMaskPosition(maskId, 1), banks->getTriangularBoronMaskPosition(maskId, 2));
 
-      place(lv_triangularMask,
-            banks->getTriangularBoronMaskPosition(maskId, 0),banks->getTriangularBoronMaskPosition(maskId, 1),banks->getTriangularBoronMaskPosition(maskId, 2),
-            lvWorld, BLACK, -5, 0, rotation);
+      if (banks->isBankCalibrated(bankId)) {
+        // The mask is mounted on the bank: keep its nominal placement relative to the bank,
+        // T_mask = T_bank * T_nominal_bank^-1 * T_nominal_mask (object rotations = inverse frame rotations)
+        const BankTransform nominalBank = banks->getNominalBankTransform(bankId);
+        const BankTransform bank = banks->getBankTransform(bankId);
+        const G4RotationMatrix nominalBankRotation = toG4Rotation(nominalBank);
+        const G4RotationMatrix bankRotation = toG4Rotation(bank);
+
+        const G4RotationMatrix maskRotationInBank = nominalBankRotation.inverse() * rotation->inverse();
+        const G4ThreeVector maskPositionInBank = nominalBankRotation.inverse() * (position - toG4Vector(nominalBank.translation));
+        *rotation = (bankRotation * maskRotationInBank).inverse();
+        position = bankRotation * maskPositionInBank + toG4Vector(bank.translation);
+      }
+
+      place(lv_triangularMask, position.x(), position.y(), position.z(), lvWorld, BLACK, -5, 0, rotation);
     }
   }
 
@@ -352,9 +428,21 @@ bool GeoBCS::validateParameters() {
   // a nice example: Projects/SingleCell/G4GeoSingleCell/libsrc/GeoB10SingleCell.cc
   double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
   const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
+  const std::string bankCalibration = getParameterString("bank_calibration");
+  try {
+    BankCalibration::load(bankCalibration);
+  }
+  catch (const std::exception& error) {
+    printf("ERROR: Wrong bank_calibration value: %s\n", error.what());
+    return false;
+  }
   if(larmor2022experiment) {
     if (rear_detector_distance != 4.099 *Units::m) {
       printf("ERROR: Wrong rear_detector_distance_m value for the larmor_2022_experiment! (It should be 4.099)\n");
+      return false;
+    }
+    if (bankCalibration != BankCalibration::nominalName) {
+      printf("ERROR: The larmor_2022_experiment only works with bank_calibration=%s\n", BankCalibration::nominalName.c_str());
       return false;
     }
   }

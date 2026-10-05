@@ -15,6 +15,7 @@ class PixelTargetGen(G4CustomPyGen.GenBase):
         self.addParameterString("particle", "neutron")
         self.addParameterDouble("neutron_wavelength_aangstrom", 4.0)
         self.addParameterBoolean("aiming_larmor_2022_experiment", False)
+        self.addParameterString("aiming_bank_calibration", LokiAim.DEFAULT_BANK_CALIBRATION)
 
     def init_generator(self, gun):
         gun.set_type(self.particle)
@@ -24,7 +25,7 @@ class PixelTargetGen(G4CustomPyGen.GenBase):
         if self.aiming_larmor_2022_experiment:
             self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 1)
         else:
-            self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number)
+            self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 9, self.aiming_bank_calibration)
         self._targets = [int(e) for e in self.target_pixel_ids.split(',')]
         self._i = 0
 

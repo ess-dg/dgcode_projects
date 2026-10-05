@@ -11,6 +11,7 @@ parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, 
 parser.add_argument('-s', '--strawPixelNumber', type=int, help = 'Pixel number per straw (defaults to the value defined in the PixelatedBanks class)')
 parser.add_argument('-t', '--tolerance', default=0.0001, type=float, help = 'Absolute difference in pixel position to tolerate [m].')
 parser.add_argument('--printPixelNumber', default=8, type=int, help = 'Number of first N pixels to print the positions of in each bank.')
+parser.add_argument('--bankCalibration', default=None, help = 'Bank placements of the Geant4 geometry: nominal-geometry, the name of a bank calibration in G4GeoLoki/data or the path of a calibration file (passed to writePixelFile; default: the default of writePixelFile).')
 args = parser.parse_args()
 
 
@@ -70,6 +71,8 @@ def createWritePixelFileCommad(isLarmor2022experiment, rearDetectorDistance, str
     command += f' --rearDetectorDistance={rearDetectorDistance} --bankId={bankId}'
     if args.strawPixelNumber:
       command += f' --strawPixelNumber={strawPixelNumber}'
+    if args.bankCalibration is not None:
+      command += f" --bankCalibration='{args.bankCalibration}'"
   print(command)
   return command
 

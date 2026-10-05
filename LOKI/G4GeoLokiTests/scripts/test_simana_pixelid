@@ -40,90 +40,106 @@ chk = Checker()
 N = 16
 REPEAT = 20
 REAR = 5000.0
-aim = LokiAim.AimHelper(REAR, N)
-pc = TU.PixelCalc(REAR, N, NBANKS)
+def run(calibration=None):
+    """calibration: None = the nominal geometry (default of the geometry), else the bank_calibration of the
+    geometry, the aiming and the analysis"""
+    calibration_args = [] if calibration is None else [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
+    if calibration is None:
+        aim = LokiAim.AimHelper(REAR, N)
+        pc = TU.PixelCalc(REAR, N, NBANKS)
+    else:
+        aim = LokiAim.AimHelper(REAR, N, NBANKS, calibration)
+        pc = TU.PixelCalc(REAR, N, NBANKS, calibration)
+        print('=' * 90)
+        print(f'bank_calibration={calibration}')
 
-targets = []
-for b in range(NBANKS):
-    nPacks = TU.getNumberOfPacksByBankId(b)
-    tube = 0 * 2 * nPacks + nPacks  # layer 0 (front), middle row
-    for j in (4, N - 5):
-        targets.append(aim.getBankPixelOffset(b) + (tube * NSTRAWS + 3) * N + j)
+    targets = []
+    for b in range(NBANKS):
+        nPacks = TU.getNumberOfPacksByBankId(b)
+        tube = 0 * 2 * nPacks + nPacks  # layer 0 (front), middle row
+        for j in (4, N - 5):
+            targets.append(aim.getBankPixelOffset(b) + (tube * NSTRAWS + 3) * N + j)
 
-def decode(p):
-    b = aim.getBankId(p)
-    t = aim.getTubeId(p, b)
-    return (b, t, aim.getStrawId(p, b, t), p % N)
+    def decode(p):
+        b = aim.getBankId(p)
+        t = aim.getTubeId(p, b)
+        return (b, t, aim.getStrawId(p, b, t), p % N)
 
-print('Targets (pixelId: bank, tube, straw, pixel):', ', '.join(f'{p}: {decode(p)}' for p in targets))
-nevts = len(targets) * REPEAT
-sim = subprocess.run(['sb_g4geolokitests_simpixeltargets', '-lQGSP_BIC_HP', f'-n{nevts}', '--seed=123456789',
-                      f'target_pixel_ids={",".join(map(str, targets))}', f'repeat={REPEAT}',
-                      f'rear_detector_distance_mm={REAR}', 'rear_detector_distance_m=5.0',
-                      f'aiming_straw_pixel_number={N}', f'analysis_straw_pixel_number={N}',
-                      'neutron_wavelength_aangstrom=6.0'],
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-if sim.returncode != 0:
-    print(sim.stdout[-5000:])
-    print('TEST FAILED: simulation failed')
-    sys.exit(1)
-ana = subprocess.run(['sb_loki_ana', 'pixeltargets.griff'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-if ana.returncode != 0:
-    print(ana.stdout[-5000:])
-    print('TEST FAILED: analysis failed')
-    sys.exit(1)
-for line in ana.stdout.splitlines():
-    if line.startswith(('Total number of pixels', 'Number of pixels per straw', 'Number of straws')):
-        print('ana:', line)
+    print('Targets (pixelId: bank, tube, straw, pixel):', ', '.join(f'{p}: {decode(p)}' for p in targets))
+    nevts = len(targets) * REPEAT
+    sim = subprocess.run(['sb_g4geolokitests_simpixeltargets', '-lQGSP_BIC_HP', f'-n{nevts}', '--seed=123456789',
+                          f'target_pixel_ids={",".join(map(str, targets))}', f'repeat={REPEAT}',
+                          f'rear_detector_distance_mm={REAR}', 'rear_detector_distance_m=5.0',
+                          f'aiming_straw_pixel_number={N}', f'analysis_straw_pixel_number={N}',
+                          'neutron_wavelength_aangstrom=6.0'] + calibration_args,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if sim.returncode != 0:
+        print(sim.stdout[-5000:])
+        print('TEST FAILED: simulation failed')
+        sys.exit(1)
+    ana = subprocess.run(['sb_loki_ana', 'pixeltargets.griff'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if ana.returncode != 0:
+        print(ana.stdout[-5000:])
+        print('TEST FAILED: analysis failed')
+        sys.exit(1)
+    for line in ana.stdout.splitlines():
+        if line.startswith(('Total number of pixels', 'Number of pixels per straw', 'Number of straws')):
+            print('ana:', line)
 
-# Conversion points from the GRIFF file:
-conv = []  # (event index, target pixel, conversion pixel)
-nscattered = 0
-with captured_fd_output():  # swallow the 'GriffDataReader opened file' message (stable logs)
-    dr = GriffDataRead.GriffDataReader('pixeltargets.griff')
-ievt = 0
-while dr.loopEvents():
-    target = targets[ievt // REPEAT]
-    for trk in dr.primaryTracks:
-        if trk.pdgCode() != 2112:
-            continue
-        seg = trk.lastSegment()
-        if seg.volumeName() != 'Converter':
-            continue
-        st = seg.lastStep()
-        names = [seg.volumeName(d) for d in range(7)]
-        chk.check(names == ['Converter', 'StrawWall', 'EmptyTube', 'TubeWall', 'EmptyPackBox', 'Bank', 'World'],
-                  f'unexpected volume chain {names}')
-        b, t, s = seg.volumeCopyNumber(5), seg.volumeCopyNumber(3), seg.volumeCopyNumber(1)
-        p = pc.getPixelId(b, t, s, st.postGlobalX(), st.postGlobalY())
-        conv.append((ievt, target, p))
-        tb, _, _, tj = decode(target)
-        if b == tb and p % N != tj:
-            nscattered += 1
-    ievt += 1
-chk.check(ievt == nevts, f'number of events in griff file {ievt} != {nevts}')
+    # Conversion points from the GRIFF file:
+    conv = []  # (event index, target pixel, conversion pixel)
+    nscattered = 0
+    with captured_fd_output():  # swallow the 'GriffDataReader opened file' message (stable logs)
+        dr = GriffDataRead.GriffDataReader('pixeltargets.griff')
+    ievt = 0
+    while dr.loopEvents():
+        target = targets[ievt // REPEAT]
+        for trk in dr.primaryTracks:
+            if trk.pdgCode() != 2112:
+                continue
+            seg = trk.lastSegment()
+            if seg.volumeName() != 'Converter':
+                continue
+            st = seg.lastStep()
+            names = [seg.volumeName(d) for d in range(7)]
+            chk.check(names == ['Converter', 'StrawWall', 'EmptyTube', 'TubeWall', 'EmptyPackBox', 'Bank', 'World'],
+                      f'unexpected volume chain {names}')
+            b, t, s = seg.volumeCopyNumber(5), seg.volumeCopyNumber(3), seg.volumeCopyNumber(1)
+            if calibration is None:
+                p = pc.getPixelId(b, t, s, st.postGlobalX(), st.postGlobalY())
+            else:  # (x, y) assumes nominal banks
+                p = pc.getPixelId3D(b, t, s, st.postGlobalX(), st.postGlobalY(), st.postGlobalZ())
+            conv.append((ievt, target, p))
+            tb, _, _, tj = decode(target)
+            if b == tb and p % N != tj:
+                nscattered += 1
+        ievt += 1
+    chk.check(ievt == nevts, f'number of events in griff file {ievt} != {nevts}')
 
-detections = [int(round(pt.ekin)) for pt in mcpl.MCPLFile('detectionEvents.mcpl').particles]
+    detections = [int(round(pt.ekin)) for pt in mcpl.MCPLFile('detectionEvents.mcpl').particles]
 
-# Align detections (event order) with the conversion pixels:
-k = 0
-matched = []
-for (e, target, p) in conv:
-    if k < len(detections) and detections[k] == p:
-        matched.append((e, target, p))
-        k += 1
-chk.check(k == len(detections), f'{len(detections) - k} detections do not match the conversion point pixels (first unmatched: {detections[k:k+5]})')
-print(f'Events: {nevts}, primary neutron conversions in Converter: {len(conv)}, detections: {len(detections)}, matched: {k}')
-print(f'Conversions in the target bank at a different pixel along the straw than targeted: {nscattered}')
+    # Align detections (event order) with the conversion pixels:
+    k = 0
+    matched = []
+    for (e, target, p) in conv:
+        if k < len(detections) and detections[k] == p:
+            matched.append((e, target, p))
+            k += 1
+    chk.check(k == len(detections), f'{len(detections) - k} detections do not match the conversion point pixels (first unmatched: {detections[k:k+5]})')
+    print(f'Events: {nevts}, primary neutron conversions in Converter: {len(conv)}, detections: {len(detections)}, matched: {k}')
+    print(f'Conversions in the target bank at a different pixel along the straw than targeted: {nscattered}')
 
-print('Detections per target (target pixel -> detected pixels decoded as (bank, tube, straw, pixel)):')
-for target in targets:
-    det = [p for (e, t, p) in matched if t == target]
-    exact = sum(1 for p in det if p == target)
-    print(f'  {target:6} {decode(target)}: {len(det):2} detections, {exact:2} exactly in the target pixel:',
-          ' '.join(f'{p}{decode(p)}'.replace(' ', '') for p in det))
-    tb, tt, ts, tj = decode(target)
-    chk.check(any(decode(p)[0] == tb and decode(p)[3] == tj for p in det),
-              f'no detection in the targeted bank at the targeted pixel position for target {target}')
+    print('Detections per target (target pixel -> detected pixels decoded as (bank, tube, straw, pixel)):')
+    for target in targets:
+        det = [p for (e, t, p) in matched if t == target]
+        exact = sum(1 for p in det if p == target)
+        print(f'  {target:6} {decode(target)}: {len(det):2} detections, {exact:2} exactly in the target pixel:',
+              ' '.join(f'{p}{decode(p)}'.replace(' ', '') for p in det))
+        tb, tt, ts, tj = decode(target)
+        chk.check(any(decode(p)[0] == tb and decode(p)[3] == tj for p in det),
+                  f'no detection in the targeted bank at the targeted pixel position for target {target}')
+
+
+run()
 
 chk.finish()

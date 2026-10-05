@@ -33,10 +33,14 @@ from G4GeoLokiTests.testhelpers import Checker, NSTRAWS
 
 chk = Checker()
 
-def run(title, rear_m, n, nbanks, old, larmor, geo_args):
+def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=None):
     print('=' * 90)
     print(title)
-    aim = LokiAim.AimHelper(rear_m * 1000, n) if nbanks == 9 else LokiAim.AimHelper(rear_m * 1000, n, nbanks)
+    if calibration:  # the geometry, the aiming and the analysis use the same bank calibration
+        aim = LokiAim.AimHelper(rear_m * 1000, n, nbanks, calibration)
+        geo_args = geo_args + [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
+    else:
+        aim = LokiAim.AimHelper(rear_m * 1000, n) if nbanks == 9 else LokiAim.AimHelper(rear_m * 1000, n, nbanks)
     targets = []
     for b in range(nbanks):
         for t in range(TU.getNumberOfTubes(b)):

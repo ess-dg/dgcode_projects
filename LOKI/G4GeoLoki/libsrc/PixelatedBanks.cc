@@ -4,6 +4,7 @@
 #include <iostream>
 #include <array>
 #include <cassert>
+#include <stdexcept>
 
 PixelatedBanks::PixelatedBanks(double rearBankDistance)
   : BcsBanks(rearBankDistance)
@@ -18,6 +19,13 @@ PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber)
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks)
   : BcsBanks(rearBankDistance, numberOfBanks)
+{
+  for(int i=0; i<getNumberOfBanks(); i++) {
+    numberOfPixelsInStraw[i] = strawPixelNumber;
+  }
+}
+PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks, const std::string& bankCalibration)
+  : BcsBanks(rearBankDistance, numberOfBanks, bankCalibration)
 {
   for(int i=0; i<getNumberOfBanks(); i++) {
     numberOfPixelsInStraw[i] = strawPixelNumber;
@@ -66,6 +74,8 @@ int PixelatedBanks::getBankPixelOffset(const int bankId) {
 }
 
 int PixelatedBanks::getPositionPixelId(const int bankId, const double positionX, const double positionY) const{
+  if (isBankCalibrated(bankId)) // the (x, y) version assumes the nominal, axis-aligned bank placement
+    throw std::logic_error("PixelatedBanks::getPixelId(bank, tube, straw, x, y) can not be used with a bank calibration, use getPixelId(bank, tube, straw, x, y, z)");
   const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
 
   if (isVertical(bankId)) { //vertical straw

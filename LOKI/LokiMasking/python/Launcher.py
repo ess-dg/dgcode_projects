@@ -19,6 +19,8 @@ def launch(geo):
     gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
     gen.aiming_bank_id = launcher.getParameterInt('aiming_bank_id')
     gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
+    if geo.hasParameterString("bank_calibration"):
+        gen.exposeParameter("bank_calibration",geo,"geo_bank_calibration") #aim at the pixels of the calibrated banks
     launcher.setGen(gen)
 
     def assertParamsForLarmor2022Experiment(): #note: prone to generator name change

@@ -12,6 +12,7 @@ parser.add_argument('--larmor2022experiment', action = 'store_true', help = 'Use
 parser.add_argument('--larmor2022fullGeomOutput', action = 'store_true', default=False, help = 'Output all pixels in the detector model, not just those which were present in the Larmor 2022 experiment setup')
 parser.add_argument('--oldPixelNumbering', action = 'store_true', help = 'Use old pixel (tube) numbering')
 parser.add_argument('--print', action = 'store_true', help = 'Print pixel positions to output insted of a file.')
+parser.add_argument('--bankCalibration', default=None, help = f'Bank placements (the bank_calibration geometry parameter): {LokiAim.NOMINAL_BANK_CALIBRATION}, the name of a bank calibration in G4GeoLoki/data (bank_calibration_<name>.txt) or the path of such a file. Default: {LokiAim.DEFAULT_BANK_CALIBRATION} ({LokiAim.NOMINAL_BANK_CALIBRATION} for --larmor2022experiment).')
 
 args = parser.parse_args()
 
@@ -25,7 +26,16 @@ if args.larmor2022experiment:
   if strawPixelNumber is None:
     strawPixelNumber = 512
 
-if numberOfBanks is not None:
+bankCalibration = args.bankCalibration
+if bankCalibration is None:
+  bankCalibration = LokiAim.NOMINAL_BANK_CALIBRATION if args.larmor2022experiment else LokiAim.DEFAULT_BANK_CALIBRATION
+if bankCalibration != LokiAim.NOMINAL_BANK_CALIBRATION:
+  if args.larmor2022experiment:
+    parser.error(f'--larmor2022experiment only works with --bankCalibration={LokiAim.NOMINAL_BANK_CALIBRATION}')
+  if strawPixelNumber is None:
+    strawPixelNumber = LokiAim.AimHelper.getNumberOfPixelsInStraw(0)
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, 9, bankCalibration)
+elif numberOfBanks is not None:
   aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numberOfBanks)
 elif strawPixelNumber is not None:
   aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber)

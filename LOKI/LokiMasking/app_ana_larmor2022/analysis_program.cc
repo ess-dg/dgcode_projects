@@ -53,7 +53,9 @@ int main(int argc, char **argv) {
 
   printf("Rear bank pixel number for analysis: %d in total, %d per straw, \n", numberOfPixels, strawPixelNumber);
 
-  PixelatedBanks banks = PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  PixelatedBanks banks = PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
 
   auto h_geantino_pixel_enter = hc.book2D("Shows pixels the geantinos entered", strawPixelNumber, 0, strawPixelNumber, numberOfPixels / strawPixelNumber, 0, numberOfPixels / strawPixelNumber, "h_geantino_pixel_enter");
   h_geantino_pixel_enter->setXLabel("Pixel ID along straw");

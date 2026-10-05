@@ -16,7 +16,9 @@ class MaskingSourceGen(G4CustomPyGen.GenBase):
     def init_generator(self,gun):
         gun.set_type('geantino')
 
-        self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *units.m, self.aiming_straw_pixel_number)
+        # bank placements of the geometry (exposed as geo_bank_calibration by the Launcher; nominal if not exposed)
+        bankCalibration = self.geo_bank_calibration if self.hasParameterString("geo_bank_calibration") else "nominal-geometry"
+        self.aimHelper = LokiAim.AimHelper(self.geo_rear_detector_distance_m *units.m, self.aiming_straw_pixel_number, 9, bankCalibration)
         self.totalNumberOfPixels = self.aimHelper.getTotalNumberOfPixels()
         loc_aiming_bank_id = self.aiming_bank_id if self.aiming_bank_id >= 0 else 0
         bank_pixel_id_min = self.aimHelper.getBankPixelOffset(loc_aiming_bank_id)
