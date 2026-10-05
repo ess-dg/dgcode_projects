@@ -357,8 +357,6 @@ PYTHON_MODULE( mod )
 
   //static getters (PixelatedBanks / BcsBanks):
   mod.def("getTubeLayerId", &PixelatedBanks::getTubeLayerId);
-  mod.def("getNumberOfPixelsInStraw", &PixelatedBanks::getNumberOfPixelsInStraw);
-  mod.def("getBankPixelOffset", &PixelatedBanks::getBankPixelOffset);
   mod.def("getBankRotation", &BcsBanks::getBankRotation);
   mod.def("getBankSize", &BcsBanks::getBankSize);
   mod.def("getStrawLengthByBankId", &BcsBanks::getStrawLengthByBankId);

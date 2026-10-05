@@ -7,7 +7,8 @@
 //
 // Do NOT change this file when changing the production code: it is the
 // reference. It only reads the (unchanged) nominal parameter tables through the
-// public getters of BcsBanks / BcsPack / BcsTube / PixelatedBanks.
+// public getters of BcsBanks / BcsPack / BcsTube / PixelatedBanks. (Only adapted to API changes:
+// the pixels per straw are read from its own PixelatedBanks object, as they are per object.)
 //
 // Nothing in here is used by production code.
 
@@ -59,18 +60,18 @@ namespace {
 
     int bankId(int pixelId) const {
       for (int b = 0; b < pb.getNumberOfBanks(); b++)
-        if (pixelId < PixelatedBanks::getBankPixelOffset(b+1)) return b;
+        if (pixelId < pb.getBankPixelOffset(b+1)) return b;
       throw std::runtime_error("pixel id out of range");
     }
-    static int tubeId(int pixelId, int b) {
-      return (pixelId - PixelatedBanks::getBankPixelOffset(b)) / (PixelatedBanks::getNumberOfPixelsInStraw(b) * 7);
+    int tubeId(int pixelId, int b) const {
+      return (pixelId - pb.getBankPixelOffset(b)) / (pb.getNumberOfPixelsInStraw(b) * 7);
     }
-    static int strawId(int pixelId, int b, int t) {
-      const int inTube = pixelId - PixelatedBanks::getBankPixelOffset(b) - t * 7 * PixelatedBanks::getNumberOfPixelsInStraw(b);
-      return inTube / PixelatedBanks::getNumberOfPixelsInStraw(b);
+    int strawId(int pixelId, int b, int t) const {
+      const int inTube = pixelId - pb.getBankPixelOffset(b) - t * 7 * pb.getNumberOfPixelsInStraw(b);
+      return inTube / pb.getNumberOfPixelsInStraw(b);
     }
-    static double pixelPositionInStraw(int pixelId, int b) {
-      const int n = PixelatedBanks::getNumberOfPixelsInStraw(b);
+    double pixelPositionInStraw(int pixelId, int b) const {
+      const int n = pb.getNumberOfPixelsInStraw(b);
       const int loc = pixelId % n;
       const double L = BcsBanks::getStrawLengthByBankId(b);
       const double position = -0.5 * L + (loc + 0.5) * L / n;
@@ -105,7 +106,7 @@ namespace {
 
     // original PixelatedBanks::getPositionPixelId / getPixelId (global x or y)
     int pixelId2D(int b, int t, int s, double x, double y) const {
-      const int n = PixelatedBanks::getNumberOfPixelsInStraw(b);
+      const int n = pb.getNumberOfPixelsInStraw(b);
       const double L = BcsBanks::getStrawLengthByBankId(b);
       const double pixelLength = L / n;
       int inStraw;
@@ -116,7 +117,7 @@ namespace {
         const double strawBegin = pb.getBankPosition(b, 0) - 0.5 * L;
         inStraw = (n - 1) - (int) std::floor((x - strawBegin) / pixelLength);
       }
-      return PixelatedBanks::getBankPixelOffset(b) + (t * 7 + s) * n + inStraw;
+      return pb.getBankPixelOffset(b) + (t * 7 + s) * n + inStraw;
     }
 
     // original Geant4 bank placement (GeoBCSBanks): frame rotation rotateY(a1) rotateX(a0) rotateZ(a2), as rows
@@ -158,7 +159,7 @@ namespace {
       auto ref = legacy.pixelCentre(p, old, larmor);
       const double d = std::max({std::fabs(std::get<0>(cur) - ref[0]), std::fabs(std::get<1>(cur) - ref[1]), std::fabs(std::get<2>(cur) - ref[2])});
       if (!(d <= worst)) { worst = d; worstPixel = p; }
-      const int b = legacy.bankId(p), t = Legacy::tubeId(p, b), s = Legacy::strawId(p, b, t);
+      const int b = legacy.bankId(p), t = legacy.tubeId(p, b), s = legacy.strawId(p, b, t);
       const int j = p % n;
       // straw axis (direction of increasing pixel index) and pitch, from the reference centres
       const double L = BcsBanks::getStrawLengthByBankId(b), pitch = L / n;

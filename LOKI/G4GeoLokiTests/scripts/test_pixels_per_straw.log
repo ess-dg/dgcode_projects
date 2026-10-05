@@ -1,0 +1,6 @@
+   8 pixels per straw: total    50176 pixels, unchanged next to the other objects: True, hit -> pixel ids unchanged: True
+ 512 pixels per straw: total  3211264 pixels, unchanged next to the other objects: True, hit -> pixel ids unchanged: True
+ 256 pixels per straw: total  1605632 pixels, unchanged next to the other objects: True, hit -> pixel ids unchanged: True
+default (256 pixels per straw), made after the others: unchanged: True
+Larmor 2022 object (1 bank, 1024 pixels per straw): 1605632 pixels
+checks performed: 7, failures: 0

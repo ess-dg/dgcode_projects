@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         const std::string vol = seg->volumeName();
         if (vol == "Converter") {
           const int straw = seg->volumeCopyNumber(1), tube = seg->volumeCopyNumber(3), bank = seg->volumeCopyNumber(5);
-          const int base = PixelatedBanks::getBankPixelOffset(bank) + (tube * 7 + straw) * n;
+          const int base = banks.getBankPixelOffset(bank) + (tube * 7 + straw) * n;
           auto last = seg->lastStep();
           const int id = banks.getPixelId(bank, tube, straw, last->postGlobalX(), last->postGlobalY(), last->postGlobalZ());
           nConverterSegments++;
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         } else if (vol == "CountingGas") {
           // copy numbers one level deeper than from the Converter used by the analysis programs
           const int straw = seg->volumeCopyNumber(2), tube = seg->volumeCopyNumber(4), bank = seg->volumeCopyNumber(6);
-          const int base = PixelatedBanks::getBankPixelOffset(bank) + (tube * 7 + straw) * n;
+          const int base = banks.getBankPixelOffset(bank) + (tube * 7 + straw) * n;
           auto clampToStraw = [&](int id) { return std::min(std::max(id, base), base + n - 1); };
           auto first = seg->firstStep(), last = seg->lastStep();
           const int a = clampToStraw(banks.getPixelId(bank, tube, straw, first->preGlobalX(), first->preGlobalY(), first->preGlobalZ()));

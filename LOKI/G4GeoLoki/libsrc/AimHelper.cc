@@ -77,19 +77,19 @@ int AimHelper::getInPackTubeId(const int bankId, const int tubeId, const bool is
   }
 }
 
-int AimHelper::getTubeId(const int pixelId, const int bankId) {
+int AimHelper::getTubeId(const int pixelId, const int bankId) const {
   const int pixelIdInBank = pixelId - getBankPixelOffset(bankId);
   const int numberOfPixelsInATube = getNumberOfPixelsInStraw(bankId) * 7;
   return (int) pixelIdInBank / numberOfPixelsInATube;
 }
 
-int AimHelper::getStrawId(const int pixelId, const int bankId, const int tubeId) {
+int AimHelper::getStrawId(const int pixelId, const int bankId, const int tubeId) const {
   const int pixelIdInBank = pixelId - getBankPixelOffset(bankId);
   const int pixelIdInTube = pixelIdInBank - tubeId * 7 * getNumberOfPixelsInStraw(bankId);
   return (int) pixelIdInTube / getNumberOfPixelsInStraw(bankId);
 }
 
-double AimHelper::getPixelPositionInStraw(const int pixelId, const int bankId) {
+double AimHelper::getPixelPositionInStraw(const int pixelId, const int bankId) const {
   const int locPixelId = pixelId % getNumberOfPixelsInStraw(bankId);
   const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
   const double position = - 0.5* getStrawLengthByBankId(bankId) + (locPixelId + 0.5) * pixelLength;

@@ -33,7 +33,7 @@ if bankCalibration != LokiAim.NOMINAL_BANK_CALIBRATION:
   if args.larmor2022experiment:
     parser.error(f'--larmor2022experiment only works with --bankCalibration={LokiAim.NOMINAL_BANK_CALIBRATION}')
   if strawPixelNumber is None:
-    strawPixelNumber = LokiAim.AimHelper.getNumberOfPixelsInStraw(0)
+    strawPixelNumber = LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW
   aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, 9, bankCalibration)
 elif numberOfBanks is not None:
   aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numberOfBanks)

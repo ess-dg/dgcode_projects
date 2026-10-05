@@ -9,51 +9,44 @@
 PixelatedBanks::PixelatedBanks(double rearBankDistance)
   : BcsBanks(rearBankDistance)
 {
+  m_numberOfPixelsInStraw.fill(defaultNumberOfPixelsInStraw);
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber)
   : BcsBanks(rearBankDistance)
 {
+  m_numberOfPixelsInStraw.fill(defaultNumberOfPixelsInStraw);
   for(int i=0; i<getNumberOfBanks(); i++) {
-    numberOfPixelsInStraw[i] = strawPixelNumber;
+    m_numberOfPixelsInStraw[i] = strawPixelNumber;
   }
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks)
   : BcsBanks(rearBankDistance, numberOfBanks)
 {
+  m_numberOfPixelsInStraw.fill(defaultNumberOfPixelsInStraw);
   for(int i=0; i<getNumberOfBanks(); i++) {
-    numberOfPixelsInStraw[i] = strawPixelNumber;
+    m_numberOfPixelsInStraw[i] = strawPixelNumber;
   }
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks, const std::string& bankCalibration)
   : BcsBanks(rearBankDistance, numberOfBanks, bankCalibration)
 {
+  m_numberOfPixelsInStraw.fill(defaultNumberOfPixelsInStraw);
   for(int i=0; i<getNumberOfBanks(); i++) {
-    numberOfPixelsInStraw[i] = strawPixelNumber;
+    m_numberOfPixelsInStraw[i] = strawPixelNumber;
   }
 }
 
-int PixelatedBanks::numberOfPixelsInStraw[9] = { // number of pixels along the straws
-    256, // 0 - rear
-    256,  // 1 - mid top
-    256, // 2 - mid left
-    256,  // 3 - mid bottom
-    256, // 4 - mid right
-    256, // 5 - front top
-    256, // 6 - front left
-    256, // 7 - front bottom
-    256, // 8 - front right
-};
-int PixelatedBanks::getNumberOfPixelsInStraw(const int bankId) {
+int PixelatedBanks::getNumberOfPixelsInStraw(const int bankId) const {
   assert(0 <= bankId && bankId <= 8);
-  return numberOfPixelsInStraw[bankId];
+  return m_numberOfPixelsInStraw[bankId];
 }
 
-int PixelatedBanks::getNumberOfPixels(const int bankId) {
+int PixelatedBanks::getNumberOfPixels(const int bankId) const {
   const int numberOfStrawsInBank = getNumberOfTubes(bankId) * 7;
   return numberOfStrawsInBank * getNumberOfPixelsInStraw(bankId);
 }
 
-int PixelatedBanks::getTotalNumberOfPixels() {
+int PixelatedBanks::getTotalNumberOfPixels() const {
   return getBankPixelOffset(getNumberOfBanks());
 }
 
@@ -63,7 +56,7 @@ int PixelatedBanks::getTubeLayerId(const int bankId, const int tubeId, const boo
 }
 
 
-int PixelatedBanks::getBankPixelOffset(const int bankId) {
+int PixelatedBanks::getBankPixelOffset(const int bankId) const {
   assert(0 <= bankId && bankId <= 9);
   int offset = 0;
   for (int bankIndex = 0; bankIndex < bankId; bankIndex++) {
@@ -112,7 +105,7 @@ int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int str
   return bankPixelOffset + strawPixelOffset + positionPixelId;
 }
 
-void PixelatedBanks::dumpInfo(){
+void PixelatedBanks::dumpInfo() const {
   int totalTumberOfPacks = 0;
   int totalTumberOfTubes = 0;
   int totalTumberOfStraws = 0;

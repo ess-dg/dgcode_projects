@@ -35,6 +35,7 @@ PYTHON_MODULE( mod )
   // the bank calibration names (see G4GeoLoki/BankCalibration.hh)
   mod.attr("NOMINAL_BANK_CALIBRATION") = BankCalibration::nominalName;
   mod.attr("DEFAULT_BANK_CALIBRATION") = BankCalibration::defaultName;
+  mod.attr("DEFAULT_NUMBER_OF_PIXELS_IN_STRAW") = PixelatedBanks::defaultNumberOfPixelsInStraw;
 
   py::class_<AimHelper>(mod, "AimHelper")
     .def(py::init<double>())
@@ -43,17 +44,17 @@ PYTHON_MODULE( mod )
     .def(py::init<double, int, int, std::string>())
     .def("getPixelCentreCoordinates",&pyAimHelper_getPixelCentreCoordinates)
     .def("getTotalNumberOfPixels",&AimHelper::getTotalNumberOfPixels)
-    .def_static("getNumberOfPixels",&AimHelper::getNumberOfPixels)
-    .def_static("getBankPixelOffset",&AimHelper::getBankPixelOffset)
-    .def_static("getNumberOfPixelsInStraw",&AimHelper::getNumberOfPixelsInStraw)
+    .def("getNumberOfPixels",&AimHelper::getNumberOfPixels)
+    .def("getBankPixelOffset",&AimHelper::getBankPixelOffset)
+    .def("getNumberOfPixelsInStraw",&AimHelper::getNumberOfPixelsInStraw)
     .def("getBankPosition",&AimHelper::getBankPosition)
     .def("getBankTransform",&pyAimHelper_getBankTransform, py::arg("bankId"), py::arg("isLarmor2022Experiment") = false)
     .def("getBankCalibrationName",&pyAimHelper_getBankCalibrationName)
     .def("isBankCalibrated",&AimHelper::isBankCalibrated)
-    .def_static("dumpInfo",&AimHelper::dumpInfo)
+    .def("dumpInfo",&AimHelper::dumpInfo)
     .def("getBankId",&AimHelper::getBankId)
     .def_static("getPackId",&AimHelper::getPackId)
-    .def_static("getTubeId",&AimHelper::getTubeId)
-    .def_static("getStrawId",&AimHelper::getStrawId)
+    .def("getTubeId",&AimHelper::getTubeId)
+    .def("getStrawId",&AimHelper::getStrawId)
     ;
 }

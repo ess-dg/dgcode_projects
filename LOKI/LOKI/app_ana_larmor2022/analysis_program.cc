@@ -120,7 +120,7 @@ int main(int argc, char**argv) {
     banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::getNumberOfPixelsInStraw(0), 9, bankCalibration);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
   }
 
   DetectionFileCreator* detectionFile = nullptr;
