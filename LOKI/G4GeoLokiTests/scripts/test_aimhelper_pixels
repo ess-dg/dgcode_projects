@@ -13,7 +13,9 @@
 #     bank/tube/pack/straw/layer ids and the pixel centre [mm] (rear 5 m,
 #     256 pixels/straw; and rear 10 m, 512 pixels/straw).
 #  D) Global consistency checks on all straws: pixel pitch along the straw,
-#     pixel-0 -> pixel-(N-1) direction per bank, all straw axes distinct.
+#     pixel-0 -> pixel-(N-1) direction per bank, all straw axes distinct; the tube numbering
+#     (BcsBanks::getTubeIdInBank, the TubeWall copy numbers) equals the formula of the original
+#     geometry module and getPackId / getInPackTubeId / getTubeLayerId invert it, for every tube.
 # (The old tube numbering and the Larmor 2022 setup are no longer part of LOKI: they are in LOKI/Larmor.)
 #
 # Coordinates: X horizontal (positive to the left seen from the sample along
@@ -106,5 +108,17 @@ for b in range(NBANKS):
     lo = [min(c[i] for c in xs) for i in range(3)]
     hi = [max(c[i] for c in xs) for i in range(3)]
     print(f'    straw centre bounding box: min {fmtvec(lo, 4)} max {fmtvec(hi, 4)}')
+    nPacks = TU.getNumberOfPacksByBankId(b)
+    tubes = set()
+    for pack in range(nPacks):
+        for i in range(8):
+            tube = TU.getTubeIdInBank(b, pack, i)
+            tubes.add(tube)
+            row = pack + 0.5 * (i // 4)  # the formula of the original geometry module (getTubeVolumeNumber)
+            original = int(row * 2 + (i % 4) * nPacks * 2) if not TU.areTubesInverselyNumbered(b) else \
+                int((nPacks * 2 - 1) - row * 2 + (i % 4) * nPacks * 2)
+            chk.check(tube == original and TU.getPackId(b, tube) == pack and TU.getInPackTubeId(b, tube) == i
+                      and TU.getTubeLayerId(b, tube) == i % 4, f'bank {b} pack {pack} tube {i}: tube id {tube}')
+    chk.check(tubes == set(range(TU.getNumberOfTubes(b))), f'bank {b}: the tube ids are not 0..{TU.getNumberOfTubes(b) - 1}')
 
 chk.finish()

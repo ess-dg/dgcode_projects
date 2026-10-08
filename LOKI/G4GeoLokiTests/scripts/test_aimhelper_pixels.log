@@ -366,4 +366,4 @@ Bank 7: direction of increasing pixel index along the straws: (-1.000000, 0.0000
     straw centre bounding box: min (-100.0000, -892.8334, 1111.9228) max (-100.0000, -358.0116, 1370.2884)
 Bank 8: direction of increasing pixel index along the straws: (0.000000, 1.000000, 0.000000)
     straw centre bounding box: min (-1198.0267, 50.0000, 1501.9703) max (-314.9183, 50.0000, 1760.3099)
-checks performed: 6555, failures: 0
+checks performed: 7460, failures: 0

@@ -58,20 +58,6 @@ int AimHelper::getBankId(const int pixelId) const {
   throw std::runtime_error("Pixel id is out of the range for the banks in the geometry");
 }
 
-int AimHelper::getPackId(const int bankId, const int tubeId) {
-  const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  const int normalPackId = (int) (tubeId % (numberOfPacks * 2)) / 2;
-  return !areTubesInverselyNumbered(bankId) ? normalPackId : ((numberOfPacks - 1) - normalPackId);
-}
-
-int AimHelper::getInPackTubeId(const int bankId, const int tubeId) {
-  const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  // the tube in the pack (0-3: the 4 layers of the first tube row of the pack, 4-7: of the second row) from the tube
-  // id (layer by layer, 2 tube rows per pack, see GeoBCSBanks)
-  const int inPackTubeId = ((tubeId % 2) * 4) + ((int) tubeId / (numberOfPacks * 2));
-  return areTubesInverselyNumbered(bankId) ? (inPackTubeId + 4) % 8 : inPackTubeId % 8;
-}
-
 int AimHelper::getTubeId(const int pixelId, const int bankId) const {
   const int pixelIdInBank = pixelId - getBankPixelOffset(bankId);
   const int numberOfPixelsInATube = getNumberOfPixelsInStraw(bankId) * 7;

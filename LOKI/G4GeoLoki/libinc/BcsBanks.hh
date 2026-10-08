@@ -105,6 +105,17 @@ public:
   static bool isVertical(const int bankId);
   static bool areTubesInverselyNumbered(const int bankId);
 
+  /// Tube numbering: the tube id is the copy number of the TubeWall volume (and the tube part of the pixel id). A
+  /// pack has 2 tube rows of 4 tubes, one tube in each layer (inPackTubeId 0-3: the first row, 4-7: the second row,
+  /// layer = inPackTubeId % 4, see BcsPack); the tube rows of a bank are numbered from pack 0, the first row first
+  /// (reversed for the banks mounted upside down, see areTubesInverselyNumbered). The tubes are numbered layer by
+  /// layer (from the front), along the tube rows in each layer: tubeId = layer * (number of rows) + row.
+  static int getTubeIdInBank(const int bankId, const int packId, const int inPackTubeId);
+  /// The inverse of getTubeIdInBank: the pack, the tube in the pack and the layer (0: front ... 3: back) of a tube.
+  static int getPackId(const int bankId, const int tubeId);
+  static int getInPackTubeId(const int bankId, const int tubeId);
+  static int getTubeLayerId(const int bankId, const int tubeId);
+
   int getNumberOfBanks() const;
   /// boron masks ///
   static double getBoronMaskPosition(const int bankId, const int maskId, const int axisIndex);

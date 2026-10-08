@@ -31,12 +31,10 @@ private:
   BcsBanks* banks;
   //Functions
   G4LogicalVolume * createTubeLV(double converter_thickness, double straw_length);
-  G4LogicalVolume * createPackBoxLV(double strawLength, int packNumber, int numberOfPacksForInvertedNumbering, int numberOfPacks);
+  G4LogicalVolume * createPackBoxLV(int bankId, int packNumber);
   G4LogicalVolume * createBankLV(int bankId);
   G4LogicalVolume * createTriangularMaskLV(int maskId);
   G4LogicalVolume * createCalibrationMaskLV(CalibMasks::CalibMasksBase calibMask);
-
-  int getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPacksForInvertedNumbering, int numberOfPacks);
 };
 
 // this line is necessary to be able to declare the geometry in the python simulation script
@@ -93,21 +91,9 @@ G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLe
   return lv_tube;
 }
 
-int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPacksForInvertedNumbering, int numberOfPacks){
-  assert(0 <= inPackTubeId && inPackTubeId <= 7);
-  const double rowNumber = packNumber + 0.5* ((int)inPackTubeId/4); // +0.5 for second row (inPackTubeId > 3)
-  const int layerNr = inPackTubeId % 4; //[0-3]
-  // layer by layer (the front layer first), in each layer the tube rows from one end of the bank to the other
-  if(numberOfPacksForInvertedNumbering == 0){
-    return rowNumber * 2 + layerNr * numberOfPacks * 2;
-  }
-  else{
-    return (numberOfPacks*2 - 1) - rowNumber*2 + layerNr * numberOfPacks * 2;
-  }
-}
-
 ///////////  CREATE PACK BOX LOGICAL VOLUME  //////////////////////////
-G4LogicalVolume *GeoBCS::createPackBoxLV(double strawLength, int packNumber, int numberOfPacksForInvertedNumbering, int numberOfPacks){
+G4LogicalVolume *GeoBCS::createPackBoxLV(int bankId, int packNumber){
+  const double strawLength = banks->getStrawLengthByBankId(bankId);
   const double packRotation = banks->getPackRotation();
   // Instead of a rectangular box, a detector pack is encapsulated in parallelepiped, to avoid collision of the corners with the calibraion slits after applying the pack rotation.
   // The PackBoxWidth corresponds to the size of the volume encapsulating the electronics on the sides as well, not just the detectors, but that would cause collision with the calibration slits, so a multiplication factor of 0.799 is applied, to get a volume just large enough to fit in the detectors in the front.
@@ -123,7 +109,7 @@ G4LogicalVolume *GeoBCS::createPackBoxLV(double strawLength, int packNumber, int
   for (int inPackTubeId = 0; inPackTubeId < 8; inPackTubeId++) {
     place((inPackTubeId % 4 < 2) ? lv_front_tube : lv_back_tube,
           BcsPack::getHorizontalTubeOffset(inPackTubeId), BcsPack::getVerticalTubeOffset(inPackTubeId), 0,
-          lv_pack_box, SILVER, getTubeVolumeNumber(packNumber, inPackTubeId, numberOfPacksForInvertedNumbering, numberOfPacks), 0, tubeRotationMatrix);
+          lv_pack_box, SILVER, banks->getTubeIdInBank(bankId, packNumber, inPackTubeId), 0, tubeRotationMatrix);
   }
   /// Add B4C panel behind detectors in 3 parts ///
   const double B4CLengthHalf = 0.5*strawLength + BcsPack::getB4CLengthOverStrawOnOneEnd();
@@ -172,9 +158,6 @@ G4LogicalVolume *GeoBCS::createCalibrationMaskLV(CalibMasks::CalibMasksBase cali
 
 ///////////  CREATE DETECTOR BANK LOGICAL VOLUME  //////////////////////////
 G4LogicalVolume *GeoBCS::createBankLV(int bankId){
-  const double strawLength = banks->getStrawLengthByBankId(bankId);
-
-  // const double pack_pack_distance = banks->getPackPackDistance();
   const int numberOfPacks = banks->getNumberOfPacksByBankId(bankId);
 
   const double packRotation = banks->getPackRotation();
@@ -200,13 +183,8 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     lv_bank = new G4LogicalVolume(bankBox, BcsPack::packBoxFillMaterial, "Bank");
   }
 
-  int numberOfPacksForInvertedNumbering = 0;
-  if (banks->areTubesInverselyNumbered(bankId)){ //not very nice solution...
-    numberOfPacksForInvertedNumbering = numberOfPacks;
-  }
-
   for (int packNumber = 0; packNumber < numberOfPacks; ++packNumber){
-    auto lv_pack_box = createPackBoxLV(strawLength, packNumber, numberOfPacksForInvertedNumbering, numberOfPacks);
+    auto lv_pack_box = createPackBoxLV(bankId, packNumber);
     const auto packPosition = banks->getPackPositionInBankFrame(bankId, packNumber);
     place(lv_pack_box, packPosition[0], packPosition[1], packPosition[2],
           lv_bank, G4Colour(0, 1, 1), -2, 0, new G4RotationMatrix(0, 0, packRotation));

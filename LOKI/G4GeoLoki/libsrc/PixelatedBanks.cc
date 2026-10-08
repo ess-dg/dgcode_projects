@@ -50,11 +50,6 @@ int PixelatedBanks::getTotalNumberOfPixels() const {
   return getBankPixelOffset(getNumberOfBanks());
 }
 
-int PixelatedBanks::getTubeLayerId(const int bankId, const int tubeId) {
-  const int tubePerLayer = getNumberOfTubes(bankId) / 4;
-  return (int) tubeId / tubePerLayer;
-}
-
 
 int PixelatedBanks::getBankPixelOffset(const int bankId) const {
   assert(0 <= bankId && bankId <= 9);

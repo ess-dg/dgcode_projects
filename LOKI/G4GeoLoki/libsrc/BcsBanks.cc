@@ -559,6 +559,40 @@ bool BcsBanks::areTubesInverselyNumbered(const int bankId) {
   return (bankId == 1 || bankId == 2 || bankId == 5 || bankId == 6);
 }
 
+namespace {
+  int getNumberOfTubeRows(const int bankId) {
+    return 2 * BcsBanks::getNumberOfPacksByBankId(bankId);
+  }
+  // the tube row of a tube, counted from pack 0 (the first row of pack 0 is row 0)
+  int getTubeRowFromPack0(const int bankId, const int tubeId) {
+    const int row = tubeId % getNumberOfTubeRows(bankId); // in the numbering order
+    return BcsBanks::areTubesInverselyNumbered(bankId) ? (getNumberOfTubeRows(bankId) - 1) - row : row;
+  }
+}
+
+int BcsBanks::getTubeIdInBank(const int bankId, const int packId, const int inPackTubeId) {
+  assert(0 <= packId && packId < getNumberOfPacksByBankId(bankId));
+  assert(0 <= inPackTubeId && inPackTubeId <= 7);
+  const int rowFromPack0 = 2 * packId + inPackTubeId / 4;
+  const int row = areTubesInverselyNumbered(bankId) ? (getNumberOfTubeRows(bankId) - 1) - rowFromPack0 : rowFromPack0;
+  const int layer = inPackTubeId % 4;
+  return layer * getNumberOfTubeRows(bankId) + row;
+}
+
+int BcsBanks::getPackId(const int bankId, const int tubeId) {
+  assert(0 <= tubeId && tubeId < getNumberOfTubes(bankId));
+  return getTubeRowFromPack0(bankId, tubeId) / 2;
+}
+
+int BcsBanks::getInPackTubeId(const int bankId, const int tubeId) {
+  assert(0 <= tubeId && tubeId < getNumberOfTubes(bankId));
+  return (getTubeRowFromPack0(bankId, tubeId) % 2) * 4 + getTubeLayerId(bankId, tubeId);
+}
+
+int BcsBanks::getTubeLayerId(const int bankId, const int tubeId) {
+  return tubeId / getNumberOfTubeRows(bankId);
+}
+
 int BcsBanks::getNumberOfBanks() const {
   return m_numberOfBanks;
 }
