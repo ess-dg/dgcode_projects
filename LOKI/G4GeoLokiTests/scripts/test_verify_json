@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# sb_g4geoloki_verifyjson with a NeXus-JSON file written by loki-pixel-json (https://github.com/MilanKlausz/loki-geometry,
+# the instrument tree layout, here banks 0, 2 and 4 of the 2026-September-SAM-606 bank calibration with 1 pixel per
+# straw, data/loki_pixels_SAM-606_1px_banks_0_2_4.json):
+#  * with the calibration recorded in the file (2026-September-SAM-606): banks 2 and 4 agree; bank 0 (not surveyed: the
+#    CAD geometry, front face at 4.9998 m) is 0.2 mm off with the default rear detector distance of 5 m (exit code 1),
+#    and agrees with -rear 4.9998 (exit code 0);
+#  * against the nominal Geant4 geometry: the surveyed banks 2 and 4 are tens of mm off (exit code 1).
+JSON=$(sb_core_finddata G4GeoLokiTests loki_pixels_SAM-606_1px_banks_0_2_4.json)
+cp $JSON pixels.json  # (the path of the data file is not printed)
+run() { echo "========== verifyjson $*"; sb_g4geoloki_verifyjson --json pixels.json --printPixelNumber 2 "$@"; echo "exit code $?"; }
+run
+run -rear 4.9998
+run --bankCalibration nominal-geant4-geometry -rear 4.9998

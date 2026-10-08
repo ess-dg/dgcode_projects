@@ -1,0 +1,81 @@
+========== verifyjson 
+pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
+Geant4 geometry: bank_calibration=2026-September-SAM-606, rear detector distance 5.0 m, 1 pixels per straw
+
+Bank id: 0
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
+  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 0.2001 mm (x 0.0000, y 0.0004, z 0.2001 mm) at pixel 1, 1568 pixels outside the tolerance.
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    1: [-0.        0.779861  5.004834] [0.       0.779861 5.005034]
+    2: [-0.        0.773792  5.009653] [0.       0.773792 5.009853]
+
+Bank id: 2
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00007 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2017: [ 5.367850e-01 -1.286000e-03  3.354331e+00] [ 5.367850e-01 -1.286000e-03  3.354331e+00]
+    2018: [ 5.431900e-01 -1.288000e-03  3.358694e+00] [ 5.431900e-01 -1.288000e-03  3.358694e+00]
+
+Bank id: 4
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00006 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2801: [-2.257060e-01 -8.520000e-04  3.375276e+00] [-2.257060e-01 -8.520000e-04  3.375276e+00]
+    2802: [-2.321260e-01 -8.510000e-04  3.379618e+00] [-2.321260e-01 -8.510000e-04  3.379618e+00]
+
+NOT all compared banks agree (see above).
+exit code 1
+========== verifyjson -rear 4.9998
+pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
+Geant4 geometry: bank_calibration=2026-September-SAM-606, rear detector distance 4.9998 m, 1 pixels per straw
+
+Bank id: 0
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00157 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    1: [-0.        0.779861  5.004834] [0.       0.779861 5.004834]
+    2: [-0.        0.773792  5.009653] [0.       0.773792 5.009653]
+
+Bank id: 2
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00007 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2017: [ 5.367850e-01 -1.286000e-03  3.354331e+00] [ 5.367850e-01 -1.286000e-03  3.354331e+00]
+    2018: [ 5.431900e-01 -1.288000e-03  3.358694e+00] [ 5.431900e-01 -1.288000e-03  3.358694e+00]
+
+Bank id: 4
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00006 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2801: [-2.257060e-01 -8.520000e-04  3.375276e+00] [-2.257060e-01 -8.520000e-04  3.375276e+00]
+    2802: [-2.321260e-01 -8.510000e-04  3.379618e+00] [-2.321260e-01 -8.510000e-04  3.379618e+00]
+
+All compared banks agree.
+exit code 0
+========== verifyjson --bankCalibration nominal-geant4-geometry -rear 4.9998
+pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
+Geant4 geometry: bank_calibration=nominal-geant4-geometry, rear detector distance 4.9998 m, 1 pixels per straw
+
+Bank id: 0
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
+  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00157 mm).
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    1: [-0.        0.779861  5.004834] [0.       0.779861 5.004834]
+    2: [-0.        0.773792  5.009653] [0.       0.773792 5.009653]
+
+Bank id: 2
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
+  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 33.2263 mm (x 0.3483, y 1.2883, z 33.2263 mm) at pixel 2018, 336 pixels outside the tolerance.
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2017: [ 5.367850e-01 -1.286000e-03  3.354331e+00] [0.53648 0.      3.32114]
+    2018: [ 5.431900e-01 -1.288000e-03  3.358694e+00] [0.542908 0.       3.325468]
+
+Bank id: 4
+  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
+  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 30.3071 mm (x 0.7152, y 1.1206, z 30.3071 mm) at pixel 2879, 336 pixels outside the tolerance.
+  First 2 pixels (detector number, JSON, Geant4 [m]):
+    2801: [-2.257060e-01 -8.520000e-04  3.375276e+00] [-0.225043  0.        3.34565 ]
+    2802: [-2.321260e-01 -8.510000e-04  3.379618e+00] [-0.231471  0.        3.349978]
+
+NOT all compared banks agree (see above).
+exit code 1
