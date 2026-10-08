@@ -57,10 +57,15 @@ def launch(geo):
             angleRange = (10.5, 49.6)
           else: #single banks [0,8]
             bankId = int(bankFilter)
-            aimHelper = LokiAim.AimHelper(5*units.m) #rear det distance shouldn't really matter
-            bankCentre = aimHelper.getBankTransform(bankId)[1] #the centre of the bank volume (nominal placement)
-            gen.ref_dir_x, gen.ref_dir_y, gen.ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
-            bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now
+            def aimAtBank(): #when the geometry parameters are final: the bank placement of the geometry in use
+              geometry = launcher.getGeo()
+              aimHelper = LokiAim.AimHelper(geometry.getParameterDouble('rear_detector_distance_m')*units.m,
+                                            LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW, 9,
+                                            geometry.getParameterString('bank_calibration'))
+              bankCentre = aimHelper.getBankTransform(bankId)[1] #the centre of the bank volume
+              launcher.getGen().ref_dir_x, launcher.getGen().ref_dir_y, launcher.getGen().ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
+            launcher.addPrePreInitHook(aimAtBank)
+            bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now (nominal geometry)
             angleRange = (0, bankConeAngle[bankId])
           if launcher.getParameterString('cone_view')=='min': #only for visualisation!
             angleRange = (angleRange[0], 1.0001*angleRange[0])
@@ -93,6 +98,13 @@ def launch(geo):
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
+      # the bank placements (also written to the detection files of the analysis, checked by the LokiMantid scripts)
+      bankCalibration = launcher.getGeo().getParameterString("bank_calibration")
+      launcher.setUserData("bank_calibration", bankCalibration)
+      if bankCalibration != LokiAim.NOMINAL_BANK_CALIBRATION:
+        print(f"NOTE: bank_calibration={bankCalibration}: the LokiMantid scripts (Mantid instrument definition) assume "
+              f"the nominal geometry; use bank_calibration={LokiAim.NOMINAL_BANK_CALIBRATION} for simulations to be "
+              f"processed with Mantid.")
       launcher.setUserData("aiming_bank_id", str(launcher.getParameterString('aiming_bank_id')))
       launcher.setUserData("nominal_source_sample_distance_meters", str(launcher.getParameterDouble('nominal_source_sample_distance_meters')))
       if(launcher.getGen().getName()=="LOKI.FloodSourceGen/FloodSourceGen"): #event_gen=flood

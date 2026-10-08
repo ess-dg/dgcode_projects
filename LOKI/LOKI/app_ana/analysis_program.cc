@@ -195,6 +195,11 @@ int main(int argc, char**argv) {
 
   DetectionFileCreator* detectionFile = nullptr;
   if (createDetectionMcplFile == true) {
+    userData["bank_calibration"] = bankCalibration; // (checked by the LokiMantid scripts)
+    if (bankCalibration != BankCalibration::nominalName)
+      printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
+             "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibration.c_str(), BankCalibration::nominalName.c_str());
     detectionFile = new DetectionFileCreator("detectionEvents.mcpl", userData);
   }
   // auto h_neutron_pixel_hit_count = hc.book1D("Number of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_count");

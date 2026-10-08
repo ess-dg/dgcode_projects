@@ -68,6 +68,13 @@ int main(int argc, char**argv) {
   else{ // use default rear bank pixel number
     banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
   }
+  { // the bank placements of the simulation (checked by the LokiMantid scripts)
+    mcpl_hdr_add_data(detMcpl, "bank_calibration", bankCalibration.size(), bankCalibration.c_str());
+    if (bankCalibration != BankCalibration::nominalName)
+      printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
+             "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibration.c_str(), BankCalibration::nominalName.c_str());
+  }
 
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");
        h_neutron_xy_hit->setXLabel("-x [mm]");
