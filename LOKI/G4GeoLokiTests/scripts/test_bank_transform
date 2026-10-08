@@ -11,7 +11,7 @@
 #   * the bank-local z axis is the straw axis: the AimHelper pixel centres of a
 #     straw advance along +z (normal banks) or -z (upside-down banks),
 #   * the translation is the bank position (getBankPosition),
-#   * the 3D pixel id equals the (x, y) pixel id and the expected id at the pixel
+#   * the pixel id equals the expected id at the pixel
 #     centres, at +-0.49 / +-0.51 pixel pitch along the straw and 3 mm
 #     perpendicular to it, for the first, middle and last pixel of every straw.
 
@@ -50,17 +50,14 @@ def run(rear_mm, N, nbanks):
                     c = aim.getPixelCentreCoordinates(pid)
                     u, pitch = straw_axis_dir(aim, pid, N)
                     chk.check(dot(u, z) * sign > 1.0 - 1e-12, f'pixel {pid}: straw axis {u} vs local z {z}')
-                    def ids(p):
-                        return pc.getPixelId3D(b, tube, s, p[0], p[1], p[2]), pc.getPixelId(b, tube, s, p[0], p[1])
                     points = [(c, pid)]
                     points += [(add(c, u, f * pitch), pid + d) for f, d in ((0.49, 0), (-0.49, 0), (0.51, 1), (-0.51, -1))
                                if 0 <= j + d < N]
                     for d in perpendicular_dirs(u):
                         points += [(add(c, d, 3.0), pid), (add(c, d, -3.0), pid)]
                     for p, expected in points:
-                        id3, id2 = ids(p)
-                        chk.check(id3 == expected and id2 == expected,
-                                  f'pixel {pid}: 3D id {id3}, (x, y) id {id2}, expected {expected}')
+                        got = pc.getPixelId(b, tube, s, p[0], p[1], p[2])
+                        chk.check(got == expected, f'pixel {pid}: pixel id {got}, expected {expected}')
         print(f'  bank {b}: proper rotation, local z = {"-" if sign < 0 else "+"}straw direction,'
               f' local z axis ({fmt(z[0], 6)}, {fmt(z[1], 6)}, {fmt(z[2], 6)}); {chk.nchecks - ncheck0} pixel id checks')
 

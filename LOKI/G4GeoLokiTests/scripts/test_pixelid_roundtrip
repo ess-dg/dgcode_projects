@@ -37,7 +37,7 @@ def run(rear_mm, N, inStrawList, perp):
                 for j in inStrawList(N):
                     pid = base + j
                     c = aim.getPixelCentreCoordinates(pid)
-                    gp = lambda p: pc.getPixelId(b, t, s, p[0], p[1])
+                    gp = lambda p: pc.getPixelId(b, t, s, p[0], p[1], p[2])
                     chk.check(gp(c) == pid, f'centre of pixel {pid} (bank {b} tube {t} straw {s}) -> {gp(c)}')
                     u, pitch = straw_axis_dir(aim, pid, N)
                     for f, expect in ((0.49, pid), (-0.49, pid), (0.51, pid + 1), (-0.51, pid - 1)):

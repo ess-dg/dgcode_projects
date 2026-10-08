@@ -61,22 +61,6 @@ int PixelatedBanks::getBankPixelOffset(const int bankId) const {
   return offset;
 }
 
-int PixelatedBanks::getPositionPixelId(const int bankId, const double positionX, const double positionY) const{
-  if (isBankCalibrated(bankId)) // the (x, y) version assumes the nominal, axis-aligned bank placement
-    throw std::logic_error("PixelatedBanks::getPixelId(bank, tube, straw, x, y) can not be used with a bank calibration, use getPixelId(bank, tube, straw, x, y, z)");
-  const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
-
-  if (isVertical(bankId)) { //vertical straw
-    const double strawBegin = getBankPosition(bankId, 1) - 0.5* getStrawLengthByBankId(bankId);
-    return std::floor((positionY - strawBegin) / pixelLength);
-  }
-  else { //horizontal straw
-    const double strawBegin = getBankPosition(bankId, 0) - 0.5* getStrawLengthByBankId(bankId);
-    const int invertedPixelId = std::floor((positionX - strawBegin) / pixelLength);
-    return (getNumberOfPixelsInStraw(bankId) - 1) - invertedPixelId; //pixels are numbered in minus x direction
-  }
-}
-
 int PixelatedBanks::getLocalPositionPixelId(const int bankId, const double positionX, const double positionY, const double positionZ) const{
   const double strawLength = getStrawLengthByBankId(bankId);
   const double pixelLength = strawLength / getNumberOfPixelsInStraw(bankId);
@@ -91,13 +75,6 @@ int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int str
   const int bankPixelOffset = getBankPixelOffset(bankId);
   const int strawPixelOffset = (tubeId * 7 + strawId) * getNumberOfPixelsInStraw(bankId);
   return bankPixelOffset + strawPixelOffset + getLocalPositionPixelId(bankId, positionX, positionY, positionZ);
-}
-
-int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY) const{
-  const int bankPixelOffset = getBankPixelOffset(bankId);
-  const int strawPixelOffset = (tubeId * 7 + strawId) * getNumberOfPixelsInStraw(bankId);
-  const int positionPixelId = getPositionPixelId(bankId, positionX, positionY);
-  return bankPixelOffset + strawPixelOffset + positionPixelId;
 }
 
 void PixelatedBanks::dumpInfo() const {

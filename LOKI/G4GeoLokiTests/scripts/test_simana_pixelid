@@ -109,10 +109,7 @@ def run(calibration=NOMINAL):
             chk.check(names == ['Converter', 'StrawWall', 'EmptyTube', 'TubeWall', 'EmptyPackBox', 'Bank', 'World'],
                       f'unexpected volume chain {names}')
             b, t, s = seg.volumeCopyNumber(5), seg.volumeCopyNumber(3), seg.volumeCopyNumber(1)
-            if calibration == NOMINAL:
-                p = pc.getPixelId(b, t, s, st.postGlobalX(), st.postGlobalY())
-            else:  # (x, y) assumes nominal banks
-                p = pc.getPixelId3D(b, t, s, st.postGlobalX(), st.postGlobalY(), st.postGlobalZ())
+            p = pc.getPixelId(b, t, s, st.postGlobalX(), st.postGlobalY(), st.postGlobalZ())
             conv.append((ievt, target, p))
             tb, _, _, tj = decode(target)
             if b == tb and p % N != tj:

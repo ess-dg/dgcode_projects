@@ -275,8 +275,7 @@ namespace {
     PixelatedBanks pb;
     PixelCalc(double rear, int n, int nbanks) : pb(rear, n, nbanks) {}
     PixelCalc(double rear, int n, int nbanks, const std::string& bankCalibration) : pb(rear, n, nbanks, bankCalibration) {}
-    int getPixelId(int bank, int tube, int straw, double x, double y) const { return pb.getPixelId(bank,tube,straw,x,y); }
-    int getPixelId3D(int bank, int tube, int straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
+    int getPixelId(int bank, int tube, int straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
     //bank transform: (rotation as 3 rows, translation)
     py::tuple getBankTransform(int bank) const {
       const BankTransform t = pb.getBankTransform(bank);
@@ -342,7 +341,6 @@ PYTHON_MODULE( mod )
     .def(py::init<double,int,int>())
     .def(py::init<double,int,int,std::string>())
     .def("getPixelId", &PixelCalc::getPixelId)
-    .def("getPixelId3D", &PixelCalc::getPixelId3D)
     .def("getBankTransform", &PixelCalc::getBankTransform)
     .def("getBankPosition", &PixelCalc::getBankPosition)
     .def("getNominalBankTransform", &PixelCalc::getNominalBankTransform)

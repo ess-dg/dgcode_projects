@@ -5,7 +5,7 @@
 #
 #  1. Names and files: nominal-geant4-geometry (no calibrated bank, the default of the C++ classes), the
 #     default calibration of the geometry and the scripts, unknown names and invalid files are
-#     rejected with an error (C++ reader), and the (x, y) pixel id refuses calibrated banks.
+#     rejected with an error (C++ reader).
 #  2. The calibrated code path reproduces the nominal geometry: a calibration file made here
 #     from the NOMINAL AimHelper pixel centres (F, u, w, n computed the loki-geometry way:
 #     centre straw midpoints of the front layer tubes 0 and N-1) gives the nominal bank
@@ -122,12 +122,6 @@ for pars, expected_error in [(dict(bank_calibration='unknown-calibration'), 'Wro
     chk.check(result.returncode != 0 and message, f'{pars}: not rejected (exit code {result.returncode}: {result.stdout[-500:]})')
     shown = {k: (os.path.basename(v) if v == ok_path else v) for k, v in pars.items()}
     print(f'  geometry {shown}: rejected (exit code != 0: {result.returncode != 0}): {message[0].strip() if message else "NO"}')
-# the (x, y) pixel id assumes nominal banks
-pc_ok = TU.PixelCalc(REAR, 256, 9, ok_path)  # bank 3 calibrated
-error = raises(pc_ok.getPixelId, 3, 0, 3, 0.0, -500.0)
-chk.check(error is not None and 'can not be used with a bank calibration' in error, 'the 2D getPixelId accepted a calibrated bank')
-chk.check(raises(pc_ok.getPixelId, 0, 0, 3, 0.0, 0.0) is None, 'the 2D getPixelId refused a nominal bank of a calibration')
-chk.check(raises(TU.PixelCalc(REAR, 256, 9).getPixelId, 3, 0, 3, 0.0, -500.0) is None, 'the 2D getPixelId refused a nominal bank')
 
 print('=' * 90)
 print('2. A calibration file made from the nominal geometry reproduces it')
@@ -176,7 +170,7 @@ for N in (1, 7, 256, 512):
         b = a_cal.getBankId(p)
         t = a_cal.getTubeId(p, b)
         s = a_cal.getStrawId(p, b, t)
-        if pc.getPixelId3D(b, t, s, *a_cal.getPixelCentreCoordinates(p)) != p:
+        if pc.getPixelId(b, t, s, *a_cal.getPixelCentreCoordinates(p)) != p:
             nbad += 1
     chk.check(nbad == 0, f'{N} pixels/straw: {nbad} pixel centres give another pixel id')
 
@@ -256,7 +250,7 @@ for rear_m in (5.0, 8.0):
         hist, loc, axis, _ = TU.locate(*c)
         copies = [h[1] for h in hist]
         if [h[0] for h in hist][0] != 'CountingGas' or copies[6] != 0 or copies[4] != t_ or copies[2] != s_ \
-           or pc.getPixelId3D(0, copies[4], copies[2], *c) != p:
+           or pc.getPixelId(0, copies[4], copies[2], *c) != p:
             nbad += 1
     chk.check(nbad == 0, f'rear {rear_m} m: {nbad} bank 0 pixel centres not in their straw / other pixel id')
     print(f'  rear {rear_m:g} m: no overlaps (dense check): {not overlaps}, bank 0 pixel centres in their straw '
@@ -274,8 +268,6 @@ chk.check([b for b in range(NBANKS) if sam.isBankCalibrated(b)] == list(range(NB
 R0, t0 = transform(nominal, 0)
 R0s, t0s = transform(sam, 0)  # bank 0 of SAM-606 is REFERENCE_BANKS_DATA: the nominal placement
 chk.check(np.abs(R0 - R0s).max() < 1e-12 and np.abs(t0 - t0s).max() < 1e-9, 'SAM-606: bank 0 is not nominal')
-error = raises(pc_sam.getPixelId, 0, 0, 3, 0.0, 0.0)
-chk.check(error is not None, 'the 2D getPixelId accepted the calibrated rear bank')
 # the file values (read here independently of the C++ reader)
 fileF = {}
 with open(pc_sam.getBankCalibrationFile()) as f:
@@ -346,7 +338,7 @@ for N in (8, 256):
         t = a.getTubeId(p, b)
         s = a.getStrawId(p, b, t)
         n += 1
-        if pc.getPixelId3D(b, t, s, *a.getPixelCentreCoordinates(p)) != p:
+        if pc.getPixelId(b, t, s, *a.getPixelCentreCoordinates(p)) != p:
             nbad += 1
     chk.check(nbad == 0, f'{N} pixels/straw: {nbad} of {n} pixel centres give another pixel id')
     print(f'  {N} pixels/straw: {n} pixel centres -> pixel id round trip OK: {nbad == 0}')

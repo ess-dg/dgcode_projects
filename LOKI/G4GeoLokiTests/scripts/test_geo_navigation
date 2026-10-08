@@ -14,9 +14,8 @@
 #     decoded from the pixel id by AimHelper (Converter copy number = straw+100),
 #   * the point is on the straw axis (local x,y = 0) at the expected position
 #     along the straw (local z),
-#   * PixelatedBanks::getPixelId(bank, tube copy no., straw copy no., x, y)
-#     returns the pixel id (for a bank calibration: the 3D getPixelId(..., x, y, z),
-#     as done in LOKI/app_ana and LokiMasking/app_ana).
+#   * PixelatedBanks::getPixelId(bank, tube copy no., straw copy no., x, y, z)
+#     returns the pixel id (as done in LOKI/app_ana and LokiMasking/app_ana).
 # This is done for the first, middle and last pixel of EVERY straw (nominal geometry unless
 # a bank calibration is given), for the nominal geometry and the 2026-September-SAM-606
 # bank calibration (survey-based, not axis-aligned banks); a sample of pixels is
@@ -40,7 +39,7 @@ def expected_local_z(bank, j, N):
     z = -0.5 * L + (j + 0.5) * L / N
     return -z if TU.areTubesInverselyNumbered(bank) else z
 
-def check_pixel(aim, pc, pid, N, verbose, calibrated=False):
+def check_pixel(aim, pc, pid, N, verbose):
     b = aim.getBankId(pid)
     t = aim.getTubeId(pid, b)
     s = aim.getStrawId(pid, b, t)
@@ -56,12 +55,8 @@ def check_pixel(aim, pc, pid, N, verbose, calibrated=False):
         chk.check(abs(loc[0]) < 1e-6 and abs(loc[1]) < 1e-6 and abs(loc[2] - expected_local_z(b, j, N)) < 1e-6,
                   f'pixel {pid}: local position {loc}, expected z {expected_local_z(b, j, N)}')
         # hit -> pixel id exactly as in the analysis (copy numbers from the touchable):
-        if not calibrated:
-            chk.check(pc.getPixelId(copies[6], copies[4], copies[2], c[0], c[1]) == pid,
-                      f'pixel {pid}: getPixelId from touchable -> {pc.getPixelId(copies[6], copies[4], copies[2], c[0], c[1])}')
-        else:
-            chk.check(pc.getPixelId3D(copies[6], copies[4], copies[2], *c) == pid,
-                      f'pixel {pid}: getPixelId (3D) from touchable -> {pc.getPixelId3D(copies[6], copies[4], copies[2], *c)}')
+        chk.check(pc.getPixelId(copies[6], copies[4], copies[2], *c) == pid,
+                  f'pixel {pid}: getPixelId from touchable -> {pc.getPixelId(copies[6], copies[4], copies[2], *c)}')
     if verbose:
         print(f'{pid:8} {b:4} {t:4} {s:5} {j:5}  bank/tube/straw copyNo: {copies[6]:2} {copies[4]:4} {copies[2]:2}'
               f'  centre {fmtvec(c,4)}  local {fmtvec(loc,4)}  straw axis {fmtvec(axis,6)}')
@@ -90,14 +85,14 @@ def run(title, geopars, rear_mm, N, nbanks):
     print('Volume chain at pixel 0 (name:copyNo):', ' / '.join(f'{h[0]}:{h[1]}' for h in TU.locate(*c0)[0]))
     print(f'{"pixelId":>8} {"bank":>4} {"tube":>4} {"straw":>5} {"pix":>5}')
     for (b, t, s, j, pid) in sample_pixels(aim, N, range(nbanks)):
-        check_pixel(aim, pc, pid, N, True, bool(calibration))
+        check_pixel(aim, pc, pid, N, True)
     n0 = chk.nchecks
     for b in range(nbanks):
         for t in range(TU.getNumberOfTubes(b)):
             for s in range(NSTRAWS):
                 base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * N
                 for j in (0, N // 2, N - 1):
-                    check_pixel(aim, pc, base + j, N, False, bool(calibration))
+                    check_pixel(aim, pc, base + j, N, False)
     print(f'All straws (first/middle/last pixel): {chk.nchecks - n0} checks done, failures so far: {chk.nfail}')
 
 run('Nominal geometry: rear 5 m, 256 pixels/straw', dict(), 5000.0, 256, 9)

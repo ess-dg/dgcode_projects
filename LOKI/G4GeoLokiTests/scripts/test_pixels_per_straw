@@ -29,7 +29,7 @@ def pc_snapshot(pc, aim):
         b = aim.getBankId(p)
         t = aim.getTubeId(p, b)
         s = aim.getStrawId(p, b, t)
-        out.append(pc.getPixelId3D(b, t, s, *aim.getPixelCentreCoordinates(p)))
+        out.append(pc.getPixelId(b, t, s, *aim.getPixelCentreCoordinates(p)))
     return out
 
 # references: each object made alone (and used before the next one exists)

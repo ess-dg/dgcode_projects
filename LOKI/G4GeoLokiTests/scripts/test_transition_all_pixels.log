@@ -1,5 +1,0 @@
-rear 5.0 m, 256 px/straw, 9 banks: 1605632 pixels, largest pixel centre deviation from the original < 1e-9 mm, 14438144 pixel id checks, 0 failures
-rear 5.0 m, 512 px/straw, 9 banks: 3211264 pixels, largest pixel centre deviation from the original < 1e-9 mm, 28888832 pixel id checks, 0 failures
-rear 7.3 m, 256 px/straw, 9 banks: 1605632 pixels, largest pixel centre deviation from the original < 1e-9 mm, 14438144 pixel id checks, 0 failures
-rear 10.0 m, 512 px/straw, 9 banks: 3211264 pixels, largest pixel centre deviation from the original < 1e-9 mm, 28888832 pixel id checks, 0 failures
-checks performed: 96287744, failures: 0

@@ -60,4 +60,4 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   BoronMask-triangular-7-3: position in its bank (-154.020, -90.738, 877.500) mm, unchanged from nominal: True
   2026-September-SAM-606: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 2.13 mm), notch nominal: True
   2026-September-SAM-606: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 1.63 mm), notch nominal: True
-checks performed: 90, failures: 0
+checks performed: 86, failures: 0
