@@ -1,26 +1,11 @@
-
 #include "G4GeoLoki/BcsBanks.hh"
 #include "Units/Units.hh"
 #include <cmath>
-#include <iostream>
 #include <array>
 #include <cassert>
-#include <algorithm>
 
-BcsBanks::BcsBanks(double rearBankDistance, int numberOfBanks, const std::string& bankCalibration)
-  : m_rearBankDistance(rearBankDistance),
-    m_numberOfBanks(numberOfBanks),
-    m_bankCalibration(BankCalibration::load(bankCalibration))
-{
-  for (int bankId = 0; bankId <= 8; bankId++) {
-    if (!m_bankCalibration.hasBank(bankId))
-      continue;
-    BankCalibration::Bank bank = m_bankCalibration.getBank(bankId);
-    if (bankId == 0) // the rear bank moves along the beam: its distance is the rear detector distance (as nominal)
-      bank.frontFaceCentre[2] = m_rearBankDistance;
-    m_calibratedTransforms[bankId] = transformFromPlacement(bankId, bank);
-  }
-}
+// The banks: the tables (also those of the nominal placement, used in BcsBanksPlacement.cc), the dimensions and
+// content of the banks, the tube numbering, the masks and the beamstop (see BcsBanks.hh).
 
 const double BcsBanks::packHolderDistanceFromPackTop = 7.6 *Units::mm;
 const double BcsBanks::packHolderDistanceFromPackFront = 7.5 *Units::mm;
@@ -73,11 +58,6 @@ const double BcsBanks::bankTiltAngle[9] = {
     100.0, // 7 - front bottom //180-80=100
     105.0, // 8 - front right
 };
-
-double BcsBanks::calcBankRotation(const int bankId){ //27.5+ (80-90)
-  assert(0 <= bankId && bankId <= 8);
-  return (90 - (bankTiltAngle[bankId] - bankPositionAngle[bankId])) *Units::deg;
-}
 
 const double BcsBanks::bankSideDirection[9][3] = { // unit vector from the beam axis towards the bank
     {0.0, -1.0, 0.0}, // 0 - rear (on the beam axis; its frame is oriented like the bottom banks)
@@ -163,90 +143,6 @@ int BcsBanks::getNumberOfTubes(const int bankId){
   return numberOfPacksInBank[bankId] * 8;
 }
 
-std::array<double,3> BankTransform::toGlobal(const std::array<double,3>& local) const {
-  std::array<double,3> global;
-  for (int i = 0; i < 3; i++)
-    global[i] = rotation[i][0] * local[0] + rotation[i][1] * local[1] + rotation[i][2] * local[2] + translation[i];
-  return global;
-}
-
-std::array<double,3> BankTransform::toLocal(const std::array<double,3>& global) const {
-  std::array<double,3> local;
-  for (int j = 0; j < 3; j++)
-    local[j] = rotation[0][j] * (global[0] - translation[0])
-             + rotation[1][j] * (global[1] - translation[1])
-             + rotation[2][j] * (global[2] - translation[2]);
-  return local;
-}
-
-BankTransform BcsBanks::getBankTransform(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
-  if (m_bankCalibration.hasBank(bankId))
-    return m_calibratedTransforms[bankId];
-  return getNominalBankTransform(bankId);
-}
-
-std::array<double,3> BcsBanks::getFrontFaceCentreInBank(const int bankId) {
-  assert(0 <= bankId && bankId <= 8);
-  // bank volume: local x = depth (towards the back), y = across the tubes, z = along the tubes
-  return {-detectorSystemCentreOffsetInBank(bankId, 2), detectorSystemCentreOffsetInBank(bankId, 1), 0.0};
-}
-
-BankTransform BcsBanks::getNominalBankTransform(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
-  return transformFromPlacement(bankId, nominalBankPlacement(bankId));
-}
-
-namespace {
-  std::array<double,3> cross(const std::array<double,3>& a, const std::array<double,3>& b) {
-    return {a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]};
-  }
-}
-
-BankCalibration::Bank BcsBanks::nominalBankPlacement(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
-  const double distance = bankId == 0 ? m_rearBankDistance : bankDistance[bankId] *Units::mm;
-  const double positionAngle = bankPositionAngle[bankId] *Units::deg;
-  const double normalAngle = calcBankRotation(bankId); // between the layer normal and the beam axis
-  const auto& side = bankSideDirection[bankId];
-  const std::array<double,3> beam = {0., 0., 1.};
-
-  BankCalibration::Bank bank;
-  std::array<double,3> towardsBeamAxis; // in the section plane, perpendicular to n: the local y axis of the bank
-  for (int i = 0; i < 3; i++) {
-    bank.frontFaceCentre[i] = distance * (std::sin(positionAngle) * side[i] + std::cos(positionAngle) * beam[i])
-                              + bankPositionOffset[bankId][i] *Units::mm;
-    bank.layerNormal[i] = std::sin(normalAngle) * side[i] + std::cos(normalAngle) * beam[i];
-    towardsBeamAxis[i] = -std::cos(normalAngle) * side[i] + std::sin(normalAngle) * beam[i];
-  }
-  // the bank frame is [n, towardsBeamAxis, n x towardsBeamAxis] (see transformFromPlacement)
-  const double s = areTubesInverselyNumbered(bankId) ? -1.0 : 1.0;
-  const auto alongTubesAxis = cross(bank.layerNormal, towardsBeamAxis);
-  for (int i = 0; i < 3; i++) {
-    bank.acrossTubes[i] = s * towardsBeamAxis[i];
-    bank.alongTubes[i] = -s * alongTubesAxis[i];
-  }
-  return bank;
-}
-
-BankTransform BcsBanks::transformFromPlacement(const int bankId, const BankCalibration::Bank& placement) {
-  assert(0 <= bankId && bankId <= 8);
-  const double s = areTubesInverselyNumbered(bankId) ? -1.0 : 1.0; // upside down banks: rotated by 180 deg about n
-  BankTransform transform;
-  for (int i = 0; i < 3; i++) {
-    transform.rotation[i][0] = placement.layerNormal[i];
-    transform.rotation[i][1] = s * placement.acrossTubes[i];
-    transform.rotation[i][2] = -s * placement.alongTubes[i];
-  }
-  const auto frontFaceCentreInBank = getFrontFaceCentreInBank(bankId);
-  for (int i = 0; i < 3; i++) {
-    transform.translation[i] = placement.frontFaceCentre[i];
-    for (int j = 0; j < 3; j++)
-      transform.translation[i] -= transform.rotation[i][j] * frontFaceCentreInBank[j];
-  }
-  return transform;
-}
-
 std::array<double,3> BcsBanks::getBankHalfSizeInBankFrame(const int bankId) {
   return {0.5 * getBankSize(bankId, 2), 0.5 * getBankSize(bankId, 1), 0.5 * getBankSize(bankId, 0)};
 }
@@ -285,126 +181,6 @@ double BcsBanks::getBankSize(const int bankId, const int axisIndex) {
   assert(0 <= bankId && bankId <= 8);
   assert(0 <= axisIndex && axisIndex <= 2);
   return bankSize[bankId][axisIndex]+0.05 *Units::mm;
-}
-
-/// bank notch ///
-const double BcsBanks::nominalNotchCentre[3] = {-145.0 *Units::mm, -42.0 *Units::mm, -425.0 *Units::mm};
-const double BcsBanks::nominalNotchHalfSize[3] = {15.0 *Units::mm, 70.0 *Units::mm, 60.0 *Units::mm};
-const double BcsBanks::notchMargin = 1.0 *Units::mm;
-
-bool BcsBanks::hasBankNotch(const int bankId) {
-  return bankId == 6 || bankId == 8;
-}
-
-int BcsBanks::getBankNotchNeighbour(const int bankId) {
-  assert(hasBankNotch(bankId));
-  return bankId - 1;
-}
-
-namespace {
-  struct Box { // oriented box: p_world = rotation * p_box + centre, |p_box[k]| <= halfSize[k]
-    BankTransform transform;
-    std::array<double,3> halfSize;
-  };
-
-  // The part of the segment p0-p1 inside the box (Liang-Barsky clipping); false if it is outside.
-  bool clipSegment(const std::array<double,3>& p0, const std::array<double,3>& p1, const Box& box,
-                   std::array<double,3>& q0, std::array<double,3>& q1) {
-    const auto a = box.transform.toLocal(p0);
-    const auto b = box.transform.toLocal(p1);
-    double tMin = 0.0, tMax = 1.0;
-    for (int k = 0; k < 3; k++) {
-      const double d = b[k] - a[k];
-      if (std::abs(d) < 1e-12) {
-        if (std::abs(a[k]) > box.halfSize[k])
-          return false;
-        continue;
-      }
-      double t1 = (-box.halfSize[k] - a[k]) / d;
-      double t2 = (box.halfSize[k] - a[k]) / d;
-      if (t1 > t2)
-        std::swap(t1, t2);
-      tMin = std::max(tMin, t1);
-      tMax = std::min(tMax, t2);
-      if (tMin > tMax)
-        return false;
-    }
-    for (int i = 0; i < 3; i++) {
-      q0[i] = p0[i] + tMin * (p1[i] - p0[i]);
-      q1[i] = p0[i] + tMax * (p1[i] - p0[i]);
-    }
-    return true;
-  }
-
-  // The parts of the 12 edges of box a that are inside box b
-  void addEdgePointsInside(const Box& a, const Box& b, std::vector<std::array<double,3>>& points) {
-    for (int corner = 0; corner < 8; corner++) {
-      for (int axis = 0; axis < 3; axis++) {
-        if (corner & (1 << axis))
-          continue; // each edge once: from the corner with the lower coordinate along the axis
-        std::array<double,3> c0, c1;
-        for (int k = 0; k < 3; k++) {
-          c0[k] = ((corner >> k) & 1) ? a.halfSize[k] : -a.halfSize[k];
-          c1[k] = c0[k];
-        }
-        c1[axis] = a.halfSize[axis];
-        std::array<double,3> q0, q1;
-        if (clipSegment(a.transform.toGlobal(c0), a.transform.toGlobal(c1), b, q0, q1)) {
-          points.push_back(q0);
-          points.push_back(q1);
-        }
-      }
-    }
-  }
-}
-
-std::vector<std::array<double,3>> BcsBanks::getBankBoxOverlapPoints(const int bankId, const int otherBankId) const {
-  // The overlap region of two boxes is a convex polyhedron; its vertices are on the edges of the two boxes, so
-  // it is spanned by the parts of the edges of each box that are inside the other box.
-  auto bankBox = [this](const int id) {
-    return Box{getBankTransform(id), {0.5 * getBankSize(id, 2), 0.5 * getBankSize(id, 1), 0.5 * getBankSize(id, 0)}};
-  };
-  const Box a = bankBox(bankId);
-  const Box b = bankBox(otherBankId);
-  std::vector<std::array<double,3>> points;
-  addEdgePointsInside(a, b, points);
-  addEdgePointsInside(b, a, points);
-  for (auto& point : points)
-    point = a.transform.toLocal(point);
-  return points;
-}
-
-BcsBanks::BankNotch BcsBanks::getBankNotch(const int bankId) const {
-  assert(hasBankNotch(bankId));
-  BankNotch notch;
-  notch.isNominal = true;
-  for (int k = 0; k < 3; k++) {
-    notch.centre[k] = nominalNotchCentre[k];
-    notch.halfSize[k] = nominalNotchHalfSize[k];
-  }
-  const int neighbour = getBankNotchNeighbour(bankId);
-  if (!isBankCalibrated(bankId) && !isBankCalibrated(neighbour))
-    return notch; // nominal placements
-  const auto points = getBankBoxOverlapPoints(bankId, neighbour);
-  bool insideNominalNotch = true;
-  for (const auto& point : points)
-    for (int k = 0; k < 3; k++)
-      if (std::abs(point[k] - nominalNotchCentre[k]) > nominalNotchHalfSize[k])
-        insideNominalNotch = false;
-  if (insideNominalNotch)
-    return notch; // (also if the boxes don't overlap)
-  for (int k = 0; k < 3; k++) {
-    double low = nominalNotchCentre[k] - nominalNotchHalfSize[k];
-    double high = nominalNotchCentre[k] + nominalNotchHalfSize[k];
-    for (const auto& point : points) {
-      low = std::min(low, point[k] - notchMargin);
-      high = std::max(high, point[k] + notchMargin);
-    }
-    notch.centre[k] = 0.5 * (low + high);
-    notch.halfSize[k] = 0.5 * (high - low);
-  }
-  notch.isNominal = false;
-  return notch;
 }
 
 double BcsBanks::packHolderToPackCentreCoordsInPack(const int axisIndex) {
