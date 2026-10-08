@@ -1,0 +1,12 @@
+package(USEPKG Larmor G4GeoLokiTests G4GeoLoki G4CustomPyGen G4Launcher GriffAnaUtils Units)
+
+######################################################################
+
+Regression tests (test-only package) of the Larmor setups (package Larmor): they pin
+the Larmor 2020 and 2022 geometries, the frozen bank placement and pixel logic of
+the Larmor 2022 experiment (Larmor2022Bank), and check the built geometry against
+the pixel logic (navigation, geantino aiming). Uses the helpers of G4GeoLokiTests.
+
+Run with: sb -t --testfilter='sb_larmortests_*'
+
+Primary author: milan.klausz@ess.eu

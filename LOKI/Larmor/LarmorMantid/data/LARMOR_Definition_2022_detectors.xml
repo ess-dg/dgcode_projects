@@ -1,0 +1,252 @@
+<?xml version='1.0' encoding='ASCII'?>
+<!-- For help on the notation used to specify an Instrument Definition File see http://www.mantidproject.org/IDF -->
+<instrument xmlns="http://www.mantidproject.org/IDF/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.mantidproject.org/IDF/1.0 http://schema.mantidproject.org/IDF/1.0/IDFSchema.xsd"
+name="LARMOR" valid-from   ="1900-01-31 23:59:59"
+valid-to     ="2100-01-31 23:59:59"
+last-modified="2021-12-16 11:55:05">
+<!---->
+<defaults>
+	<length unit="metre"/>
+	<angle unit="degree"/>
+	<reference-frame>
+		<along-beam axis="z"/>
+		<pointing-up axis="y"/>
+		<handedness val="right"/>
+	</reference-frame>
+<default-view axis-view="z-"/></defaults>
+
+  <component type="source">
+    <location />
+  </component>
+  <type name="source" is="Source" />
+  
+  <component type="some-sample-holder">
+    <location z="25.6100"/>
+  </component>
+  <type name="some-sample-holder" is="SamplePos" />
+
+<component type="DetectorBench">
+    <location x="0" y="-0.20794792" z="29.7579"/> <!-- with wheels -  beam height 1155 mm, sdd 4420 mm to 4099 mm, sampPos 25.3 to 25.61-->
+    <!-- <location x="0" y="-0.20794792" z="29.4479"/> with wheels -  beam height 1155 mm, sdd 4420 mm to 4099 mm -->
+    <!-- <location x="0" y="-0.21194792" z="29.7689"/> with wheels -  beam height 1159 mm  -->
+    <!-- <location x="0" y="-0.24494792" z="29.7689"/> without wheels - beam height 1159 mm-->
+    <!-- <location x="0" y="-0.24494792" z="25.7903"/> -->
+</component>
+
+<type name="DetectorBench">
+<component name="Bank_0_horz_1000_back" type="panel_1000_horz_back" idlist="Bank_0_Ids_horz_back">
+        <location x="0" y="0.008651" z="0"/> 
+         <!-- <location x="0" y="0.008651" z="28.648877"/> +0.048877 detector front to pack centre -->
+</component>
+</type>
+
+<type name="panel_1000_horz_back">
+  <component name="layer_1" type="layer_1">
+    <location x="0" y="0" z="0"/> 
+  </component>
+  <component name="layer_2" type="layer_2">
+    <location x="0" y="0" z="0"/> 
+  </component>
+  <component name="layer_3" type="layer_3">
+    <location x="0" y="0" z="0"/> 
+  </component>
+  <component name="layer_4" type="layer_4">
+    <location x="0" y="0" z="0"/> 
+  </component>
+</type>
+
+<type name="layer_1">
+    <component type="pack_horz_1000mm_back_layer_1">
+        <!-- <location name="Pack_1" x="0" y="0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_2" x="0" y="0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+        <location name="Pack_3" x="0" y="0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_4" x="0" y="0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_5" x="0" y="0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_6" x="0" y="0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_7" x="0" y="0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_8" x="0" y="0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_9" x="0" y="0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_10" x="0" y="0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_11" x="0" y="0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_12" x="0" y="0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_13" x="0" y="0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_14" x="0" y="0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_15" x="0" y="-0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_16" x="0" y="-0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_17" x="0" y="-0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_18" x="0" y="-0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <!-- <location name="Pack_19" x="0" y="-0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_20"  x="0" y="-0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_21"  x="0" y="-0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_22"  x="0" y="-0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_23"  x="0" y="-0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_24"  x="0" y="-0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_25"  x="0" y="-0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_26"  x="0" y="-0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_27"  x="0" y="-0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_28"  x="0" y="-0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+    </component>
+</type>
+<type name="layer_2">
+    <component type="pack_horz_1000mm_back_layer_2">
+        <!-- <location name="Pack_1" x="0" y="0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_2" x="0" y="0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+        <location name="Pack_3" x="0" y="0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_4" x="0" y="0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_5" x="0" y="0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_6" x="0" y="0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_7" x="0" y="0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_8" x="0" y="0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_9" x="0" y="0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_10" x="0" y="0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_11" x="0" y="0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_12" x="0" y="0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_13" x="0" y="0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_14" x="0" y="0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_15" x="0" y="-0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_16" x="0" y="-0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_17" x="0" y="-0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_18" x="0" y="-0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <!-- <location name="Pack_19" x="0" y="-0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_20"  x="0" y="-0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_21"  x="0" y="-0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_22"  x="0" y="-0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_23"  x="0" y="-0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_24"  x="0" y="-0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_25"  x="0" y="-0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_26"  x="0" y="-0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_27"  x="0" y="-0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_28"  x="0" y="-0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+    </component>
+</type>
+<type name="layer_3">
+    <component type="pack_horz_1000mm_back_layer_3">
+        <!-- <location name="Pack_1" x="0" y="0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_2" x="0" y="0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+        <location name="Pack_3" x="0" y="0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_4" x="0" y="0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_5" x="0" y="0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_6" x="0" y="0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_7" x="0" y="0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_8" x="0" y="0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_9" x="0" y="0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_10" x="0" y="0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_11" x="0" y="0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_12" x="0" y="0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_13" x="0" y="0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_14" x="0" y="0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_15" x="0" y="-0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_16" x="0" y="-0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_17" x="0" y="-0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_18" x="0" y="-0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <!-- <location name="Pack_19" x="0" y="-0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_20"  x="0" y="-0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_21"  x="0" y="-0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_22"  x="0" y="-0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_23"  x="0" y="-0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_24"  x="0" y="-0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_25"  x="0" y="-0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_26"  x="0" y="-0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_27"  x="0" y="-0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_28"  x="0" y="-0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+    </component>
+</type>
+<type name="layer_4">
+    <component type="pack_horz_1000mm_back_layer_4">
+        <!-- <location name="Pack_1" x="0" y="0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_2" x="0" y="0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+        <location name="Pack_3" x="0" y="0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_4" x="0" y="0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_5" x="0" y="0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_6" x="0" y="0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_7" x="0" y="0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_8" x="0" y="0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_9" x="0" y="0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_10" x="0" y="0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_11" x="0" y="0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_12" x="0" y="0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_13" x="0" y="0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_14" x="0" y="0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_15" x="0" y="-0.0284" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_16" x="0" y="-0.0852" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_17" x="0" y="-0.142"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_18" x="0" y="-0.1988" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <!-- <location name="Pack_19" x="0" y="-0.2556" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_20"  x="0" y="-0.3124" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_21"  x="0" y="-0.3692" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_22"  x="0" y="-0.426"  z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_23"  x="0" y="-0.4828" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_24"  x="0" y="-0.5396" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_25"  x="0" y="-0.5964" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_26"  x="0" y="-0.6532" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_27"  x="0" y="-0.71"   z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/>
+        <location name="Pack_28"  x="0" y="-0.7668" z="0" rot="-13.45" axis-x="1" axis-y="0" axis-z="0"/> -->
+    </component>
+</type>
+
+<type name="pack_horz_1000mm_back_layer_1">
+    <component type="back_tube_1000mm"> <!-- -0.033894 = -0.0405 + 28.4*sin(13.45)  -->
+        <locations x="0" y="0.01381" z="-0.033894" z-end="0.047106" n-elements="1" name="detector_module_layer_1" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+        <locations x="0" y="-0.01381" z="-0.0405" z-end="0.0405" n-elements="1" name="detector_module_layer_2" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+    </component>
+</type>
+
+<type name="pack_horz_1000mm_back_layer_2">
+    <component type="back_tube_1000mm"> <!-- -0.033894 = -0.0405 + 28.4*sin(13.45)  +0.081/3=0.027 -->
+        <locations x="0" y="0.01381" z="-0.006894" z-end="0.047106" n-elements="1" name="detector_module_layer_1" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+        <locations x="0" y="-0.01381" z="-0.0135" z-end="0.0405" n-elements="1" name="detector_module_layer_2" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+    </component>
+</type>
+
+<type name="pack_horz_1000mm_back_layer_3">
+    <component type="back_tube_1000mm"> <!-- -0.033894 = -0.0405 + 28.4*sin(13.45)  +2*0.027 -->
+        <locations x="0" y="0.01381" z="0.020106" z-end="0.047106" n-elements="1" name="detector_module_layer_1" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+        <locations x="0" y="-0.01381" z="0.0135" z-end="0.0405" n-elements="1" name="detector_module_layer_2" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+    </component>
+</type>
+
+<type name="pack_horz_1000mm_back_layer_4">
+    <component type="back_tube_1000mm"> <!-- -0.033894 = -0.0405 + 28.4*sin(13.45)  +3*0.027 -->
+        <locations x="0" y="0.01381" z="0.047106" z-end="0.047106" n-elements="1" name="detector_module_layer_1" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+        <locations x="0" y="-0.01381" z="0.0405" z-end="0.0405" n-elements="1" name="detector_module_layer_2" rot="+5" axis-x="1" axis-y="0" axis-z="0"/>
+    </component>
+</type>
+
+<type name="back_tube_1000mm">
+    <component type="horz_straw_1000mm_back">
+        <location x="0.0" y="0.0" z="-0.00775" name="straw_0"/>
+        <location x="0.0" y="-0.0067117" z="-0.003875" name="straw_1"/>
+        <location x="0.0" y="-0.0067117" z="0.003875" name="straw_2"/>
+        <location x="0.0" y="0.0" z="0.0" name="straw_3"/>
+        <location x="0.0" y="0.0067117" z="-0.003875" name="straw_4"/>
+        <location x="0.0" y="0.0067117" z="0.003875" name="straw_5"/>
+        <location x="0.0" y="0.0" z="0.00775" name="straw_6"/>
+    </component>
+</type>
+
+<type name="horz_straw_1000mm_back" outline="yes">
+    <component type="h-pixel-1000mm">
+        <!-- <locations x="0.498046875" x-end="-0.498046875" y="0" y-end="0" n-elements="256" /> for 256 pixels-->
+        <locations x="0.4990234375" x-end="-0.4990234375" y="0" y-end="0" n-elements="512" /> <!--for 512 pixels-->
+    </component>
+</type>
+
+<type name="h-pixel-1000mm" is="detector">
+<cylinder id="cyl-approx">
+	<centre-of-bottom-base r="0.0" t="0.0" p="0.0" />
+	<axis x="1.0" y="0.0" z="0.0" />
+	<radius val="0.00375" />
+	<!-- <height val="0.00390625" /> for 256 pixels-->
+	<height val="0.001953125" /> <!--for 512 pixels-->
+</cylinder>
+<algebra val="cyl-approx" />
+</type>
+
+<idlist idname="Bank_0_Ids_horz_back">
+	<!--<id start="11" end="401418"/> for 256 pixels-->
+  <!-- <id start="11" end="802826"/> FULL for 512 pixels      512*7*8 * 28=802816 (+10 monitors) -->
+  <id start="1" end="458752"/> <!-- REDUCED for 512 pixels   512*7*8 * 16=458752 (no monitors) -->
+</idlist>
+
+</instrument>

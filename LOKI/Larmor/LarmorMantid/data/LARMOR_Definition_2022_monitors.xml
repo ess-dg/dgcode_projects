@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='ASCII'?>
+<!-- For help on the notation used to specify an Instrument Definition File see http://www.mantidproject.org/IDF -->
+<instrument xmlns="http://www.mantidproject.org/IDF/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.mantidproject.org/IDF/1.0 http://schema.mantidproject.org/IDF/1.0/IDFSchema.xsd"
+name="LARMOR" valid-from   ="1900-01-31 23:59:59"
+valid-to     ="2100-01-31 23:59:59"
+last-modified="2022-04-12 15:50:05">
+<!---->
+<defaults>
+	<length unit="metre"/>
+	<angle unit="degree"/>
+	<reference-frame>
+		<along-beam axis="z"/>
+		<pointing-up axis="y"/>
+		<handedness val="right"/>
+	</reference-frame>
+<default-view axis-view="z-"/></defaults>
+
+  <component type="source">
+    <location />
+  </component>
+  <type name="source" is="Source" />
+  
+  <component type="some-sample-holder">
+    <location z="25.61"/>
+  </component>
+  <type name="some-sample-holder" is="SamplePos" />
+  
+<component type="monitors" idlist="monitors">
+    <location />
+  </component>
+  
+  <type name="monitors">
+    <component type="mcstas-monitor">
+      <location z="9.8195" name="monitor1"/>  <!-- McStas: TOFmon1.dat -->
+      <location z="20.313" name="monitor2"/>  <!-- McStas: TOFmon2.dat -->
+    </component>
+    
+    <component type="mcstas-monitor-pre-sample">
+      <location z="25.57"  name="monitor3"/>   <!-- McStas: TOFpresamp.dat -->
+    </component>
+      
+    <component type="mcstas-monitor">
+      <!-- transmisssion detector, either in or out of beam -->
+      <location z="25.76"  name="monitor4"/>   <!-- McStas: TOFmon4.dat -->
+    </component>
+    
+    <!-- Putting in monitors, which are defined in raw/neuxs
+         files, and have detector IDs, but currently not physically present 
+         on the instrument. Defined with no geometric shape, as they do not 
+         physically exist, and with a dummy position -->
+    <component type="no shape monitor">
+      <location z="0" name="placeholder monitor"/>
+      <location z="0" name="placeholder monitor"/>
+      <location z="0" name="placeholder monitor"/>
+      <location z="0" name="placeholder monitor"/>
+      <location z="0" name="placeholder monitor"/>
+      <location z="0" name="placeholder monitor"/>      
+    </component>  
+    
+  </type>
+  
+  <type name="mcstas-monitor" is="monitor">
+    <cuboid id="mon-shape"> <!-- xwidth = 0.031, yheight = 0.031 -->
+      <left-front-bottom-point y="-0.0155" x="-0.0155" z="0.0"/>
+      <left-front-top-point y="0.0155" x="-0.0155" z="0.0"/>
+      <left-back-bottom-point y="-0.0155" x="-0.0155" z="0.0"/>
+      <right-front-bottom-point y="-0.0155" x="0.0155" z="0.0"/>
+    </cuboid>
+    <algebra val="mon-shape"/>
+  </type>
+
+    <type name="mcstas-monitor-pre-sample" is="monitor">
+    <cuboid id="mon-shape"> <!-- xwidth = 0.01, yheight = 0.01 -->
+      <left-front-bottom-point y="-0.005" x="-0.005" z="0.0"/>
+      <left-front-top-point y="0.005" x="-0.005" z="0.0"/>
+      <left-back-bottom-point y="-0.005" x="-0.005" z="0.0"/>
+      <right-front-bottom-point y="-0.005" x="0.005" z="0.0"/>
+    </cuboid>
+    <algebra val="mon-shape"/>
+  </type>  
+
+  <type name="no shape monitor" is="monitor" />   
+
+
+<idlist idname="monitors">
+  <id start="1" end="10" />  
+</idlist>   
+
+</instrument>

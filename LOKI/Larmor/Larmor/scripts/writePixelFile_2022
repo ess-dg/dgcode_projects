@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+import Larmor.Larmor2022Bank as LB
+import argparse
+
+parser = argparse.ArgumentParser(description = 'Exporting 3D pixel positions of the LOKI rear bank in the Larmor 2022 experiment based on the Geant4 geometry (Larmor/GeoLarmor2022). The resulting file is a csv file with the following columns: pixelId, pixelCentreX [m], pixelCentreY [m], pixelCentreZ [m]. Axes represent the beam\'s point of view: X - horizontal (positive to the left), Y - vertical (positive up), Z - distance along the beam (by default distance from the sample position). Although the real Larmor 2022 measurements were carried out with several detector packs removed from the bank, the simulations were done with all detectors in place: by default only the pixels of the detectors present in the experiment are written, with their ids in the experiment.')
+parser.add_argument('-f', '--fileName', default='Larmor2022PixelFile', help = 'Output file name (.txt appended)')
+parser.add_argument('-ssd', '--sourceSampleDistance', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m; 25.61 m in the experiment)')
+parser.add_argument('-n', '--strawPixelNumber', type=int, default=LB.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW, help = f'Number of pixels per straw (defaults to {LB.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW})')
+parser.add_argument('--fullGeomOutput', action = 'store_true', default=False, help = 'Output all pixels in the detector model, not just those which were present in the Larmor 2022 experiment setup')
+parser.add_argument('--oldPixelNumbering', action = 'store_true', help = 'Use old pixel (tube) numbering')
+parser.add_argument('--print', action = 'store_true', help = 'Print pixel positions to output insted of a file.')
+
+args = parser.parse_args()
+
+rearBankDistance = 4.099
+strawPixelNumber = args.strawPixelNumber
+bank = LB.Larmor2022Bank(rearBankDistance * 1000, strawPixelNumber)
+
+oldNumbering = args.oldPixelNumbering
+ssd = args.sourceSampleDistance
+
+fileName = f"{args.fileName}.txt"
+with open(fileName, "w") as pixelFile:
+  pixelIdConverter = lambda id : id + 1 # +1 because the detector IDs in the IDF (and ICD) file start from 1 (as opposed to the zero-based numbering in the Geant4 geometry);
+  skipPixelFilter = lambda _ : False
+
+  if not args.fullGeomOutput:
+    from Larmor.PixelIdConverters import Larmor2022GeometryConverter
+    converter = Larmor2022GeometryConverter(strawPixelNumber)
+    pixelIdConverter = lambda id : id + 1 - converter.getReductionPixelOffset_newGeom(id)
+    skipPixelFilter = lambda id : not converter.isPixelInLarmor2022Geom(id)
+
+  for pixelId in range(bank.getTotalNumberOfPixels()):
+    if skipPixelFilter(pixelId):
+      continue
+    pixelCentreX, pixelCentreY, pixelCentreZ = bank.getPixelCentre(pixelId, oldNumbering)
+    pixelCentreZ = pixelCentreZ + ssd *1000 #Larmor SSD is 25.61 (source to sample distance)
+
+    pixelFile.write( f"{pixelIdConverter(pixelId)}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}\n")
+
+
+if not args.print:
+  print(f"File created: {fileName}")
+else:
+  with open(fileName, 'r') as f:
+    print(f.read().strip())

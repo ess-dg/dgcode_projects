@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+
+# Geantino aiming test of the Larmor 2022 setup: geometry, aiming and hit -> pixel id must be consistent along real
+# straight tracks from the sample (the Larmor version of G4GeoLokiTests/test_geantino_aiming).
+#
+# A geantino is shot from the nominal sample position (origin) at the Larmor2022Bank centre of a target pixel, for
+# the first, middle and last pixel of EVERY straw. The Geant4 tracking in the built geometry (Larmor/GeoLarmor2022)
+# gives the straws the geantino crossed (their CountingGas volume); sb_larmortests_aimcheck_2022 converts the entry
+# and exit point of each straw crossing to pixel ids with the copy numbers and Larmor2022Bank::getPixelId (as the
+# analysis programs do).
+#
+# Checks for every target: the geantino crosses the target straw (bank, tube, straw copy numbers), and the target
+# pixel lies within the pixels it crossed in that straw. Pinned: the number of targets, how many were reached only
+# after crossing an absorber, with the absorbers crossed first, and the mean number of straws crossed per geantino.
+# Also checked: the exit point of every Converter crossing gives a pixel of that same straw.
+# Run for the new and the old tube numbering.
+
+import collections
+import os
+import re
+import subprocess
+import Larmor.Larmor2022Bank as LB
+from G4GeoLokiTests.testhelpers import Checker, NSTRAWS
+
+chk = Checker()
+
+
+def run(title, n, old, geo_args):
+    print('=' * 90)
+    print(title)
+    bank = LB.Larmor2022Bank(4099.0, n)
+    targets = []
+    for t in range(bank.getNumberOfTubes()):
+        for s in range(NSTRAWS):
+            base = (t * NSTRAWS + s) * n
+            targets += [base + j for j in sorted({0, n // 2, n - 1})]
+    d = f'run_{"old" if old else "new"}_{n}'
+    os.makedirs(d, exist_ok=True)
+    sim = subprocess.run(['sb_larmortests_simpixeltargets_2022', '-lPL_Empty', f'-n{len(targets)}', '-j1',
+                          f'target_pixel_ids={",".join(map(str, targets))}',
+                          f'aiming_straw_pixel_number={n}', f'analysis_straw_pixel_number={n}',
+                          f'aiming_old_tube_numbering={old}', f'old_tube_numbering={old}'] + geo_args,
+                         cwd=d, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if not chk.check(sim.returncode == 0, f'simulation failed:\n{sim.stdout[-3000:]}'):
+        return
+    ana = subprocess.run(['sb_larmortests_aimcheck_2022', 'pixeltargets.griff'], cwd=d,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if not chk.check(ana.returncode == 0, f'analysis failed:\n{ana.stdout[-3000:]}'):
+        return
+    events = [line.split()[1:] for line in ana.stdout.splitlines() if line.startswith('EVENT ')]
+    exits = [line.split() for line in ana.stdout.splitlines() if line.startswith('CONVERTER_EXITS ')]
+    if chk.check(len(exits) == 1, 'no CONVERTER_EXITS summary'):
+        nexits, noutside = int(exits[0][1]), int(exits[0][3])
+        # the masking analysis takes the pixel from the Converter exit point: it must stay in the straw
+        chk.check(noutside == 0, f'{noutside} Converter exit points give a pixel outside their straw')
+        print(f'  Converter exit points (used by the masking analysis): {nexits}, giving a pixel outside the straw: {noutside}')
+    chk.check(len(events) == len(targets), f'{len(events)} events, {len(targets)} targets')
+    nshadowed, nstraws = 0, 0
+    shadowing = collections.Counter()
+    nfail = 0
+    for target, ev in zip(targets, events):
+        t = bank.getTubeId(target)
+        s = bank.getStrawId(target)
+        crossings = ev[1:]
+        nstraws += len(crossings)
+        found = None
+        for c in crossings:
+            straw, ids = c.split(':')
+            ids, _, absorber = ids.partition('@')
+            lo, hi = map(int, ids.split('-'))
+            if tuple(map(int, straw.split('/'))) == (0, t, s) and lo <= target <= hi:
+                found = absorber
+                break
+        if found is None:
+            nfail += 1
+            if nfail <= 10:
+                print(f'  target pixel {target} (tube {t} straw {s}) not crossed: {" ".join(crossings) or "no straws"}')
+        elif found:
+            nshadowed += 1
+            shadowing[re.sub(r'^(BoronMask-\d)-\d+$', r'\1-*', found)] += 1
+    chk.nchecks += len(targets) - 1
+    chk.check(nfail == 0, f'{nfail} targets not crossed by their geantino')
+    print(f'  bank 0: {len(targets)} targets, all crossed: {"yes" if nfail == 0 else "NO"}, '
+          f'reached after an absorber: {nshadowed}, mean straws crossed per geantino: '
+          f'{nstraws / len(targets):.2f}')
+    if shadowing:
+        print('      first absorber crossed: ' + ', '.join(f'{k} {v}' for k, v in sorted(shadowing.items())))
+
+run('Larmor 2022', 512, False, ['beamstop_id=1'])
+run('Larmor 2022, old tube numbering, calibration mask', 64, True, ['beamstop_id=1', 'with_calibration_slits=True'])
+
+chk.finish()

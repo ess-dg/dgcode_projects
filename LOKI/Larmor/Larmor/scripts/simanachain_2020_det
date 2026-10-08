@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+import G4Utils.chain
+G4Utils.chain.chain('sb_larmor_sim_2020','sb_larmor_ana_2020_det','REDUCED')

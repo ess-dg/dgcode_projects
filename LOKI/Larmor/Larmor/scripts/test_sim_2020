@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+sb_larmor_sim_2020 -t -lPL_Empty && \
+sb_larmor_sim_2020 gen_x_offset_meters=-0.040 cone_opening_deg=10.4753 withBeamstop=True event_gen=flood -lPL_Empty |grep '^G4Launcher::Launcher'
+if [ ${PIPESTATUS[0]} == 0 ]; then
+    sb_larmor_ana_2020 larmor.griff
+else
+    exit 1
+fi

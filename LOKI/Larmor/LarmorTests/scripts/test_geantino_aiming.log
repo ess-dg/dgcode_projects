@@ -1,0 +1,11 @@
+==========================================================================================
+Larmor 2022
+  Converter exit points (used by the masking analysis): 53311, giving a pixel outside the straw: 0
+  bank 0: 4704 targets, all crossed: yes, reached after an absorber: 38, mean straws crossed per geantino: 5.86
+      first absorber crossed: BoronMask-Beamstop 38
+==========================================================================================
+Larmor 2022, old tube numbering, calibration mask
+  Converter exit points (used by the masking analysis): 69389, giving a pixel outside the straw: 0
+  bank 0: 4704 targets, all crossed: yes, reached after an absorber: 1620, mean straws crossed per geantino: 7.41
+      first absorber crossed: BoronMask-larmorCdCalibMask 1620
+checks performed: 9418, failures: 0

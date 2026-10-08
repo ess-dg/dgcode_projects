@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+import Larmor.GeoLarmor2022 as GEO
+
+geo = GEO.create()
+
+import Larmor.MaskingLauncher2022
+Larmor.MaskingLauncher2022.launch(geo)

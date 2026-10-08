@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+# Test-only simulation script (used by test_geantino_aiming): the Larmor/GeoLarmor2022 geometry with the
+# PixelTargetGen2022 generator shooting from the origin at Larmor2022Bank pixel centres.
+
+import Larmor.GeoLarmor2022 as GEO
+from LarmorTests.PixelTargetGen2022 import PixelTargetGen2022
+import G4Launcher
+
+geo = GEO.create()
+gen = PixelTargetGen2022()
+launcher = G4Launcher(geo, gen)
+launcher.addParameterInt("analysis_straw_pixel_number", 512)
+
+def addUserData():
+    launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
+launcher.addPrePreInitHook(addUserData)
+launcher.setOutput('pixeltargets', 'REDUCED')
+launcher.go()

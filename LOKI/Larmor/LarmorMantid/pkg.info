@@ -1,0 +1,9 @@
+package(USEPKG LokiMantid Larmor USEEXT Mantidpython MCPL)
+
+######################################################################
+
+Package providing the scripts to produce Mantid nexus files from the simulations of
+the Larmor 2020 and 2022 experiments (package Larmor), with their instrument
+definition files.
+
+Primary author: milan.klausz@ess.eu
