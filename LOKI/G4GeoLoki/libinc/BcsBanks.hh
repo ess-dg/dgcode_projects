@@ -29,22 +29,52 @@ public:
   /// banks ///
   static double getPackRotation();
   static double getPackPackDistance();// TODO better name?
+  /// The tables of this class follow the drawings: axisIndex 0 = x = the width (along the tubes), 1 = y = the
+  /// height (across the tubes), 2 = z = the depth (see getBankFrame... below for the bank frame).
   static double getPackPositionInBank(const int bankId, const int packNumber, const int axisIndex);// 0 - x, 1 - y, 2 - z
 
   static double getStrawLengthByBankId(const int bankId);
   static int getNumberOfPacksByBankId(const int bankId);
   static int getNumberOfTubes(const int bankId);
 
+  /// The original description of the bank placement: the Euler angles of the Geant4 frame rotation
+  /// rotateY(a1) rotateX(a0) rotateZ(a2), and the position of the bank volume centre. LOKI places the banks with
+  /// getBankTransform; these are still used by the Larmor geometries, the (x, y) getPixelId and the frozen copy
+  /// of the original implementation in the tests (G4GeoLokiTests/pycpp_Legacy).
   static double getBankRotation(const int bankId, const int axisIndex); // 0 - x, 1 - y, 2 - z
   double getBankPosition(const int bankId, const int axisIndex) const; // 0 - x, 1 - y, 2 - z
-  /// The placement of a bank (single source for the Geant4 geometry, AimHelper and PixelatedBanks).
-  /// Nominal: built from getBankRotation / getBankPosition (and the Larmor 2022 bank height).
-  /// Calibrated banks (see getBankCalibration): R = [n | s*w | -s*u] (s = -1 for the banks mounted
-  /// upside down, see areTubesInverselyNumbered), translation = F - R * (front face centre in the bank).
-  /// For the rear bank (0) the z of F is replaced by the rear detector distance.
+
+  /// The placement of a bank in the world (the single source for the Geant4 geometry, AimHelper and
+  /// PixelatedBanks): from the front face centre F and the bank axes u, w, n (see BankCalibration.hh),
+  /// R = [n | s*w | -s*u] (s = -1 for the banks mounted upside down, see areTubesInverselyNumbered) and
+  /// translation = F - R * getFrontFaceCentreInBank. F, u, w, n come from the bank calibration in use, or, for
+  /// the nominal geometry, from the tables (see nominalBankPlacement). For the rear bank (0) the z of F is the rear
+  /// detector distance. Larmor 2022: the nominal rear bank at the Larmor beam height.
   BankTransform getBankTransform(const int bankId, const bool isLarmor2022Experiment = false) const;
   /// The nominal placement of a bank (the same as getBankTransform without a calibration).
   BankTransform getNominalBankTransform(const int bankId, const bool isLarmor2022Experiment = false) const;
+  /// The nominal front face centre F and axes u, w, n of a bank, from the tables (in the terms of the drawing):
+  /// the bank is on one side of the beam (bankSideDirection), in the section plane spanned by the beam axis and that
+  /// side; F is at the bank distance along the position angle in that plane, plus the panel offset; the layer
+  /// normal n is tilted from the beam axis by calcBankRotation (= 90 deg - (face angle - position angle)) towards
+  /// the side.
+  BankCalibration::Bank nominalBankPlacement(const int bankId) const;
+
+  /// The bank frame: the frame of a bank volume, of its contents and of BankTransform. x = depth (from the front,
+  /// facing the sample, to the back), y = across the tubes, z = along the tubes (the axis of the tubes and straws,
+  /// as of G4Tubs). The *InBankFrame functions give the values of the tables in this order.
+  static std::array<double,3> getBankHalfSizeInBankFrame(const int bankId);
+  static std::array<double,3> getPackPositionInBankFrame(const int bankId, const int packNumber);
+  static std::array<double,3> getBoronMaskPositionInBankFrame(const int bankId, const int maskId);
+  std::array<double,3> getCalibMaskPositionInBankFrame(CalibMasks::CalibMasksBase calibMask, const int bankId) const;
+  /// A placement in the bank frame: position, and rotation (its columns: the axes of the placed volume).
+  struct PlacementInBank {
+    std::array<double,3> position;
+    std::array<std::array<double,3>,3> rotation;
+  };
+  /// The triangular boron masks of banks 5 and 7 are mounted on the front of the bank (they are placed in the
+  /// world, as they are outside the bank volume, with the transform of their bank).
+  static PlacementInBank getTriangularBoronMaskPlacementInBankFrame(const int maskId);
   /// The bank calibration in use (BankCalibration::nominalName for the nominal geometry).
   const BankCalibration& getBankCalibration() const { return m_bankCalibration; }
   bool isBankCalibrated(const int bankId) const { return m_bankCalibration.hasBank(bankId); }
@@ -80,7 +110,6 @@ public:
   int getNumberOfBanks() const;
   /// boron masks ///
   static double getBoronMaskPosition(const int bankId, const int maskId, const int axisIndex);
-  static double getTriangularBoronMaskPosition(const int maskId, const int axisIndex);
 
   /// calibration masks ///
   double getCalibMaskPosition(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
@@ -94,6 +123,8 @@ private:
   const int m_numberOfBanks;
   BankCalibration m_bankCalibration;
   std::array<BankTransform,9> m_calibratedTransforms; // valid for the calibrated banks
+  /// The transform of a bank placed by its front face centre and axes (see getBankTransform).
+  static BankTransform transformFromPlacement(const int bankId, const BankCalibration::Bank& placement);
 
   const static double packHolderDistanceFromPackTop;
   const static double packHolderDistanceFromPackFront;
@@ -102,6 +133,7 @@ private:
   const static double strawLengthInBank[9];
   const static int numberOfPacksInBank[9];
 
+  const static double bankSideDirection[9][3]; // from the beam axis towards the bank (in the section plane)
   const static double bankRotation[9][3];
   const static double bankPositionAngle[9];
   const static double bankTiltAngle[9];

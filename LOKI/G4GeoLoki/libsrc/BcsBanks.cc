@@ -15,23 +15,10 @@ BcsBanks::BcsBanks(double rearBankDistance, int numberOfBanks, const std::string
   for (int bankId = 0; bankId <= 8; bankId++) {
     if (!m_bankCalibration.hasBank(bankId))
       continue;
-    const auto& bank = m_bankCalibration.getBank(bankId);
-    const double s = areTubesInverselyNumbered(bankId) ? -1.0 : 1.0; // upside down banks: rotated by 180 deg about n
-    BankTransform& transform = m_calibratedTransforms[bankId];
-    for (int i = 0; i < 3; i++) {
-      transform.rotation[i][0] = bank.layerNormal[i];
-      transform.rotation[i][1] = s * bank.acrossTubes[i];
-      transform.rotation[i][2] = -s * bank.alongTubes[i];
-    }
-    const auto frontFaceCentreInBank = getFrontFaceCentreInBank(bankId);
-    auto frontFaceCentre = bank.frontFaceCentre;
+    BankCalibration::Bank bank = m_bankCalibration.getBank(bankId);
     if (bankId == 0) // the rear bank moves along the beam: its distance is the rear detector distance (as nominal)
-      frontFaceCentre[2] = m_rearBankDistance;
-    for (int i = 0; i < 3; i++) {
-      transform.translation[i] = frontFaceCentre[i];
-      for (int j = 0; j < 3; j++)
-        transform.translation[i] -= transform.rotation[i][j] * frontFaceCentreInBank[j];
-    }
+      bank.frontFaceCentre[2] = m_rearBankDistance;
+    m_calibratedTransforms[bankId] = transformFromPlacement(bankId, bank);
   }
 }
 
@@ -102,6 +89,18 @@ const double BcsBanks::bankRotation[9][3] = { // all in mm
     {1.5*M_PI, 0.5*M_PI, calcBankRotation(6)}, // 6 - front left
     {0.0,      0.5*M_PI, calcBankRotation(7)}, // 7 - front bottom
     {0.5*M_PI, 0.5*M_PI, calcBankRotation(8)}, // 8 - front right
+};
+
+const double BcsBanks::bankSideDirection[9][3] = { // unit vector from the beam axis towards the bank
+    {0.0, -1.0, 0.0}, // 0 - rear (on the beam axis; its frame is oriented like the bottom banks)
+    {0.0, 1.0, 0.0},  // 1 - mid top
+    {1.0, 0.0, 0.0},  // 2 - mid left (x is positive to the left, looking along the beam)
+    {0.0, -1.0, 0.0}, // 3 - mid bottom
+    {-1.0, 0.0, 0.0}, // 4 - mid right
+    {0.0, 1.0, 0.0},  // 5 - front top
+    {1.0, 0.0, 0.0},  // 6 - front left
+    {0.0, -1.0, 0.0}, // 7 - front bottom
+    {-1.0, 0.0, 0.0}, // 8 - front right
 };
 
 const double BcsBanks::bankDistance[9] = {
@@ -236,16 +235,6 @@ std::array<double,3> BankTransform::toLocal(const std::array<double,3>& global) 
   return local;
 }
 
-namespace {
-  // active rotation of the (x, y) components of a point by angle (as AimHelper::coordinateRotation)
-  void rotateInPlane(double &x, double &y, const double angle) {
-    const double tempX = std::cos(angle) * x - std::sin(angle) * y;
-    const double tempY = std::sin(angle) * x + std::cos(angle) * y;
-    x = tempX;
-    y = tempY;
-  }
-}
-
 BankTransform BcsBanks::getBankTransform(const int bankId, const bool isLarmor2022Experiment) const {
   assert(0 <= bankId && bankId <= 8);
   if (!isLarmor2022Experiment && m_bankCalibration.hasBank(bankId))
@@ -261,23 +250,94 @@ std::array<double,3> BcsBanks::getFrontFaceCentreInBank(const int bankId) {
 
 BankTransform BcsBanks::getNominalBankTransform(const int bankId, const bool isLarmor2022Experiment) const {
   assert(0 <= bankId && bankId <= 8);
-  BankTransform transform;
-  // The nominal bank rotation: the inverse of the Geant4 frame rotation
-  // rotateY(a1) -> rotateX(a0) -> rotateZ(a2), i.e. Ry(-a1) Rx(-a0) Rz(-a2), applied to the
-  // local unit vectors (the same sequence that AimHelper used to apply to every point).
-  for (int axis = 0; axis < 3; axis++) {
-    double v[3] = {0., 0., 0.};
-    v[axis] = 1.;
-    rotateInPlane(v[1], v[0], getBankRotation(bankId, 2));
-    rotateInPlane(v[2], v[1], getBankRotation(bankId, 0));
-    rotateInPlane(v[2], v[0], -getBankRotation(bankId, 1));
-    for (int i = 0; i < 3; i++)
-      transform.rotation[i][axis] = v[i];
-  }
-  transform.translation = {getBankPosition(bankId, 0),
-                           !isLarmor2022Experiment ? getBankPosition(bankId, 1) : getLarmor2022ExperimentBankPositionY(),
-                           getBankPosition(bankId, 2)};
+  BankTransform transform = transformFromPlacement(bankId, nominalBankPlacement(bankId));
+  if (isLarmor2022Experiment) // the rear bank at the beam height of the Larmor 2022 experiment
+    transform.translation[1] = getLarmor2022ExperimentBankPositionY();
   return transform;
+}
+
+namespace {
+  std::array<double,3> cross(const std::array<double,3>& a, const std::array<double,3>& b) {
+    return {a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]};
+  }
+}
+
+BankCalibration::Bank BcsBanks::nominalBankPlacement(const int bankId) const {
+  assert(0 <= bankId && bankId <= 8);
+  const double distance = bankId == 0 ? m_rearBankDistance : bankDistance[bankId] *Units::mm;
+  const double positionAngle = bankPositionAngle[bankId] *Units::deg;
+  const double normalAngle = calcBankRotation(bankId); // between the layer normal and the beam axis
+  const auto& side = bankSideDirection[bankId];
+  const std::array<double,3> beam = {0., 0., 1.};
+
+  BankCalibration::Bank bank;
+  std::array<double,3> towardsBeamAxis; // in the section plane, perpendicular to n: the local y axis of the bank
+  for (int i = 0; i < 3; i++) {
+    bank.frontFaceCentre[i] = distance * (std::sin(positionAngle) * side[i] + std::cos(positionAngle) * beam[i])
+                              + bankPositionOffset[bankId][i] *Units::mm;
+    bank.layerNormal[i] = std::sin(normalAngle) * side[i] + std::cos(normalAngle) * beam[i];
+    towardsBeamAxis[i] = -std::cos(normalAngle) * side[i] + std::sin(normalAngle) * beam[i];
+  }
+  // the bank frame is [n, towardsBeamAxis, n x towardsBeamAxis] (see transformFromPlacement)
+  const double s = areTubesInverselyNumbered(bankId) ? -1.0 : 1.0;
+  const auto alongTubesAxis = cross(bank.layerNormal, towardsBeamAxis);
+  for (int i = 0; i < 3; i++) {
+    bank.acrossTubes[i] = s * towardsBeamAxis[i];
+    bank.alongTubes[i] = -s * alongTubesAxis[i];
+  }
+  return bank;
+}
+
+BankTransform BcsBanks::transformFromPlacement(const int bankId, const BankCalibration::Bank& placement) {
+  assert(0 <= bankId && bankId <= 8);
+  const double s = areTubesInverselyNumbered(bankId) ? -1.0 : 1.0; // upside down banks: rotated by 180 deg about n
+  BankTransform transform;
+  for (int i = 0; i < 3; i++) {
+    transform.rotation[i][0] = placement.layerNormal[i];
+    transform.rotation[i][1] = s * placement.acrossTubes[i];
+    transform.rotation[i][2] = -s * placement.alongTubes[i];
+  }
+  const auto frontFaceCentreInBank = getFrontFaceCentreInBank(bankId);
+  for (int i = 0; i < 3; i++) {
+    transform.translation[i] = placement.frontFaceCentre[i];
+    for (int j = 0; j < 3; j++)
+      transform.translation[i] -= transform.rotation[i][j] * frontFaceCentreInBank[j];
+  }
+  return transform;
+}
+
+std::array<double,3> BcsBanks::getBankHalfSizeInBankFrame(const int bankId) {
+  return {0.5 * getBankSize(bankId, 2), 0.5 * getBankSize(bankId, 1), 0.5 * getBankSize(bankId, 0)};
+}
+
+std::array<double,3> BcsBanks::getPackPositionInBankFrame(const int bankId, const int packNumber) {
+  return {getPackPositionInBank(bankId, packNumber, 2), getPackPositionInBank(bankId, packNumber, 1),
+          getPackPositionInBank(bankId, packNumber, 0)};
+}
+
+std::array<double,3> BcsBanks::getBoronMaskPositionInBankFrame(const int bankId, const int maskId) {
+  return {getBoronMaskPosition(bankId, maskId, 2), getBoronMaskPosition(bankId, maskId, 1),
+          getBoronMaskPosition(bankId, maskId, 0)};
+}
+
+std::array<double,3> BcsBanks::getCalibMaskPositionInBankFrame(CalibMasks::CalibMasksBase calibMask, const int bankId) const {
+  return {getCalibMaskPosition(calibMask, bankId, 2), getCalibMaskPosition(calibMask, bankId, 1),
+          getCalibMaskPosition(calibMask, bankId, 0)};
+}
+
+BcsBanks::PlacementInBank BcsBanks::getTriangularBoronMaskPlacementInBankFrame(const int maskId) {
+  const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId); // 5 or 7
+  const double cutDir = BoronMasks::getCutDirOfTriangularMask(maskId, 1); // +1 (bank 5) or -1 (bank 7)
+  PlacementInBank placement;
+  // in front of the bank volume (touching it), at the given distances from the detector system centre: across the
+  // tubes, and along the tubes (positive to the left looking along the beam, i.e. along cutDir * bank z)
+  placement.position = {-0.5 * getBankSize(bankId, 2) - BoronMasks::getHalfSizeOfTriangularMask(maskId, 2),
+                        detectorSystemCentreOffsetInBank(bankId, 1) - BoronMasks::getPosInBankOfTriangularMask(maskId, 1),
+                        cutDir * BoronMasks::getPosInBankOfTriangularMask(maskId, 0)};
+  // the mask axes: x along the tubes (to the left, looking along the beam), y across the tubes (upwards), z = depth
+  // (the thickness); bank 5 (top) and bank 7 (bottom) have opposite bank y and z axes (see bankSideDirection)
+  placement.rotation = {{{0.0, 0.0, 1.0}, {0.0, -cutDir, 0.0}, {cutDir, 0.0, 0.0}}}; // rows; columns = the mask axes
+  return placement;
 }
 
 double BcsBanks::getBankSize(const int bankId, const int axisIndex) {
@@ -528,29 +588,6 @@ double BcsBanks::getBoronMaskPosition(const int bankId, const int maskId, const 
   else{ //z direction
     const double rotationCorrection = (1 - std::cos(rotation)) * 0.5*(-BoronMasks::getSize(bankId, maskId, 2)) + std::sin(rotation) * 0.5*BoronMasks::getSize(bankId, maskId, 1);
     return - bankSizeHalf + position + 0.5*thickness + rotationCorrection;
-  }
-}
-
-double BcsBanks::getTriangularBoronMaskPosition(const int maskId, const int axisIndex) {
-  assert(0 <= axisIndex && axisIndex <= 2);
-  const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId);
-  const double distance = bankDistance[bankId];
-
-  const double halfThickness = BoronMasks::getHalfSizeOfTriangularMask(maskId, 2);
-  const double verticalPosInBank = BoronMasks::getPosInBankOfTriangularMask(maskId, 1);
-
-  const double rotation = bankRotation[bankId][2];
-  const double bankPosAngle = bankPositionAngle[bankId] *Units::deg;
-  const double detFrontBankFrontDistance = detectorSystemFrontDistanceFromBankFront(bankId);
-
-  if(axisIndex == 0){//x direction
-    return bankPositionOffset[bankId][axisIndex] + BoronMasks::getPosInBankOfTriangularMask(maskId, 0);
-  }
-  else if(axisIndex == 1){  //y direction
-    return (distance * std::sin(bankPosAngle) - (halfThickness + detFrontBankFrontDistance) * std::sin(rotation) + verticalPosInBank * std::cos(rotation))*bankPosDir[bankId];
-  }
-  else{ //z direction
-    return distance * std::cos(bankPosAngle) - (halfThickness + detFrontBankFrontDistance) * std::cos(rotation) - verticalPosInBank * std::sin(rotation);
   }
 }
 

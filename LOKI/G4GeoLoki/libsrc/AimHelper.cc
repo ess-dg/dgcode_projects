@@ -31,9 +31,10 @@ std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int 
   // apply pack rotation
   coordinateRotation(positionX, positionY, getPackRotation());
   // place pack in bank
-  positionX += getPackPositionInBank(bankId, packId, 2);
-  positionY += getPackPositionInBank(bankId, packId, 1);
-  positionZ += getPackPositionInBank(bankId, packId, 0);
+  const auto packPosition = getPackPositionInBankFrame(bankId, packId);
+  positionX += packPosition[0];
+  positionY += packPosition[1];
+  positionZ += packPosition[2];
 
   ///////// bank in world /////////
   const auto global = getBankTransform(bankId, isLarmor2022Experiment).toGlobal({positionX, positionY, positionZ});

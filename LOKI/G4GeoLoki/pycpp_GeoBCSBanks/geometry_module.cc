@@ -50,9 +50,6 @@ namespace {
                             G4ThreeVector(R[0][1], R[1][1], R[2][1]),
                             G4ThreeVector(R[0][2], R[1][2], R[2][2]));
   }
-  G4ThreeVector toG4Vector(const std::array<double,3>& v) {
-    return G4ThreeVector(v[0], v[1], v[2]);
-  }
 }
 
 ////////////////////////////////////////////
@@ -197,11 +194,11 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
 
   const double packRotation = banks->getPackRotation();
 
-  const double bankSizeXHalf = 0.5* banks->getBankSize(bankId, 0);
-  const double bankSizeYHalf = 0.5* banks->getBankSize(bankId, 1);
-  const double bankSizeZHalf = 0.5* banks->getBankSize(bankId, 2);
+  // all positions and sizes in the bank volume are in the bank frame (x = depth, y = across the tubes, z = along
+  // the tubes), see BcsBanks.hh
+  const auto bankHalfSize = banks->getBankHalfSizeInBankFrame(bankId);
 
-  auto lv_bank = new G4LogicalVolume(new G4Box("EmptyPanelBox", bankSizeZHalf, bankSizeYHalf, bankSizeXHalf),
+  auto lv_bank = new G4LogicalVolume(new G4Box("EmptyPanelBox", bankHalfSize[0], bankHalfSize[1], bankHalfSize[2]),
                                      BcsPack::packBoxFillMaterial, "Bank");
 
   // override lv_bank to subtract some empty part of front left and right banks where front top and bottom banks would overlap with them
@@ -211,7 +208,7 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     if (!notch.isNominal)
       printf("GeoBCSBanks: bank %d: notch enlarged for bank_calibration=%s to the half sizes (%g, %g, %g) mm at (%g, %g, %g) mm (nominal: (15, 70, 60) mm at (-145, -42, -425) mm)\n",
              bankId, banks->getBankCalibration().name().c_str(), notch.halfSize[0], notch.halfSize[1], notch.halfSize[2], notch.centre[0], notch.centre[1], notch.centre[2]);
-    auto fullBankBox = new G4Box("EmptyPanelBox", bankSizeZHalf, bankSizeYHalf, bankSizeXHalf);
+    auto fullBankBox = new G4Box("EmptyPanelBox", bankHalfSize[0], bankHalfSize[1], bankHalfSize[2]);
     auto bankBoxCut = new G4Box("EmptyPanelBox", notch.halfSize[0], notch.halfSize[1], notch.halfSize[2]);
     auto bankBox = new G4SubtractionSolid("EmptyPanelBox", fullBankBox, bankBoxCut, 0, G4ThreeVector(notch.centre[0], notch.centre[1], notch.centre[2]));
 
@@ -225,17 +222,19 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
 
   for (int packNumber = 0; packNumber < numberOfPacks; ++packNumber){
     auto lv_pack_box = createPackBoxLV(strawLength, packNumber, numberOfPacksForInvertedNumbering, numberOfPacks);
-    place(lv_pack_box,
-          banks->getPackPositionInBank(bankId, packNumber, 2), banks->getPackPositionInBank(bankId, packNumber, 1), banks->getPackPositionInBank(bankId, packNumber, 0),
+    const auto packPosition = banks->getPackPositionInBankFrame(bankId, packNumber);
+    place(lv_pack_box, packPosition[0], packPosition[1], packPosition[2],
           lv_bank, G4Colour(0, 1, 1), -2, 0, new G4RotationMatrix(0, 0, packRotation));
   }
 
   const int numberOfBoronMasks = BoronMasks::getNumberOfBoronMasks(bankId);
   for (int maskId = 0; maskId < numberOfBoronMasks; ++maskId){
     const std::string maskName = "BoronMask-"+std::to_string(bankId)+"-"+std::to_string(maskId);
-    place(new G4Box(maskName, 0.5*BoronMasks::getSize(bankId, maskId, 2), 0.5*BoronMasks::getSize(bankId, maskId, 1), 0.5*BoronMasks::getSize(bankId, maskId, 0)),
+    const auto maskSize = BoronMasks::getSizeInBankFrame(bankId, maskId);
+    const auto maskPosition = banks->getBoronMaskPositionInBankFrame(bankId, maskId);
+    place(new G4Box(maskName, 0.5*maskSize[0], 0.5*maskSize[1], 0.5*maskSize[2]),
             BoronMasks::maskMaterial,
-            banks->getBoronMaskPosition(bankId, maskId, 2), banks->getBoronMaskPosition(bankId, maskId, 1), banks->getBoronMaskPosition(bankId, maskId, 0),
+            maskPosition[0], maskPosition[1], maskPosition[2],
             lv_bank, BLACK, -2, 0, new G4RotationMatrix(0, 0, BoronMasks::getRotation(bankId, maskId)));
   }
 
@@ -244,25 +243,21 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   if (bankId == 0 && beamstopId) { // beamstopId==0 means no beamstop
     const std::string maskName = "BoronMask-Beamstop";
     const double detBankFrontDistance = banks->detectorSystemFrontDistanceFromBankFront(bankId);
-    const double verticalPosition = !larmor2022experiment ? banks->getBankPosition(bankId, 1) : banks->getLarmor2022ExperimentBankPositionY(); //compensate bank elevation to centre the beam on the beamstop
-
     const double distanceFromDetectorFront = 5*Units::cm;
 
     const double width = banks->getBeamstopSize(beamstopId, 0);
     const double height = banks->getBeamstopSize(beamstopId, 1);
     const double thickness = banks->getBeamstopSize(beamstopId, 2);
 
-    // depth in the bank: 5 cm in front of the detector front
-    G4ThreeVector position(-bankSizeZHalf + detBankFrontDistance - distanceFromDetectorFront, -verticalPosition, 0);
-    if (banks->isBankCalibrated(bankId)) {
-      // keep it on the beam axis (x = y = 0): the point of the beam axis at that depth, in the bank frame
-      const BankTransform transform = banks->getBankTransform(bankId);
-      const auto& R = transform.rotation;
-      const auto& t = transform.translation;
-      const double z = (position.x() + R[0][0]*t[0] + R[1][0]*t[1] + R[2][0]*t[2]) / R[2][0]; // n.(P - t) = depth
-      const auto local = transform.toLocal({0.0, 0.0, z});
-      position = G4ThreeVector(local[0], local[1], local[2]);
-    }
+    // on the beam axis (world x = y = 0), 5 cm in front of the detector front: the point of the beam axis at that
+    // depth, in the bank frame (this compensates the bank elevation, also of a calibrated or Larmor 2022 bank)
+    const double depth = -bankHalfSize[0] + detBankFrontDistance - distanceFromDetectorFront;
+    const BankTransform transform = banks->getBankTransform(bankId, larmor2022experiment);
+    const auto& R = transform.rotation;
+    const auto& t = transform.translation;
+    const double z = (depth + R[0][0]*t[0] + R[1][0]*t[1] + R[2][0]*t[2]) / R[2][0]; // n.(P - t) = depth
+    const auto local = transform.toLocal({0.0, 0.0, z});
+    const G4ThreeVector position(local[0], local[1], local[2]);
     place(new G4Box(maskName, 0.5* thickness, 0.5* height, 0.5* width),
           BoronMasks::maskMaterial,
           position.x(), position.y(), position.z(),
@@ -275,8 +270,8 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     const auto calibMask = CalibMasks::getCalibMask(calibMaskName);
     auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
 
-    place(lv_calibrationMask,
-          banks->getCalibMaskPosition(calibMask, bankId, 2), banks->getCalibMaskPosition(calibMask, bankId, 1), banks->getCalibMaskPosition(calibMask, bankId, 0),
+    const auto calibMaskPosition = banks->getCalibMaskPositionInBankFrame(calibMask, bankId);
+    place(lv_calibrationMask, calibMaskPosition[0], calibMaskPosition[1], calibMaskPosition[2],
           lv_bank, PURPLE, -5, 0, new G4RotationMatrix());
   }
 
@@ -382,28 +377,18 @@ G4VPhysicalVolume* GeoBCS::Construct(){
     for (int maskId = 0; maskId <= 3; maskId++) {
       auto lv_triangularMask = createTriangularMaskLV(maskId);
 
-      const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId);       // 5 or 7
-      const double rotateDir = BoronMasks::getCutDirOfTriangularMask(maskId, 1); // +- 1.0
+      // mounted on the front of bank 5 or 7: its placement in the bank frame, moved with the bank transform
+      const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId);
+      const auto inBank = banks->getTriangularBoronMaskPlacementInBankFrame(maskId);
+      const BankTransform bank = banks->getBankTransform(bankId);
+      const auto position = bank.toGlobal(inBank.position);
+      // G4PVPlacement takes the frame rotation: the inverse of the object rotation (bank rotation * rotation in bank)
+      const G4RotationMatrix rotationInBank(G4ThreeVector(inBank.rotation[0][0], inBank.rotation[1][0], inBank.rotation[2][0]),
+                                            G4ThreeVector(inBank.rotation[0][1], inBank.rotation[1][1], inBank.rotation[2][1]),
+                                            G4ThreeVector(inBank.rotation[0][2], inBank.rotation[1][2], inBank.rotation[2][2]));
+      auto rotation = new G4RotationMatrix((toG4Rotation(bank) * rotationInBank).inverse());
 
-      auto rotation = new G4RotationMatrix();
-      rotation->rotateX(banks->getBankRotation(bankId, 2) * rotateDir);
-      G4ThreeVector position(banks->getTriangularBoronMaskPosition(maskId, 0), banks->getTriangularBoronMaskPosition(maskId, 1), banks->getTriangularBoronMaskPosition(maskId, 2));
-
-      if (banks->isBankCalibrated(bankId)) {
-        // The mask is mounted on the bank: keep its nominal placement relative to the bank,
-        // T_mask = T_bank * T_nominal_bank^-1 * T_nominal_mask (object rotations = inverse frame rotations)
-        const BankTransform nominalBank = banks->getNominalBankTransform(bankId);
-        const BankTransform bank = banks->getBankTransform(bankId);
-        const G4RotationMatrix nominalBankRotation = toG4Rotation(nominalBank);
-        const G4RotationMatrix bankRotation = toG4Rotation(bank);
-
-        const G4RotationMatrix maskRotationInBank = nominalBankRotation.inverse() * rotation->inverse();
-        const G4ThreeVector maskPositionInBank = nominalBankRotation.inverse() * (position - toG4Vector(nominalBank.translation));
-        *rotation = (bankRotation * maskRotationInBank).inverse();
-        position = bankRotation * maskPositionInBank + toG4Vector(bank.translation);
-      }
-
-      place(lv_triangularMask, position.x(), position.y(), position.z(), lvWorld, BLACK, -5, 0, rotation);
+      place(lv_triangularMask, position[0], position[1], position[2], lvWorld, BLACK, -5, 0, rotation);
     }
   }
 
