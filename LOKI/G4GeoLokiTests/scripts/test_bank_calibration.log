@@ -21,8 +21,6 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   unknown line              : 5: unknown line 'banks'
   no name                   : 3: incomplete file (the 'loki_bank_calibration' and 'name' lines are required)
   geometry {'bank_calibration': 'unknown-calibration'}: rejected (exit code != 0: True): ERROR: Wrong bank_calibration value: BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
-  Larmor 2022 with the default bank_calibration: the nominal geometry: True, note printed: False
-  Larmor 2022 with good.txt bank_calibration: the nominal geometry: True, note printed: True
 ==========================================================================================
 2. A calibration file made from the nominal geometry reproduces it
     1 pixels/straw: largest difference from nominal: rotation < 1e-12: True, translation < 1e-9 mm: True, pixel centres < 1e-9 mm: True
@@ -33,7 +31,6 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   rear bank at 10 m (file made at 5 m): bank placements and pixel centres as nominal (< 1e-9 mm): True
   built geometry defaults: 21364 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
   built geometry {'rear_detector_distance_m': 10.0, 'beamstop_id': 3, 'with_calibration_slits': True}: 21471 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
-  built geometry {'old_tube_numbering': True}: 21364 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
   nominal-geant4-geometry: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 0.38 mm), notch nominal: True
   nominal-geant4-geometry: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 0.82 mm), notch nominal: True
 ==========================================================================================
@@ -63,4 +60,4 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   BoronMask-triangular-7-3: position in its bank (-154.020, -90.738, 877.500) mm, unchanged from nominal: True
   2026-September-SAM-606: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 2.13 mm), notch nominal: True
   2026-September-SAM-606: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 1.63 mm), notch nominal: True
-checks performed: 93, failures: 0
+checks performed: 90, failures: 0

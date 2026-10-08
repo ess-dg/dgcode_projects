@@ -1,4 +1,4 @@
-package(USEPKG Units LokiMasking LOKI LokiUtils USEEXT Mantidpython MCPL )
+package(USEPKG Units LokiMasking LOKI USEEXT Mantidpython MCPL )
 
 ######################################################################
 

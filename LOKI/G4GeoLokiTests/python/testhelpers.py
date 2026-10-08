@@ -4,10 +4,9 @@ Conventions used by the tests:
   * All lengths are in mm (Geant4 / dgcode internal units).
   * Pixel ids are zero based, as in the Geant4 geometry and the analysis
     programs (the ICD/IDF ids are pixelId+1).
-  * "new" tube numbering (default of GeoBCSBanks, old_tube_numbering=False):
+  * tube numbering (GeoBCSBanks):
        tubeId = layer * (2*nPacks) + row,  row = 2*pack + (in-pack tube >= 4)
     (row/pack order reversed for the upside-down banks 1,2,5,6).
-  * "old" tube numbering: tubeId = 8*pack + inPackTubeId.
 """
 
 import contextlib
@@ -61,7 +60,7 @@ def tube_id_new(nPacks, layer, row):
     return layer * 2 * nPacks + row
 
 def sample_tubes_new(bankId, nPacks):
-    """Tube ids (new numbering) covering all 4 layers (front 0,1 and back 2,3)
+    """Tube ids covering all 4 layers (front 0,1 and back 2,3)
     and the first, second, middle and last rows of the bank."""
     rows = 2 * nPacks
     tubes = []
@@ -70,11 +69,7 @@ def sample_tubes_new(bankId, nPacks):
             tubes.append(tube_id_new(nPacks, layer, row))
     return tubes
 
-def sample_tubes_old(nPacks):
-    """Tube ids (old numbering) covering all 8 tubes of the first and last packs."""
-    return list(range(8)) + [8 * (nPacks - 1) + i for i in range(8)]
-
-def sample_pixels(aimHelper, nPixelsPerStraw, oldNumbering=False, banks=range(NBANKS)):
+def sample_pixels(aimHelper, nPixelsPerStraw, banks=range(NBANKS)):
     """Well-chosen sample of (bankId, tubeId, strawId, inStrawPixel, pixelId).
 
     For each bank: all 7 straws of the first sampled tube, and for the other
@@ -88,7 +83,7 @@ def sample_pixels(aimHelper, nPixelsPerStraw, oldNumbering=False, banks=range(NB
     for b in banks:
         nPacks = TU.getNumberOfPacksByBankId(b)
         offset = aimHelper.getBankPixelOffset(b)
-        tubes = sample_tubes_old(nPacks) if oldNumbering else sample_tubes_new(b, nPacks)
+        tubes = sample_tubes_new(b, nPacks)
         inStrawChoices = [0, N - 1, N // 2 - 1, N // 2]
         k = 0
         for it, t in enumerate(tubes):
@@ -106,15 +101,15 @@ def sample_pixels(aimHelper, nPixelsPerStraw, oldNumbering=False, banks=range(NB
                 res.append(e)
     return res
 
-def straw_axis_dir(aimHelper, pixelId, N, oldNumbering, larmor):
+def straw_axis_dir(aimHelper, pixelId, N):
     """Unit vector along the straw in the direction of increasing pixel index
     (derived from AimHelper centres of neighbouring pixels), and the pixel pitch."""
     j = pixelId % N
     if N < 2:
         raise ValueError('need at least 2 pixels per straw')
     p0, p1 = (pixelId, pixelId + 1) if j < N - 1 else (pixelId - 1, pixelId)
-    c0 = aimHelper.getPixelCentreCoordinates(p0, oldNumbering, larmor)
-    c1 = aimHelper.getPixelCentreCoordinates(p1, oldNumbering, larmor)
+    c0 = aimHelper.getPixelCentreCoordinates(p0)
+    c1 = aimHelper.getPixelCentreCoordinates(p1)
     d = [c1[i] - c0[i] for i in range(3)]
     norm = sum(e * e for e in d) ** 0.5
     return [e / norm for e in d], norm

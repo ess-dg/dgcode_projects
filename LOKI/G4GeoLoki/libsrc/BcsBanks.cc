@@ -235,11 +235,11 @@ std::array<double,3> BankTransform::toLocal(const std::array<double,3>& global) 
   return local;
 }
 
-BankTransform BcsBanks::getBankTransform(const int bankId, const bool isLarmor2022Experiment) const {
+BankTransform BcsBanks::getBankTransform(const int bankId) const {
   assert(0 <= bankId && bankId <= 8);
-  if (!isLarmor2022Experiment && m_bankCalibration.hasBank(bankId))
+  if (m_bankCalibration.hasBank(bankId))
     return m_calibratedTransforms[bankId];
-  return getNominalBankTransform(bankId, isLarmor2022Experiment);
+  return getNominalBankTransform(bankId);
 }
 
 std::array<double,3> BcsBanks::getFrontFaceCentreInBank(const int bankId) {
@@ -248,12 +248,9 @@ std::array<double,3> BcsBanks::getFrontFaceCentreInBank(const int bankId) {
   return {-detectorSystemCentreOffsetInBank(bankId, 2), detectorSystemCentreOffsetInBank(bankId, 1), 0.0};
 }
 
-BankTransform BcsBanks::getNominalBankTransform(const int bankId, const bool isLarmor2022Experiment) const {
+BankTransform BcsBanks::getNominalBankTransform(const int bankId) const {
   assert(0 <= bankId && bankId <= 8);
-  BankTransform transform = transformFromPlacement(bankId, nominalBankPlacement(bankId));
-  if (isLarmor2022Experiment) // the rear bank at the beam height of the Larmor 2022 experiment
-    transform.translation[1] = getLarmor2022ExperimentBankPositionY();
-  return transform;
+  return transformFromPlacement(bankId, nominalBankPlacement(bankId));
 }
 
 namespace {
@@ -566,9 +563,6 @@ int BcsBanks::getNumberOfBanks() const {
   return m_numberOfBanks;
 }
 
-double BcsBanks::getLarmor2022ExperimentBankPositionY() {
-  return 0.5 * getBankSize(0, 1) - 1155 *Units::mm + (4+33) *Units::mm; // beam centre at 1155 mm above floor, including the 4 mm electrical isolation layer, that is 33 mm above the Larmor floor (due to the weels)
-}
 /// Borom Masks ///
 
 double BcsBanks::getBoronMaskPosition(const int bankId, const int maskId, const int axisIndex) {
@@ -601,24 +595,6 @@ double BcsBanks::getCalibMaskPosition(CalibMasks::CalibMasksBase calibMask, cons
   }
   else{ //z direction
     return - (detectorSystemCentreOffsetInBank(bankId, 2) + calibMask.getElevationFromTubeFront() + 0.5*calibMask.getThickness());
-  }
- }
-
-double BcsBanks::getCalibMaskPositionOutsideBank(CalibMasks::CalibMasksBase calibMask, const int bankId, const int axisIndex) const {
-  assert(0 <= axisIndex && axisIndex <= 2);
-
-  const double offsetAlongBCSTubes = 0.5*getStrawLengthByBankId(bankId) - calibMask.getLeftTubeEndDistance() - 0.5*calibMask.getWidth();
-  const double elevationFromBankCentre = detectorSystemCentreOffsetInBank(bankId, 2) + calibMask.getElevationFromTubeFront() + 0.5*calibMask.getThickness();
-  const double bankRot = bankRotation[bankId][2];
-
-  if((axisIndex == 0 && !isVertical(bankId)) || (axisIndex == 1 && isVertical(bankId))) {
-    return bankPositionOffset[bankId][axisIndex] + offsetAlongBCSTubes;
-  }
-  else if((axisIndex == 0 && isVertical(bankId)) || (axisIndex == 1 && !isVertical(bankId))) {
-    return getBankPosition(bankId,axisIndex) - (elevationFromBankCentre * std::sin(bankRot) *bankPosDir[bankId]);
-  }
-  else{ //z direction
-    return getBankPosition(bankId, 2) - elevationFromBankCentre * std::cos(bankRot);
   }
  }
 

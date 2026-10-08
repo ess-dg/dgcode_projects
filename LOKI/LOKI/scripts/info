@@ -9,7 +9,6 @@ parser.add_argument('-r', '--rear_detector_distance_m', default=5.0, type=float,
 parser.add_argument('-s', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
 parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
 # parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
-parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
 parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.6, help = 'Source sample distance [m] (added to the Z of the pixel positions).')
 parser.add_argument('-c', '--bank_calibration', default=LokiAim.DEFAULT_BANK_CALIBRATION,
                     help = f'Bank placements (the bank_calibration geometry parameter): {LokiAim.NOMINAL_BANK_CALIBRATION}, '
@@ -33,12 +32,11 @@ if args.dump:
   exit()
 
 if not args.pixel is None:
-  larmor_2022_experiment=False #TODO input? must be handled everywhere
-  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel, args.old_tube_numbering, larmor_2022_experiment)
+  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel)
   pixelCentreZ += args.nominal_source_sample_distance_meters * 1000.0
   bankId = geoHelper.getBankId(args.pixel)
   tubeId = geoHelper.getTubeId(args.pixel, bankId)
-  packId = geoHelper.getPackId(bankId, tubeId, args.old_tube_numbering)
+  packId = geoHelper.getPackId(bankId, tubeId)
   strawId = geoHelper.getStrawId(args.pixel, bankId, tubeId)
   inStrawId = args.pixel % args.straw_pixel_number
   scale = 1000.0 if args.unit == 'm' else 1.0 # positions are in mm

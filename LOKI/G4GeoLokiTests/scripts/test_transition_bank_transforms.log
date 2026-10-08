@@ -15,7 +15,7 @@ LOKI, rear 5 m
   world daughter BoronMask-triangular-7-3 (copy -5, BoronMask-triangular-7-3): translation (-977.500000, -683.581849, 1108.176295) mm, frame rotation rows [1.000000000, 0.000000000, 0.000000000, 0.000000000, 0.953716951, 0.300705800, 0.000000000, -0.300705800, 0.953716951]
   built geometry: 9 banks placed with the original frame rotation and translation
 ==========================================================================================
-LOKI, rear 10 m, old tube numbering
+LOKI, rear 10 m
   bank 0: transform vs original: rotation OK, translation OK (0.000, -7.027, 10091.006) mm
   bank 1: transform vs original: rotation OK, translation OK (0.000, 513.624, 3000.875) mm
   bank 2: transform vs original: rotation OK, translation OK (379.123, 0.000, 3423.553) mm
@@ -46,9 +46,4 @@ LOKI, rear 7.3 m, beamstop, calibration slits
   world daughter BoronMask-triangular-7-2 (copy -5, BoronMask-triangular-7-2): translation (817.500000, -731.258160, 1093.144012) mm, frame rotation rows [1.000000000, 0.000000000, 0.000000000, 0.000000000, 0.953716951, 0.300705800, 0.000000000, -0.300705800, 0.953716951]
   world daughter BoronMask-triangular-7-3 (copy -5, BoronMask-triangular-7-3): translation (-977.500000, -683.581849, 1108.176295) mm, frame rotation rows [1.000000000, 0.000000000, 0.000000000, 0.000000000, 0.953716951, 0.300705800, 0.000000000, -0.300705800, 0.953716951]
   built geometry: 9 banks placed with the original frame rotation and translation
-==========================================================================================
-Larmor 2022
-  bank 0: transform vs original: rotation OK, translation OK (0.000, -214.975, 4190.006) mm
-  world daughter CalibMaskBox (copy -5, CalibMaskBox): translation (62.000000, -7.027077, 4023.850000) mm, frame rotation rows [0.000000000, 0.000000000, 1.000000000, 0.000000000, 1.000000000, 0.000000000, -1.000000000, 0.000000000, 0.000000000]
-  built geometry: 1 banks placed with the original frame rotation and translation
-checks performed: 60, failures: 0
+checks performed: 57, failures: 0

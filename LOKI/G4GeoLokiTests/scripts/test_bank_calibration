@@ -5,9 +5,7 @@
 #
 #  1. Names and files: nominal-geant4-geometry (no calibrated bank, the default of the C++ classes), the
 #     default calibration of the geometry and the scripts, unknown names and invalid files are
-#     rejected with an error (C++ reader), the Larmor 2022 setup always uses the nominal
-#     geometry (with a note if another calibration than the default is requested) and the
-#     (x, y) pixel id refuses calibrated banks.
+#     rejected with an error (C++ reader), and the (x, y) pixel id refuses calibrated banks.
 #  2. The calibrated code path reproduces the nominal geometry: a calibration file made here
 #     from the NOMINAL AimHelper pixel centres (F, u, w, n computed the loki-geometry way:
 #     centre straw midpoints of the front layer tubes 0 and N-1) gives the nominal bank
@@ -48,13 +46,13 @@ def raises(function, *args):
         return str(error)
     return None
 
-def transform(obj, bank, larmor=False):
-    R, t = obj.getBankTransform(bank, larmor)
+def transform(obj, bank):
+    R, t = obj.getBankTransform(bank)
     return np.array(R), np.array(t)
 
 def max_pixel_difference(aim1, aim2, step):
-    return max(np.abs(np.array(aim1.getPixelCentreCoordinates(p, False, False))
-                      - np.array(aim2.getPixelCentreCoordinates(p, False, False))).max()
+    return max(np.abs(np.array(aim1.getPixelCentreCoordinates(p))
+                      - np.array(aim2.getPixelCentreCoordinates(p))).max()
                for p in range(0, aim1.getTotalNumberOfPixels(), step))
 
 def construct(**pars):
@@ -124,25 +122,6 @@ for pars, expected_error in [(dict(bank_calibration='unknown-calibration'), 'Wro
     chk.check(result.returncode != 0 and message, f'{pars}: not rejected (exit code {result.returncode}: {result.stdout[-500:]})')
     shown = {k: (os.path.basename(v) if v == ok_path else v) for k, v in pars.items()}
     print(f'  geometry {shown}: rejected (exit code != 0: {result.returncode != 0}): {message[0].strip() if message else "NO"}')
-# the Larmor 2022 setup uses the nominal geometry, whatever bank_calibration is
-larmor = dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True)
-larmor_nominal = TU.world_tree() if construct(bank_calibration=NOMINAL, **larmor) is not None else None
-for value in (None, ok_path):  # the default calibration, a requested one
-    geo = GEO.create()
-    for k, v in larmor.items():
-        setattr(geo, k, v)
-    if value is not None:
-        geo.bank_calibration = value
-    with captured_fd_output() as lines:
-        TU.construct_world(geo)
-    tree = TU.world_tree()
-    same = [v[:4] for v in tree] == [v[:4] for v in larmor_nominal] and \
-        max(np.abs(np.array(a[4]) - np.array(b[4])).max() for a, b in zip(tree, larmor_nominal)) == 0.0
-    notes = [line for line in lines if 'is not used for the larmor_2022_experiment' in line]
-    chk.check(same and bool(notes) == (value is not None), f'Larmor 2022 with {value}: same {same}, notes {notes}')
-    shown = 'the default' if value is None else os.path.basename(value)
-    print(f'  Larmor 2022 with {shown} bank_calibration: the nominal geometry: {same}, note printed: {bool(notes)}')
-
 # the (x, y) pixel id assumes nominal banks
 pc_ok = TU.PixelCalc(REAR, 256, 9, ok_path)  # bank 3 calibrated
 error = raises(pc_ok.getPixelId, 3, 0, 3, 0.0, -500.0)
@@ -158,7 +137,7 @@ def nominal_bank(b):
     """F, u, w, n of the nominal bank b (rear bank at REAR)"""
     T = 2 * TU.getNumberOfPacksByBankId(b)  # tubes per layer
     def centre(tube, j):
-        return np.array(aim2.getPixelCentreCoordinates(aim2.getBankPixelOffset(b) + (tube * NSTRAWS + 3) * N2 + j, False, False))
+        return np.array(aim2.getPixelCentreCoordinates(aim2.getBankPixelOffset(b) + (tube * NSTRAWS + 3) * N2 + j))
     u = centre(0, 0) - centre(0, 1)
     u /= np.linalg.norm(u)
     first, last = (centre(0, 0) + centre(0, 1)) / 2, (centre(T - 1, 0) + centre(T - 1, 1)) / 2
@@ -197,7 +176,7 @@ for N in (1, 7, 256, 512):
         b = a_cal.getBankId(p)
         t = a_cal.getTubeId(p, b)
         s = a_cal.getStrawId(p, b, t)
-        if pc.getPixelId3D(b, t, s, *a_cal.getPixelCentreCoordinates(p, False, False)) != p:
+        if pc.getPixelId3D(b, t, s, *a_cal.getPixelCentreCoordinates(p)) != p:
             nbad += 1
     chk.check(nbad == 0, f'{N} pixels/straw: {nbad} pixel centres give another pixel id')
 
@@ -215,8 +194,7 @@ def world(**pars):
     construct(**pars)
     return TU.world_tree()
 
-for pars in (dict(), dict(rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True),
-             dict(old_tube_numbering=True)):
+for pars in (dict(), dict(rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True)):
     tree_nominal = world(**pars)
     tree_calibrated = world(bank_calibration=from_nominal, **pars)
     same_structure = [v[:4] for v in tree_nominal] == [v[:4] for v in tree_calibrated]
@@ -274,7 +252,7 @@ for rear_m in (5.0, 8.0):
     for p in range(0, a_cal.getBankPixelOffset(1), 17):
         t_ = a_cal.getTubeId(p, 0)
         s_ = a_cal.getStrawId(p, 0, t_)
-        c = a_cal.getPixelCentreCoordinates(p, False, False)
+        c = a_cal.getPixelCentreCoordinates(p)
         hist, loc, axis, _ = TU.locate(*c)
         copies = [h[1] for h in hist]
         if [h[0] for h in hist][0] != 'CountingGas' or copies[6] != 0 or copies[4] != t_ or copies[2] != s_ \
@@ -353,7 +331,7 @@ LOKI_GEOMETRY_PIXELS = [
 ]
 worst = 0.0
 for p, expected in LOKI_GEOMETRY_PIXELS:
-    c = np.array(sam.getPixelCentreCoordinates(p, False, False))
+    c = np.array(sam.getPixelCentreCoordinates(p))
     worst = max(worst, np.abs(c - np.array(expected)).max())
 chk.check(worst < 1e-6, f'pixel centres differ from loki-geometry by {worst:.2e} mm')
 print(f'  pixel centres vs loki-geometry ({len(LOKI_GEOMETRY_PIXELS)} pixels, first / middle / last of banks 1-8): '
@@ -368,7 +346,7 @@ for N in (8, 256):
         t = a.getTubeId(p, b)
         s = a.getStrawId(p, b, t)
         n += 1
-        if pc.getPixelId3D(b, t, s, *a.getPixelCentreCoordinates(p, False, False)) != p:
+        if pc.getPixelId3D(b, t, s, *a.getPixelCentreCoordinates(p)) != p:
             nbad += 1
     chk.check(nbad == 0, f'{N} pixels/straw: {nbad} of {n} pixel centres give another pixel id')
     print(f'  {N} pixels/straw: {n} pixel centres -> pixel id round trip OK: {nbad == 0}')

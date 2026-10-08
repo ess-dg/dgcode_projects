@@ -1,8 +1,0 @@
-Tube numbering converter: examples (old -> new): 0->0, 512->512, 3584->200704, 14336->3584, 28672->7168, 799743->799743
-Geometry converter: straws kept 896 of 1568
-  layer 0: kept full-geometry ids 14336..129023, reduced ids 1..114688 (1-based)
-  layer 1: kept full-geometry ids 215040..329727, reduced ids 114689..229376 (1-based)
-  layer 2: kept full-geometry ids 415744..530431, reduced ids 229377..344064 (1-based)
-  layer 3: kept full-geometry ids 616448..731135, reduced ids 344065..458752 (1-based)
-  centre of first/last kept pixel [mm]: (499.0234, 458.3132, 4104.0341) / (-499.0234, -400.9688, 4198.1443)
-checks performed: 10305, failures: 0

@@ -2,22 +2,17 @@
 #include "G4GeoLoki/AimHelper.hh"
 
 namespace {
-  py::tuple pyAimHelper_getPixelCentreCoordinates( const AimHelper& this_,
-                                                    const int pixelId,
-                                                    const bool isOldPixelNumbering,
-                                                    const bool isLarmor2022Experiment)
+  py::tuple pyAimHelper_getPixelCentreCoordinates( const AimHelper& this_, const int pixelId )
   {
-    auto xyz = this_.getPixelCentreCoordinates( pixelId,
-                                                isOldPixelNumbering,
-                                                isLarmor2022Experiment );
+    auto xyz = this_.getPixelCentreCoordinates( pixelId );
     return py::make_tuple( std::get<0>( xyz ),
                            std::get<1>( xyz ),
                            std::get<2>( xyz ) );
   }
   // ((rotation rows), (translation)): p_world = rotation * p_bank + translation [mm]
-  py::tuple pyAimHelper_getBankTransform( const AimHelper& this_, const int bankId, const bool isLarmor2022Experiment )
+  py::tuple pyAimHelper_getBankTransform( const AimHelper& this_, const int bankId )
   {
-    const auto t = this_.getBankTransform( bankId, isLarmor2022Experiment );
+    const auto t = this_.getBankTransform( bankId );
     const auto& R = t.rotation;
     return py::make_tuple( py::make_tuple( py::make_tuple( R[0][0], R[0][1], R[0][2] ),
                                            py::make_tuple( R[1][0], R[1][1], R[1][2] ),
@@ -48,7 +43,7 @@ PYTHON_MODULE( mod )
     .def("getBankPixelOffset",&AimHelper::getBankPixelOffset)
     .def("getNumberOfPixelsInStraw",&AimHelper::getNumberOfPixelsInStraw)
     .def("getBankPosition",&AimHelper::getBankPosition)
-    .def("getBankTransform",&pyAimHelper_getBankTransform, py::arg("bankId"), py::arg("isLarmor2022Experiment") = false)
+    .def("getBankTransform",&pyAimHelper_getBankTransform, py::arg("bankId"))
     .def("getBankCalibrationName",&pyAimHelper_getBankCalibrationName)
     .def("isBankCalibrated",&AimHelper::isBankCalibrated)
     .def("dumpInfo",&AimHelper::dumpInfo)

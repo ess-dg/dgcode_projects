@@ -1,4 +1,4 @@
-package(USEPKG G4GeoLoki LokiUtils G4Interfaces G4Launcher G4CustomPyGen SimpleHists LokiMasking LOKI GriffAnaUtils Units)
+package(USEPKG G4GeoLoki G4Interfaces G4Launcher G4CustomPyGen SimpleHists LokiMasking LOKI GriffAnaUtils Units)
 
 ######################################################################
 

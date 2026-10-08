@@ -5,9 +5,8 @@
 #     pixels, a bank with NO masked pixel (valid empty <detids>), out-of-range pixel
 #     numbers (ignored, no out-of-bounds access), a single aimed bank, and a geometry
 #     with a single bank (file name without the bank prefix);
-#   * maskMerger: intersection of several mask files;
-#   * maskConverter_larmor2022: conversion of a full-geometry mask (512 pixels per
-#     straw) to the reduced Larmor 2022 geometry (pinned output).
+#   * maskMerger: intersection of several mask files.
+# (The Larmor 2022 mask converter is tested in LOKI/Larmor/LarmorTests.)
 # The mask files must be valid XML with 1-based, increasing detector ids.
 
 import os
@@ -87,16 +86,5 @@ if chk.check(r.returncode == 0, f'maskMerger failed:\n{r.stdout}'):
     ids = read_ids('merged.xml')
     chk.check(ids == [3, 5, 13], f'merged ids {ids}')
     print('merged detector ids', ids)
-
-print('--- maskConverter_larmor2022: full geometry (512 px/straw) -> reduced Larmor 2022 geometry')
-full = [1, 2, 512, 513, 3584, 3585, 400000, 802816, 802817, 900000]  # banks 0 and 1 of the full geometry
-write_mask('full.xml', full)
-for extra in ([], ['--convert_old_to_new_tube_numbering']):
-    r = subprocess.run(['sb_lokimasking_maskConverter_larmor2022', 'full.xml', '-s', 'larmor.xml'] + extra,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    if chk.check(r.returncode == 0, f'maskConverter_larmor2022 {extra} failed:\n{r.stdout}'):
-        ids = read_ids('larmor.xml')
-        chk.check(ids == sorted(set(ids)) and all(1 <= i <= 802816 for i in ids), f'converted ids {ids}')
-        print(f'converted {" ".join(extra) or "(new numbering)"}: {full} -> {ids}')
 
 chk.finish()

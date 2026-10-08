@@ -8,7 +8,9 @@
 // Do NOT change this file when changing the production code: it is the
 // reference. It only reads the (unchanged) nominal parameter tables through the
 // public getters of BcsBanks / BcsPack / BcsTube / PixelatedBanks. (Only adapted to API changes:
-// the pixels per straw are read from its own PixelatedBanks object, as they are per object.)
+// the pixels per straw are read from its own PixelatedBanks object, as they are per object; the old
+// tube numbering and the Larmor 2022 setup were removed from LOKI (they are in LOKI/Larmor): only the
+// LOKI geometry with the current tube numbering is compared.)
 //
 // Nothing in here is used by production code.
 
@@ -79,7 +81,8 @@ namespace {
     }
 
     // original AimHelper::getPixelCentreCoordinates
-    std::array<double,3> pixelCentre(int pixelId, bool old, bool larmor) const {
+    std::array<double,3> pixelCentre(int pixelId) const {
+      const bool old = false;
       const int b = bankId(pixelId);
       const int t = tubeId(pixelId, b);
       const int inPackTubeId = getInPackTubeId(b, t, old);
@@ -99,7 +102,7 @@ namespace {
       coordinateRotation(positionZ, positionY, BcsBanks::getBankRotation(b, 0));
       coordinateRotation(positionZ, positionX, -BcsBanks::getBankRotation(b, 1));
       positionX += pb.getBankPosition(b, 0);
-      positionY += !larmor ? pb.getBankPosition(b, 1) : BcsBanks::getLarmor2022ExperimentBankPositionY();
+      positionY += pb.getBankPosition(b, 1);
       positionZ += pb.getBankPosition(b, 2);
       return {positionX, positionY, positionZ};
     }
@@ -130,13 +133,11 @@ namespace {
                             py::make_tuple(r.yx(), r.yy(), r.yz()),
                             py::make_tuple(r.zx(), r.zy(), r.zz()));
     }
-    py::tuple bankPosition(int b, bool larmor) const {
-      return py::make_tuple(pb.getBankPosition(b, 0),
-                            !larmor ? pb.getBankPosition(b, 1) : BcsBanks::getLarmor2022ExperimentBankPositionY(),
-                            pb.getBankPosition(b, 2));
+    py::tuple bankPosition(int b) const {
+      return py::make_tuple(pb.getBankPosition(b, 0), pb.getBankPosition(b, 1), pb.getBankPosition(b, 2));
     }
-    py::tuple pyPixelCentre(int pixelId, bool old, bool larmor) const {
-      auto c = pixelCentre(pixelId, old, larmor);
+    py::tuple pyPixelCentre(int pixelId) const {
+      auto c = pixelCentre(pixelId);
       return py::make_tuple(c[0], c[1], c[2]);
     }
     int pyPixelId2D(int b, int t, int s, double x, double y) const { return pixelId2D(b, t, s, x, y); }
@@ -148,15 +149,15 @@ namespace {
   // straw) and 3 mm across it (four directions). Returns
   // (pixels, largest centre deviation [mm], pixel of it, pixel id checks, pixel id failures,
   //  first failing pixel or -1).
-  py::tuple compare_all(double rear, int n, int nbanks, bool old, bool larmor) {
+  py::tuple compare_all(double rear, int n, int nbanks) {
     Legacy legacy(rear, n, nbanks);
     AimHelper aim = (nbanks == 9) ? AimHelper(rear, n) : AimHelper(rear, n, nbanks);
     const int total = aim.getTotalNumberOfPixels();
     double worst = 0.; int worstPixel = -1;
     long nchecks = 0, nfail = 0; int firstFail = -1;
     for (int p = 0; p < total; p++) {
-      auto cur = aim.getPixelCentreCoordinates(p, old, larmor);
-      auto ref = legacy.pixelCentre(p, old, larmor);
+      auto cur = aim.getPixelCentreCoordinates(p);
+      auto ref = legacy.pixelCentre(p);
       const double d = std::max({std::fabs(std::get<0>(cur) - ref[0]), std::fabs(std::get<1>(cur) - ref[1]), std::fabs(std::get<2>(cur) - ref[2])});
       if (!(d <= worst)) { worst = d; worstPixel = p; }
       const int b = legacy.bankId(p), t = legacy.tubeId(p, b), s = legacy.strawId(p, b, t);
@@ -165,8 +166,8 @@ namespace {
       const double L = BcsBanks::getStrawLengthByBankId(b), pitch = L / n;
       std::array<double,3> u;
       if (n > 1) {
-        auto a = legacy.pixelCentre(j < n - 1 ? p : p - 1, old, larmor);
-        auto c = legacy.pixelCentre(j < n - 1 ? p + 1 : p, old, larmor);
+        auto a = legacy.pixelCentre(j < n - 1 ? p : p - 1);
+        auto c = legacy.pixelCentre(j < n - 1 ? p + 1 : p);
         for (int i = 0; i < 3; i++) u[i] = (c[i] - a[i]) / pitch;
       } else {
         // one pixel: the straw axis is the world x (horizontal) or y (vertical) axis

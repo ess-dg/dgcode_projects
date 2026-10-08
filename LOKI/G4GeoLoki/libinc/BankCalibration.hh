@@ -36,9 +36,6 @@ public:
   static const std::string nominalName; // "nominal-geant4-geometry"
   /// The calibration used by default (the default of the bank_calibration geometry parameter and of the scripts).
   static const std::string defaultName;
-  /// The calibration that is used for the bank_calibration parameter value name: the LOKI bank calibrations do not
-  /// apply to the Larmor 2022 experiment setup, which always uses the nominal geometry.
-  static std::string effectiveName(const std::string& name, const bool isLarmor2022Experiment);
 
   /// The nominal calibration (no calibrated bank).
   BankCalibration();

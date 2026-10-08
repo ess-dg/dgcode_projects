@@ -21,11 +21,9 @@ int main(int argc, char **argv) {
   auto &geo = setup->geo();
   auto userData = setup->userData();
   const double rear = geo.getParameterDouble("rear_detector_distance_m") * Units::m;
-  const bool larmor = geo.hasParameterBoolean("larmor_2022_experiment") && geo.getParameterBoolean("larmor_2022_experiment");
   const int n = std::stoi(userData["analysis_straw_pixel_number"]);
-  const std::string bankCalibration = BankCalibration::effectiveName(geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName,
-                                                                   geo.hasParameterBoolean("larmor_2022_experiment") && geo.getParameterBoolean("larmor_2022_experiment"));
-  PixelatedBanks banks(rear, n, larmor ? 1 : 9, bankCalibration);
+  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  PixelatedBanks banks(rear, n, 9, bankCalibration);
 
   GriffAnaUtils::TrackIterator geantinos(&dr);
   geantinos.addFilter(new GriffAnaUtils::TrackFilter_Primary());

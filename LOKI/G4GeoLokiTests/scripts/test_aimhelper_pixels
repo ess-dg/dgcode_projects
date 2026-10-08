@@ -11,11 +11,10 @@
 #     first/second/middle/last tube rows, all 7 straws, first/middle/last pixel
 #     of the straw, first and last pixel of every bank): the decoded
 #     bank/tube/pack/straw/layer ids and the pixel centre [mm] (rear 5 m,
-#     256 pixels/straw), for both the new (default) and the old tube numbering.
-#  C) The same for the Larmor 2022 setup (rear bank only, 512 pixels/straw).
+#     256 pixels/straw; and rear 10 m, 512 pixels/straw).
 #  D) Global consistency checks on all straws: pixel pitch along the straw,
-#     pixel-0 -> pixel-(N-1) direction per bank, straw centre sets identical
-#     between new and old tube numbering, all straw axes distinct.
+#     pixel-0 -> pixel-(N-1) direction per bank, all straw axes distinct.
+# (The old tube numbering and the Larmor 2022 setup are no longer part of LOKI: they are in LOKI/Larmor.)
 #
 # Coordinates: X horizontal (positive to the left seen from the sample along
 # the beam), Y up, Z along the beam, origin at the nominal sample position.
@@ -49,46 +48,34 @@ for b in range(NBANKS):
     print(f'    pack 0 / pack {n-1} position in bank: {fmtvec([TU.getPackPositionInBank(b,0,i) for i in range(3)], 6)}'
           f' / {fmtvec([TU.getPackPositionInBank(b,n-1,i) for i in range(3)], 6)}')
     print(f'    detector front distance from bank front: {fmt(TU.detectorSystemFrontDistanceFromBankFront(b),6)}')
-print(f'Larmor 2022 bank y position: {fmt(TU.getLarmor2022ExperimentBankPositionY(),6)}')
 print('Beamstop sizes:', ' '.join(fmtvec([TU.getBeamstopSize(i,ax) for ax in range(3)],1) for i in range(1,6)))
 for N in (256, 512):
     a = LokiAim.AimHelper(5000.0, N)
     print(f'Pixel offsets for {N} pixels/straw:', [a.getBankPixelOffset(b) for b in range(NBANKS+1)],
           'total:', a.getTotalNumberOfPixels())
 
-def print_sample(aim, N, old, larmor, banks=range(NBANKS)):
+def print_sample(aim, N, banks=range(NBANKS)):
     print(f'{"pixelId":>8} {"bank":>4} {"tube":>4} {"pack":>4} {"straw":>5} {"inStraw":>7} {"layer":>5}   centre [mm]')
-    for (b, t, s, j, pid) in sample_pixels(aim, N, old, banks):
+    for (b, t, s, j, pid) in sample_pixels(aim, N, banks):
         bank = aim.getBankId(pid)
         tube = aim.getTubeId(pid, bank)
         straw = aim.getStrawId(pid, bank, tube)
-        pack = aim.getPackId(bank, tube, old)
-        layer = TU.getTubeLayerId(bank, tube, old)
+        pack = aim.getPackId(bank, tube)
+        layer = TU.getTubeLayerId(bank, tube)
         chk.check((bank, tube, straw, pid % N) == (b, t, s, j), f'decoding of pixel {pid}')
-        c = aim.getPixelCentreCoordinates(pid, old, larmor)
+        c = aim.getPixelCentreCoordinates(pid)
         print(f'{pid:8} {bank:4} {tube:4} {pack:4} {straw:5} {pid % N:7} {layer:5}   {fmtvec(c, 4)}')
 
 print('='*100)
-print('B1) Sample pixels, rear 5 m, 256 pixels/straw, NEW tube numbering')
+print('B1) Sample pixels, rear 5 m, 256 pixels/straw')
 print('='*100)
 aim = LokiAim.AimHelper(5000.0, 256)
-print_sample(aim, 256, False, False)
+print_sample(aim, 256)
 print('='*100)
-print('B2) Sample pixels, rear 5 m, 256 pixels/straw, OLD tube numbering')
-print('='*100)
-print_sample(aim, 256, True, False)
-print('='*100)
-print('B3) Sample pixels, rear 10 m, 512 pixels/straw, NEW tube numbering, banks 0, 1, 6')
+print('B2) Sample pixels, rear 10 m, 512 pixels/straw, banks 0, 1, 6')
 print('='*100)
 aim512 = LokiAim.AimHelper(10000.0, 512)
-print_sample(aim512, 512, False, False, banks=(0, 1, 6))
-
-print('='*100)
-print('C) Larmor 2022 setup: rear 4.099 m, only bank 0, 512 pixels/straw, NEW tube numbering')
-print('='*100)
-aimL = LokiAim.AimHelper(4099.0, 512, 1)
-print('total number of pixels:', aimL.getTotalNumberOfPixels())
-print_sample(aimL, 512, False, True, banks=(0,))
+print_sample(aim512, 512, banks=(0, 1, 6))
 
 print('='*100)
 print('D) Consistency checks over all straws (rear 5 m, 256 pixels/straw)')
@@ -98,27 +85,24 @@ aim = LokiAim.AimHelper(5000.0, N)
 for b in range(NBANKS):
     L = TU.getStrawLengthByBankId(b)
     pitch = L / N
-    centres = {}
+    centres = []
     dirs = set()
-    for old in (False, True):
-        centres[old] = []
-        for t in range(TU.getNumberOfTubes(b)):
-            for s in range(NSTRAWS):
-                base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * N
-                c0 = aim.getPixelCentreCoordinates(base, old, False)
-                c1 = aim.getPixelCentreCoordinates(base + 1, old, False)
-                cN = aim.getPixelCentreCoordinates(base + N - 1, old, False)
-                d01 = math.dist(c0, c1)
-                d0N = math.dist(c0, cN)
-                chk.check(abs(d01 - pitch) < 1e-9 and abs(d0N - (N - 1) * pitch) < 1e-9,
-                          f'pixel pitch bank {b} tube {t} straw {s} old={old}: {d01} {d0N}')
-                u = tuple(round((cN[i] - c0[i]) / d0N, 9) + 0.0 for i in range(3))
-                dirs.add(u)
-                centres[old].append(tuple(round((c0[i] + cN[i]) / 2, 6) for i in range(3)))
-    chk.check(sorted(centres[False]) == sorted(centres[True]), f'bank {b}: straw centres differ between new and old numbering')
-    chk.check(len(set(centres[False])) == len(centres[False]), f'bank {b}: duplicate straw centres')
+    for t in range(TU.getNumberOfTubes(b)):
+        for s in range(NSTRAWS):
+            base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * N
+            c0 = aim.getPixelCentreCoordinates(base)
+            c1 = aim.getPixelCentreCoordinates(base + 1)
+            cN = aim.getPixelCentreCoordinates(base + N - 1)
+            d01 = math.dist(c0, c1)
+            d0N = math.dist(c0, cN)
+            chk.check(abs(d01 - pitch) < 1e-9 and abs(d0N - (N - 1) * pitch) < 1e-9,
+                      f'pixel pitch bank {b} tube {t} straw {s}: {d01} {d0N}')
+            u = tuple(round((cN[i] - c0[i]) / d0N, 9) + 0.0 for i in range(3))
+            dirs.add(u)
+            centres.append(tuple(round((c0[i] + cN[i]) / 2, 6) for i in range(3)))
+    chk.check(len(set(centres)) == len(centres), f'bank {b}: duplicate straw centres')
     print(f'Bank {b}: direction of increasing pixel index along the straws: {", ".join(fmtvec(d, 6) for d in sorted(dirs))}')
-    xs = [c for c in centres[False]]
+    xs = centres
     lo = [min(c[i] for c in xs) for i in range(3)]
     hi = [max(c[i] for c in xs) for i in range(3)]
     print(f'    straw centre bounding box: min {fmtvec(lo, 4)} max {fmtvec(hi, 4)}')

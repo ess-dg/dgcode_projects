@@ -11,10 +11,8 @@ class PixelTargetGen(G4CustomPyGen.GenBase):
         self.addParameterInt("repeat", 1)
         self.addParameterDouble("rear_detector_distance_mm", 5000.0)
         self.addParameterInt("aiming_straw_pixel_number", 256)
-        self.addParameterBoolean("aiming_old_tube_numbering", False)
         self.addParameterString("particle", "neutron")
         self.addParameterDouble("neutron_wavelength_aangstrom", 4.0)
-        self.addParameterBoolean("aiming_larmor_2022_experiment", False)
         self.addParameterString("aiming_bank_calibration", LokiAim.DEFAULT_BANK_CALIBRATION)
 
     def init_generator(self, gun):
@@ -22,15 +20,12 @@ class PixelTargetGen(G4CustomPyGen.GenBase):
         if self.particle == 'neutron':
             gun.set_wavelength_angstrom(self.neutron_wavelength_aangstrom)
         gun.set_position(0, 0, 0)
-        if self.aiming_larmor_2022_experiment:
-            self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 1)
-        else:
-            self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 9, self.aiming_bank_calibration)
+        self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 9, self.aiming_bank_calibration)
         self._targets = [int(e) for e in self.target_pixel_ids.split(',')]
         self._i = 0
 
     def generate_event(self, gun):
         pid = self._targets[(self._i // self.repeat) % len(self._targets)]
         self._i += 1
-        x, y, z = self._aim.getPixelCentreCoordinates(pid, self.aiming_old_tube_numbering, self.aiming_larmor_2022_experiment)
+        x, y, z = self._aim.getPixelCentreCoordinates(pid)
         gun.set_direction(x, y, z)

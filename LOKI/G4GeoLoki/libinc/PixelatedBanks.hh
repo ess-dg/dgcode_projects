@@ -23,7 +23,8 @@ public:
   int getNumberOfPixels(const int bankId) const;
   int getNumberOfPixelsInStraw(const int bankId) const;
 
-  static int getTubeLayerId(const int bankId, const int tubeId, const bool oldTubeNumbering);
+  /// The tube layer (0: front ... 3: back) of a tube (tubes are numbered layer by layer).
+  static int getTubeLayerId(const int bankId, const int tubeId);
 
   int getBankPixelOffset(const int bankId) const;
   void dumpInfo() const;

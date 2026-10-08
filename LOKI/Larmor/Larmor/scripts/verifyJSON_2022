@@ -3,14 +3,11 @@ import json
 import numpy as np
 import argparse
 
-parser = argparse.ArgumentParser(description = 'Comparing pixel positions defined in a JSON (nexus template) geometry file to the pixel positions in the Geant4 geometry.')
+parser = argparse.ArgumentParser(description = 'Comparing pixel positions defined in a JSON (nexus template) geometry file of the Larmor 2022 experiment (the rear bank, 512 pixels per straw, only the pixels present in the experiment) to the pixel positions in the Geant4 geometry (Larmor/GeoLarmor2022).')
 parser.add_argument('--json', required=True, help = 'Input JSON file')
-parser.add_argument('--geant4', help = 'Geant4 pixel position file to use (created with writePixelFile) instead of generating positions.')
-parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, help = 'Rear detector distance [m] (defaults to 5 m)')
-parser.add_argument('-s', '--strawPixelNumber', type=int, help = 'Pixel number per straw (defaults to the value defined in the PixelatedBanks class)')
+parser.add_argument('--geant4', help = 'Geant4 pixel position file to use (created with sb_larmor_writepixelfile_2022) instead of generating positions.')
 parser.add_argument('-t', '--tolerance', default=0.0001, type=float, help = 'Absolute difference in pixel position to tolerate [m].')
 parser.add_argument('--printPixelNumber', default=8, type=int, help = 'Number of first N pixels to print the positions of in each bank.')
-parser.add_argument('--bankCalibration', default=None, help = 'Bank placements of the Geant4 geometry: nominal-geant4-geometry, the name of a bank calibration in G4GeoLoki/data or the path of a calibration file (passed to writePixelFile; default: the default of writePixelFile).')
 args = parser.parse_args()
 
 
@@ -36,14 +33,8 @@ def getJsonPixels(filename, bankId):
   return jsonPixelIds, jsonPixels
 
 def getBankPixelRange(bankId):
-  import G4GeoLoki.LokiAimHelper as LokiAim
-  if args.strawPixelNumber:
-    aimHelper = LokiAim.AimHelper(5000, args.strawPixelNumber)
-  else:
-    aimHelper = LokiAim.AimHelper(5000)
-  pixelMin = aimHelper.getBankPixelOffset(bankId)
-  pixelMax = aimHelper.getBankPixelOffset(bankId + 1)
-  return pixelMin, pixelMax
+  assert bankId==0
+  return 0, 458752 # the pixels present in the experiment (512 pixels per straw)
 
 def getGeant4PixelsFromFile():
   import csv
@@ -58,13 +49,8 @@ def getGeant4PixelsFromFile():
       geant4Pixels[lineNumber] = [float(line[1]), float(line[2]), float(line[3])]
   return geant4PixelIds, geant4Pixels
 
-def createWritePixelFileCommad(rearDetectorDistance, strawPixelNumber, bankId):
-  command = 'sb_g4geoloki_writepixelfile --print'
-  command += f' --rearDetectorDistance={rearDetectorDistance} --bankId={bankId}'
-  if args.strawPixelNumber:
-    command += f' --strawPixelNumber={strawPixelNumber}'
-  if args.bankCalibration is not None:
-    command += f" --bankCalibration='{args.bankCalibration}'"
+def createWritePixelFileCommad():
+  command = 'sb_larmor_writepixelfile_2022 --print --strawPixelNumber=512'
   print(command)
   return command
 
@@ -124,18 +110,14 @@ def verifyPixelPositions(jsonPixels,geant4Pixels, tolerance):
           break
 
 
-bankIdMin = 0
-bankIdMax = 8
-# bankIdMax = 1 #FIXME debugging
-
-for bankId in range(bankIdMin, bankIdMax+1):
+for bankId in (0,):
   print(f"\nBank id: {bankId}")
   jsonPixelIds, jsonPixels = getJsonPixels(args.json, bankId)
 
   if args.geant4: #Use Geant4 pixel position file if provided
     geant4PixelIds, geant4Pixels = getGeant4PixelsFromFile()
   else: #Generate Geant4 pixel positions on the fly with the writePixelFile script
-    command = createWritePixelFileCommad(args.rearDetectorDistance, args.strawPixelNumber, bankId)
+    command = createWritePixelFileCommad()
     geant4PixelIds, geant4Pixels = getGeant4Pixels(bankId, command)
 
   verifyPixelIds(bankId, jsonPixelIds, geant4PixelIds)

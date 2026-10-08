@@ -26,15 +26,7 @@ const CalibMasks::CalibMasksBase mask7("lokiStandard-7", 0.3, 540.0, -47.0, 7.6,
 const CalibMasks::CalibMasksBase mask8("lokiStandard-8", 0.3, 880.0, -47.0, 7.6,
   {94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.,6., 94.});
 
-// B4C sheet(cadmium in real life) with holes(slits) cut into it, used for calibration at the LoKI rear bank experiment at Larmor(ISIS)
-// From the right 76 mm (gap) – 74 mm (Cd) - 3 mm (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 103 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 100 (Cd) - 3 (slit) - 63 (Cd)
-// '76 mm (gap)' means the distance from the right end of the detectors tubes, which translates to -50 mm distance from the left end of the BCS tubes
-// Placed 75 mm from the front of the detectors.
-CalibMasks::CalibMasksBase maskLarmor("larmorCdCalibMask", 0.3, 800., -50., 75.,
-  {63., 3.,100.,3.,100.,3.,100.,3.,100.,3., 103.,3.,103.,3.,103.,3.,103.,3., 74.});
-
 const std::map<std::string, CalibMasks::CalibMasksBase> CalibMasks::m_masks {
-  {maskLarmor.getName(), maskLarmor},
   {mask0.getName(), mask0},
   {mask1.getName(), mask1},
   {mask2.getName(), mask2},

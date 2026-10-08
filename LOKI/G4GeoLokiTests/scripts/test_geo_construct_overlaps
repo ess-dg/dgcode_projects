@@ -23,12 +23,9 @@ from G4GeoLokiTests.testhelpers import captured_fd_output
 NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 configs = [
     dict(bank_calibration=NOMINAL),
-    dict(bank_calibration=NOMINAL, old_tube_numbering=True),
     dict(bank_calibration=NOMINAL, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True),
-    dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1, with_calibration_slits=True),
     # the survey-based bank placements (G4GeoLoki/data/bank_calibration_2026-September-SAM-606.txt)
     dict(bank_calibration='2026-September-SAM-606'),
-    dict(bank_calibration='2026-September-SAM-606', old_tube_numbering=True),
     dict(bank_calibration='2026-September-SAM-606', rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True),
 ]
 

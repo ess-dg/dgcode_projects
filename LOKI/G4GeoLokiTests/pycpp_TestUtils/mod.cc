@@ -278,8 +278,8 @@ namespace {
     int getPixelId(int bank, int tube, int straw, double x, double y) const { return pb.getPixelId(bank,tube,straw,x,y); }
     int getPixelId3D(int bank, int tube, int straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
     //bank transform: (rotation as 3 rows, translation)
-    py::tuple getBankTransform(int bank, bool larmor2022) const {
-      const BankTransform t = pb.getBankTransform(bank, larmor2022);
+    py::tuple getBankTransform(int bank) const {
+      const BankTransform t = pb.getBankTransform(bank);
       const auto& R = t.rotation;
       return py::make_tuple( py::make_tuple( py::make_tuple(R[0][0],R[0][1],R[0][2]),
                                              py::make_tuple(R[1][0],R[1][1],R[1][2]),
@@ -287,8 +287,8 @@ namespace {
                              py::make_tuple(t.translation[0],t.translation[1],t.translation[2]) );
     }
     double getBankPosition(int bank, int axis) const { return pb.getBankPosition(bank,axis); }
-    py::tuple getNominalBankTransform(int bank, bool larmor2022) const {
-      const BankTransform t = pb.getNominalBankTransform(bank, larmor2022);
+    py::tuple getNominalBankTransform(int bank) const {
+      const BankTransform t = pb.getNominalBankTransform(bank);
       const auto& R = t.rotation;
       return py::make_tuple( py::make_tuple( py::make_tuple(R[0][0],R[0][1],R[0][2]),
                                              py::make_tuple(R[1][0],R[1][1],R[1][2]),
@@ -366,7 +366,6 @@ PYTHON_MODULE( mod )
   mod.def("getPackRotation", &BcsBanks::getPackRotation);
   mod.def("getPackPackDistance", &BcsBanks::getPackPackDistance);
   mod.def("detectorSystemFrontDistanceFromBankFront", &BcsBanks::detectorSystemFrontDistanceFromBankFront);
-  mod.def("getLarmor2022ExperimentBankPositionY", &BcsBanks::getLarmor2022ExperimentBankPositionY);
   mod.def("isVertical", &BcsBanks::isVertical);
   mod.def("areTubesInverselyNumbered", &BcsBanks::areTubesInverselyNumbered);
   mod.def("getBeamstopSize", &BcsBanks::getBeamstopSize);

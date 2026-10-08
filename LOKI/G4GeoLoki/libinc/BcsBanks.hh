@@ -39,8 +39,8 @@ public:
 
   /// The original description of the bank placement: the Euler angles of the Geant4 frame rotation
   /// rotateY(a1) rotateX(a0) rotateZ(a2), and the position of the bank volume centre. LOKI places the banks with
-  /// getBankTransform; these are still used by the Larmor geometries, the (x, y) getPixelId and the frozen copy
-  /// of the original implementation in the tests (G4GeoLokiTests/pycpp_Legacy).
+  /// getBankTransform; these are still used by the (x, y) getPixelId and the frozen copy of the original
+  /// implementation in the tests (G4GeoLokiTests/pycpp_Legacy).
   static double getBankRotation(const int bankId, const int axisIndex); // 0 - x, 1 - y, 2 - z
   double getBankPosition(const int bankId, const int axisIndex) const; // 0 - x, 1 - y, 2 - z
 
@@ -49,10 +49,10 @@ public:
   /// R = [n | s*w | -s*u] (s = -1 for the banks mounted upside down, see areTubesInverselyNumbered) and
   /// translation = F - R * getFrontFaceCentreInBank. F, u, w, n come from the bank calibration in use, or, for
   /// the nominal geometry, from the tables (see nominalBankPlacement). For the rear bank (0) the z of F is the rear
-  /// detector distance. Larmor 2022: the nominal rear bank at the Larmor beam height.
-  BankTransform getBankTransform(const int bankId, const bool isLarmor2022Experiment = false) const;
+  /// detector distance.
+  BankTransform getBankTransform(const int bankId) const;
   /// The nominal placement of a bank (the same as getBankTransform without a calibration).
-  BankTransform getNominalBankTransform(const int bankId, const bool isLarmor2022Experiment = false) const;
+  BankTransform getNominalBankTransform(const int bankId) const;
   /// The nominal front face centre F and axes u, w, n of a bank, from the tables (in the terms of the drawing):
   /// the bank is on one side of the beam (bankSideDirection), in the section plane spanned by the beam axis and that
   /// side; F is at the bank distance along the position angle in that plane, plus the panel offset; the layer
@@ -102,8 +102,6 @@ public:
 
   static double detectorSystemFrontDistanceFromBankFront(const int bankId);
 
-  static double getLarmor2022ExperimentBankPositionY();
-
   static bool isVertical(const int bankId);
   static bool areTubesInverselyNumbered(const int bankId);
 
@@ -113,7 +111,6 @@ public:
 
   /// calibration masks ///
   double getCalibMaskPosition(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
-  double getCalibMaskPositionOutsideBank(CalibMasks::CalibMasksBase calibMask,const int bankId, const int axisIndex) const;
 
   /// beamstop ///
   static double getBeamstopSize(const int beamstopId, const int axisIndex); // 0 - x, 1 - y, 2 - z

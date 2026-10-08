@@ -37,7 +37,7 @@ int main(int argc, char**argv) {
   auto &gen = setup->gen();
   auto userData = setup->userData();
   //printf("QQQ=============  %s \n", geo.getName().c_str());
-  if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
+  if (geo.getName()!="G4GeoLoki/GeoBCSBanks") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
   }
@@ -96,9 +96,8 @@ int main(int argc, char**argv) {
     preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
 
-  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal; Larmor 2022: nominal)
-  const std::string bankCalibration = BankCalibration::effectiveName(geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName,
-                                                                   geo.hasParameterBoolean("larmor_2022_experiment") && geo.getParameterBoolean("larmor_2022_experiment"));
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
@@ -109,11 +108,6 @@ int main(int argc, char**argv) {
   else{ // use default rear bank pixel number
     banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
     strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
-  }
-
-  bool oldTubeNumbering = false;
-  if (!geo.hasParameterBoolean("old_tube_numbering") || geo.getParameterBoolean("old_tube_numbering")) {
-    oldTubeNumbering = true;
   }
 
   bool (*bankFilter) (int);
@@ -344,7 +338,7 @@ int main(int argc, char**argv) {
 
         bankNumber = (int)tubeWallSegment->volumeCopyNumber(2);
         const int tubeId = (int)tubeWallSegment->volumeCopyNumber();
-        layerNumber = banks->getTubeLayerId(bankNumber, tubeId, oldTubeNumbering);
+        layerNumber = banks->getTubeLayerId(bankNumber, tubeId);
         neutron_weight = tubeWallSegment->getTrack()->weight();
 
 
@@ -409,7 +403,7 @@ int main(int argc, char**argv) {
 
         h_neutron_xy_conv->fill(-position_conv[0]/Units::mm, position_conv[1]/Units::mm, neutron->weight());
 
-        const int layerNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv, oldTubeNumbering);
+        const int layerNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv);
         h_neutron_bankLayerConvCounter->fill(bankId_conv, layerNumber_conv, neutron->weight());
         h_neutron_LayerConvCounter->fill(layerNumber_conv, neutron->weight());
 

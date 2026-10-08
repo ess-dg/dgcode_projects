@@ -18,7 +18,8 @@
 import hashlib
 import Larmor.Larmor2022Bank as LB
 import G4GeoLokiTests.TestUtils as TU
-from G4GeoLokiTests.testhelpers import fmt, fmtvec, sample_pixels, NSTRAWS, Checker
+from G4GeoLokiTests.testhelpers import fmt, fmtvec, NSTRAWS, Checker
+from LarmorTests.larmorhelpers import sample_pixels
 
 chk = Checker()
 REAR = 4099.0
@@ -56,13 +57,9 @@ for old in (False, True):
     chk.check(tubes == set(range(bank.getNumberOfTubes())), f'old={old}: tube ids not 0..{bank.getNumberOfTubes() - 1}')
 print('getPackId / getInPackTubeId / getTubeLayerId invert the copy numbers of all tubes (both numberings)')
 
-class Offsets:  # the interface sample_pixels needs (one bank, no offset)
-    def getBankPixelOffset(self, b):
-        return 0
-
 def print_sample(bank, N, old):
     print(f'{"pixelId":>8} {"bank":>4} {"tube":>4} {"pack":>4} {"straw":>5} {"inStraw":>7} {"layer":>5}   centre [mm]')
-    for (b, t, s, j, pid) in sample_pixels(Offsets(), N, old, (0,)):
+    for (t, s, j, pid) in sample_pixels(bank.getNumberOfPacks(), N, old):
         tube = bank.getTubeId(pid)
         straw = bank.getStrawId(pid)
         pack = bank.getPackId(tube, old)

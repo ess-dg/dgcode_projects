@@ -6,11 +6,11 @@
 #include <cassert>
 
 //////// Utilities for getting the centre coordinates of a pixel ////////
-std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering = false, const bool isLarmor2022Experiment = false) const {
+std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId) const {
   const int bankId = getBankId(pixelId);
   const int tubeId = getTubeId(pixelId, bankId);
-  const int inPackTubeId = getInPackTubeId(bankId, tubeId, isOldPixelNumbering);
-  const int packId = getPackId(bankId, tubeId, isOldPixelNumbering);
+  const int inPackTubeId = getInPackTubeId(bankId, tubeId);
+  const int packId = getPackId(bankId, tubeId);
   const int strawId = getStrawId(pixelId, bankId, tubeId);
 
   ///////// pixel in straw /////////
@@ -37,7 +37,7 @@ std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int 
   positionZ += packPosition[2];
 
   ///////// bank in world /////////
-  const auto global = getBankTransform(bankId, isLarmor2022Experiment).toGlobal({positionX, positionY, positionZ});
+  const auto global = getBankTransform(bankId).toGlobal({positionX, positionY, positionZ});
 
   return { global[0], global[1], global[2] };
 }
@@ -58,24 +58,18 @@ int AimHelper::getBankId(const int pixelId) const {
   throw std::runtime_error("Pixel id is out of the range for the banks in the geometry");
 }
 
-int AimHelper::getPackId(const int bankId, const int tubeId, const bool isOldPixelNumbering) {
+int AimHelper::getPackId(const int bankId, const int tubeId) {
   const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  const int normalPackId = isOldPixelNumbering ?
-                           (int) tubeId / 8 :
-                           (int) (tubeId % (numberOfPacks * 2)) / 2;
+  const int normalPackId = (int) (tubeId % (numberOfPacks * 2)) / 2;
   return !areTubesInverselyNumbered(bankId) ? normalPackId : ((numberOfPacks - 1) - normalPackId);
 }
 
-int AimHelper::getInPackTubeId(const int bankId, const int tubeId, const bool isOldPixelNumbering) {
+int AimHelper::getInPackTubeId(const int bankId, const int tubeId) {
   const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  const int newTubeIdConvertedToOldId = ((tubeId % 2) * 4) + ((int) tubeId / (numberOfPacks * 2));
-
-  if(isOldPixelNumbering){
-    return areTubesInverselyNumbered(bankId) ? (tubeId + 4) % 8 : tubeId % 8;
-  }
-  else{
-    return areTubesInverselyNumbered(bankId) ? (newTubeIdConvertedToOldId + 4) % 8 : newTubeIdConvertedToOldId % 8;
-  }
+  // the tube in the pack (0-3: the 4 layers of the first tube row of the pack, 4-7: of the second row) from the tube
+  // id (layer by layer, 2 tube rows per pack, see GeoBCSBanks)
+  const int inPackTubeId = ((tubeId % 2) * 4) + ((int) tubeId / (numberOfPacks * 2));
+  return areTubesInverselyNumbered(bankId) ? (inPackTubeId + 4) % 8 : inPackTubeId % 8;
 }
 
 int AimHelper::getTubeId(const int pixelId, const int bankId) const {

@@ -37,17 +37,14 @@ chk = Checker()
 NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
 
-def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=NOMINAL):
+def run(title, rear_m, n, geo_args, calibration=NOMINAL):
     print('=' * 90)
     print(title)
     # the geometry, the aiming and the analysis use the same bank calibration
     geo_args = geo_args + [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
-    if calibration != NOMINAL:
-        aim = LokiAim.AimHelper(rear_m * 1000, n, nbanks, calibration)
-    else:
-        aim = LokiAim.AimHelper(rear_m * 1000, n) if nbanks == 9 else LokiAim.AimHelper(rear_m * 1000, n, nbanks)
+    aim = LokiAim.AimHelper(rear_m * 1000, n, 9, calibration)
     targets = []
-    for b in range(nbanks):
+    for b in range(9):
         for t in range(TU.getNumberOfTubes(b)):
             for s in range(NSTRAWS):
                 base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * n
@@ -59,8 +56,7 @@ def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=NOMINAL):
     sim = subprocess.run(['sb_g4geolokitests_simpixeltargets', '-lPL_Empty', f'-n{len(targets)}', '-j1',
                           f'target_pixel_ids={",".join(map(str, targets))}', 'particle=geantino',
                           f'rear_detector_distance_mm={rear_m * 1000}', f'rear_detector_distance_m={rear_m}',
-                          f'aiming_straw_pixel_number={n}', f'analysis_straw_pixel_number={n}',
-                          f'aiming_old_tube_numbering={old}', f'aiming_larmor_2022_experiment={larmor}'] + geo_args,
+                          f'aiming_straw_pixel_number={n}', f'analysis_straw_pixel_number={n}'] + geo_args,
                          cwd=d, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if not chk.check(sim.returncode == 0, f'simulation failed:\n{sim.stdout[-3000:]}'):
         return
@@ -110,13 +106,11 @@ def run(title, rear_m, n, nbanks, old, larmor, geo_args, calibration=NOMINAL):
         if shadowing[b]:
             print('      first absorber crossed: ' + ', '.join(f'{k} {v}' for k, v in sorted(shadowing[b].items())))
 
-run('LOKI, rear 5 m, new numbering', 5.0, 256, 9, False, False, [])
-run('LOKI, rear 10 m, old numbering, beamstop', 10.0, 512, 9, True, False, ['old_tube_numbering=True', 'beamstop_id=3'])
-run('LOKI, rear 7.3 m, calibration slits', 7.3, 64, 9, False, False, ['with_calibration_slits=True'])
-run('Larmor 2022', 4.099, 512, 1, False, True, ['larmor_2022_experiment=True', 'beamstop_id=1'])
-run('LOKI SAM-606 bank calibration, rear 5 m, new numbering', 5.0, 256, 9, False, False, [],
-    calibration='2026-September-SAM-606')
-run('LOKI SAM-606 bank calibration, rear 10 m, old numbering, beamstop, calibration slits', 10.0, 64, 9, True, False,
-    ['old_tube_numbering=True', 'beamstop_id=3', 'with_calibration_slits=True'], calibration='2026-September-SAM-606')
+run('LOKI, rear 5 m', 5.0, 256, [])
+run('LOKI, rear 10 m, beamstop', 10.0, 512, ['beamstop_id=3'])
+run('LOKI, rear 7.3 m, calibration slits', 7.3, 64, ['with_calibration_slits=True'])
+run('LOKI SAM-606 bank calibration, rear 5 m', 5.0, 256, [], calibration='2026-September-SAM-606')
+run('LOKI SAM-606 bank calibration, rear 10 m, beamstop, calibration slits', 10.0, 64,
+    ['beamstop_id=3', 'with_calibration_slits=True'], calibration='2026-September-SAM-606')
 
 chk.finish()

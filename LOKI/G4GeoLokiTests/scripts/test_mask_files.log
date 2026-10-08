@@ -23,7 +23,4 @@ File: b.xml, number of masked IDs: 6, intersected IDs so far: 4
 File: c.xml, number of masked IDs: 4, intersected IDs so far: 3
 Final number of masked IDs (intersections): 3
 merged detector ids [3, 5, 13]
---- maskConverter_larmor2022: full geometry (512 px/straw) -> reduced Larmor 2022 geometry
-converted (new numbering): [1, 2, 512, 513, 3584, 3585, 400000, 802816, 802817, 900000] -> [541600]
-converted --convert_old_to_new_tube_numbering: [1, 2, 512, 513, 3584, 3585, 400000, 802816, 802817, 900000] -> [428672, 466336]
-checks performed: 23, failures: 0
+checks performed: 17, failures: 0

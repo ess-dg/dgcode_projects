@@ -1,5 +1,5 @@
 ==========================================================================================
-LOKI, rear 5 m, new numbering
+LOKI, rear 5 m
   Converter exit points (used by the masking analysis): 318112, giving a pixel outside the straw: 0
   bank 0: 4704 targets, all crossed: yes, reached after an absorber: 3966, mean straws crossed per geantino: 11.81
       first absorber crossed: AlPanel 3, B4CPanel 3337, BoronMask-1-* 276, BoronMask-2-* 34, BoronMask-3-* 282, BoronMask-4-* 34
@@ -20,7 +20,7 @@ LOKI, rear 5 m, new numbering
   bank 8: 2688 targets, all crossed: yes, reached after an absorber: 1712, mean straws crossed per geantino: 8.21
       first absorber crossed: AlPanel 2, B4CPanel 809, BoronMask-5-* 255, BoronMask-7-* 257, BoronMask-8-* 128, BoronMask-triangular-5-1 261
 ==========================================================================================
-LOKI, rear 10 m, old numbering, beamstop
+LOKI, rear 10 m, beamstop
   Converter exit points (used by the masking analysis): 233026, giving a pixel outside the straw: 0
   bank 0: 4704 targets, all crossed: yes, reached after an absorber: 3299, mean straws crossed per geantino: 5.73
       first absorber crossed: BoronMask-1-* 180, BoronMask-2-* 1466, BoronMask-3-* 126, BoronMask-4-* 1466, BoronMask-Beamstop 61
@@ -62,12 +62,7 @@ LOKI, rear 7.3 m, calibration slits
   bank 8: 2688 targets, all crossed: yes, reached after an absorber: 2673, mean straws crossed per geantino: 8.89
       first absorber crossed: B4CPanel 45, BoronMask-5-* 262, BoronMask-7-* 258, BoronMask-8-* 103, BoronMask-lokiStandard-5 268, BoronMask-lokiStandard-7 497, BoronMask-lokiStandard-8 1043, BoronMask-triangular-5-1 197
 ==========================================================================================
-Larmor 2022
-  Converter exit points (used by the masking analysis): 53311, giving a pixel outside the straw: 0
-  bank 0: 4704 targets, all crossed: yes, reached after an absorber: 38, mean straws crossed per geantino: 5.86
-      first absorber crossed: BoronMask-Beamstop 38
-==========================================================================================
-LOKI SAM-606 bank calibration, rear 5 m, new numbering
+LOKI SAM-606 bank calibration, rear 5 m
   Converter exit points (used by the masking analysis): 318926, giving a pixel outside the straw: 0
   bank 0: 4704 targets, all crossed: yes, reached after an absorber: 3966, mean straws crossed per geantino: 11.71
       first absorber crossed: AlPanel 3, B4CPanel 3330, BoronMask-1-* 270, BoronMask-2-* 39, BoronMask-3-* 283, BoronMask-4-* 41
@@ -88,7 +83,7 @@ LOKI SAM-606 bank calibration, rear 5 m, new numbering
   bank 8: 2688 targets, all crossed: yes, reached after an absorber: 1707, mean straws crossed per geantino: 8.21
       first absorber crossed: AlPanel 1, B4CPanel 800, BoronMask-5-* 256, BoronMask-7-* 259, BoronMask-8-* 128, BoronMask-triangular-5-1 263
 ==========================================================================================
-LOKI SAM-606 bank calibration, rear 10 m, old numbering, beamstop, calibration slits
+LOKI SAM-606 bank calibration, rear 10 m, beamstop, calibration slits
   Converter exit points (used by the masking analysis): 279210, giving a pixel outside the straw: 0
   bank 0: 4704 targets, all crossed: yes, reached after an absorber: 4704, mean straws crossed per geantino: 7.11
       first absorber crossed: BoronMask-1-* 186, BoronMask-2-* 1464, BoronMask-3-* 126, BoronMask-4-* 1464, BoronMask-Beamstop 61, BoronMask-lokiStandard-0 1403
@@ -108,4 +103,4 @@ LOKI SAM-606 bank calibration, rear 10 m, old numbering, beamstop, calibration s
       first absorber crossed: BoronMask-7-* 1068, BoronMask-lokiStandard-7 599
   bank 8: 2688 targets, all crossed: yes, reached after an absorber: 2674, mean straws crossed per geantino: 8.87
       first absorber crossed: B4CPanel 41, BoronMask-5-* 264, BoronMask-7-* 256, BoronMask-8-* 108, BoronMask-lokiStandard-5 264, BoronMask-lokiStandard-7 495, BoronMask-lokiStandard-8 1050, BoronMask-triangular-5-1 196
-checks performed: 98814, failures: 0
+checks performed: 94105, failures: 0

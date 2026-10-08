@@ -15,26 +15,17 @@ def launch(geo):
     from LokiMasking.MaskingSourceGen import MaskingSourceGen as Gen
     gen = Gen()
     gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
-    gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
     gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
     gen.aiming_bank_id = launcher.getParameterInt('aiming_bank_id')
-    gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
     if geo.hasParameterString("bank_calibration"):
         gen.exposeParameter("bank_calibration",geo,"geo_bank_calibration") #aim at the pixels of the calibrated banks
     launcher.setGen(gen)
-
-    def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
-      if(launcher.getGen().hasParameterBoolean('geo_larmor_2022_experiment') and
-         launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
-        assert launcher.getParameterInt('analysis_straw_pixel_number') == 512, "analysis_straw_pixel_number must be 512 for the Larmor2022 experiment!"
-        assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor2022 experiment!"
 
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
       launcher.setUserData("aiming_bank_id", str(launcher.getParameterInt('aiming_bank_id')))
 
-    launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 
     #filter:

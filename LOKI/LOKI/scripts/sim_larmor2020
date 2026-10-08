@@ -1,8 +1,0 @@
-#!/usr/bin/env python3
-
-import G4GeoLoki.GeoLarmorBCSExperiment as GEO
-
-geo = GEO.create()
-
-import LOKI.Larmor2020Launcher
-LOKI.Larmor2020Launcher.launch(geo)

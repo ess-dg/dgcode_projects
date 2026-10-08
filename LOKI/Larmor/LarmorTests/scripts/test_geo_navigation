@@ -18,7 +18,8 @@
 import Larmor.GeoLarmor2022 as GEO
 import Larmor.Larmor2022Bank as LB
 import G4GeoLokiTests.TestUtils as TU
-from G4GeoLokiTests.testhelpers import captured_fd_output, fmtvec, sample_tubes_new, sample_tubes_old, NSTRAWS, Checker
+from G4GeoLokiTests.testhelpers import captured_fd_output, fmtvec, NSTRAWS, Checker
+from LarmorTests.larmorhelpers import sample_tubes
 
 chk = Checker()
 
@@ -64,7 +65,7 @@ def run(title, geopars, N):
     print('Volume chain at pixel 0 (name:copyNo):', ' / '.join(f'{h[0]}:{h[1]}' for h in TU.locate(*c0)[0]))
     print(f'{"pixelId":>8} {"tube":>4} {"straw":>5} {"pix":>5}')
     nPacks = bank.getNumberOfPacks()
-    tubes = sample_tubes_old(nPacks) if old else sample_tubes_new(0, nPacks)
+    tubes = sample_tubes(nPacks, old)
     for it, t in enumerate(tubes):
         s = it % NSTRAWS
         check_pixel(bank, (t * NSTRAWS + s) * N + [0, N - 1, N // 2][it % 3], N, old, True)

@@ -61,12 +61,10 @@ GeoBCS::GeoBCS()
   // declare all parameters that can be used from the command line,
   addParameterDouble("rear_detector_distance_m", 5.0, 4.0, 10.0); // default, min, max
   addParameterInt("beamstop_id", 0, 0, 5); // id [1-5] from ESS-1178830 Table 4.6 'Selected beamstop sizes' (0 = no beamstop)
-  addParameterBoolean("larmor_2022_experiment", false);
   addParameterBoolean("with_calibration_slits", false);
 
-  addParameterBoolean("old_tube_numbering", false);
   // bank placements: "nominal-geant4-geometry" or the name of a calibration in G4GeoLoki/data/bank_calibration_<name>.txt
-  // (or the path of such a file), see G4GeoLoki/BankCalibration.hh; not used for the larmor_2022_experiment
+  // (or the path of such a file), see G4GeoLoki/BankCalibration.hh
   addParameterString("bank_calibration", BankCalibration::defaultName);
 
   addParameterString("world_material","G4_Vacuum");
@@ -98,25 +96,13 @@ G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLe
 int GeoBCS::getTubeVolumeNumber(int packNumber, int inPackTubeId, int numberOfPacksForInvertedNumbering, int numberOfPacks){
   assert(0 <= inPackTubeId && inPackTubeId <= 7);
   const double rowNumber = packNumber + 0.5* ((int)inPackTubeId/4); // +0.5 for second row (inPackTubeId > 3)
-  inPackTubeId %= 4;
-
-  const bool oldTubeNumbering = getParameterBoolean("old_tube_numbering");
-  if(oldTubeNumbering){
-    if(numberOfPacksForInvertedNumbering == 0){
-      return rowNumber * 8 + inPackTubeId;
-    }
-    else{
-      return (numberOfPacksForInvertedNumbering*8 - 4) - rowNumber*8 + inPackTubeId;
-    }
+  const int layerNr = inPackTubeId % 4; //[0-3]
+  // layer by layer (the front layer first), in each layer the tube rows from one end of the bank to the other
+  if(numberOfPacksForInvertedNumbering == 0){
+    return rowNumber * 2 + layerNr * numberOfPacks * 2;
   }
-  else{ // new numbering
-    const int layerNr = inPackTubeId; //[0-3]
-    if(numberOfPacksForInvertedNumbering == 0){
-      return rowNumber * 2 + layerNr * numberOfPacks * 2;
-    }
-    else{
-      return (numberOfPacks*2 - 1) - rowNumber*2 + layerNr * numberOfPacks * 2;
-    }
+  else{
+    return (numberOfPacks*2 - 1) - rowNumber*2 + layerNr * numberOfPacks * 2;
   }
 }
 
@@ -186,7 +172,6 @@ G4LogicalVolume *GeoBCS::createCalibrationMaskLV(CalibMasks::CalibMasksBase cali
 
 ///////////  CREATE DETECTOR BANK LOGICAL VOLUME  //////////////////////////
 G4LogicalVolume *GeoBCS::createBankLV(int bankId){
-  const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   const double strawLength = banks->getStrawLengthByBankId(bankId);
 
   // const double pack_pack_distance = banks->getPackPackDistance();
@@ -250,9 +235,9 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
     const double thickness = banks->getBeamstopSize(beamstopId, 2);
 
     // on the beam axis (world x = y = 0), 5 cm in front of the detector front: the point of the beam axis at that
-    // depth, in the bank frame (this compensates the bank elevation, also of a calibrated or Larmor 2022 bank)
+    // depth, in the bank frame (this compensates the bank elevation, also of a calibrated bank)
     const double depth = -bankHalfSize[0] + detBankFrontDistance - distanceFromDetectorFront;
-    const BankTransform transform = banks->getBankTransform(bankId, larmor2022experiment);
+    const BankTransform transform = banks->getBankTransform(bankId);
     const auto& R = transform.rotation;
     const auto& t = transform.translation;
     const double z = (depth + R[0][0]*t[0] + R[1][0]*t[1] + R[2][0]*t[2]) / R[2][0]; // n.(P - t) = depth
@@ -265,7 +250,7 @@ G4LogicalVolume *GeoBCS::createBankLV(int bankId){
   }
 
   const bool withCalibrationSlits = getParameterBoolean("with_calibration_slits");
-  if (withCalibrationSlits && !larmor2022experiment) {
+  if (withCalibrationSlits) {
     std::string calibMaskName = "lokiStandard-"+std::to_string(bankId);
     const auto calibMask = CalibMasks::getCalibMask(calibMaskName);
     auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
@@ -343,13 +328,7 @@ G4LogicalVolume *GeoBCS::createTriangularMaskLV(int maskId){
 G4VPhysicalVolume* GeoBCS::Construct(){
   // this is where we put the entire geometry together, the private functions creating the logical volumes are meant to facilitate the code below
   const double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
-  const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
-  const int numberOfBanks = larmor2022experiment ? 1 : 9;
-  const std::string bankCalibration = BankCalibration::effectiveName(getParameterString("bank_calibration"), larmor2022experiment);
-  if (bankCalibration != getParameterString("bank_calibration") && getParameterString("bank_calibration") != BankCalibration::defaultName)
-    printf("GeoBCSBanks: bank_calibration=%s is not used for the larmor_2022_experiment (it uses %s)\n",
-           getParameterString("bank_calibration").c_str(), bankCalibration.c_str());
-  banks = new BcsBanks(rear_detector_distance, numberOfBanks, bankCalibration);
+  banks = new BcsBanks(rear_detector_distance, 9, getParameterString("bank_calibration"));
 
   // calculate a value that is big enough to fit your world volume, the "super mother"
   double big_dimension = 1.1*( 1 *Units::m + rear_detector_distance);
@@ -365,7 +344,7 @@ G4VPhysicalVolume* GeoBCS::Construct(){
     auto lv_bank = createBankLV(bankId);
 
     // bank placement (the same transform as used by AimHelper and PixelatedBanks)
-    const BankTransform transform = banks->getBankTransform(bankId, larmor2022experiment);
+    const BankTransform transform = banks->getBankTransform(bankId);
     // G4PVPlacement takes the frame rotation, i.e. the inverse of the bank rotation
     auto rotation = new G4RotationMatrix(toG4Rotation(transform).inverse());
 
@@ -373,38 +352,21 @@ G4VPhysicalVolume* GeoBCS::Construct(){
   }
 
   // Add 4 triangular boron masks (added to the World instead of the banks)
-  if (!larmor2022experiment) {
-    for (int maskId = 0; maskId <= 3; maskId++) {
-      auto lv_triangularMask = createTriangularMaskLV(maskId);
+  for (int maskId = 0; maskId <= 3; maskId++) {
+    auto lv_triangularMask = createTriangularMaskLV(maskId);
 
-      // mounted on the front of bank 5 or 7: its placement in the bank frame, moved with the bank transform
-      const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId);
-      const auto inBank = banks->getTriangularBoronMaskPlacementInBankFrame(maskId);
-      const BankTransform bank = banks->getBankTransform(bankId);
-      const auto position = bank.toGlobal(inBank.position);
-      // G4PVPlacement takes the frame rotation: the inverse of the object rotation (bank rotation * rotation in bank)
-      const G4RotationMatrix rotationInBank(G4ThreeVector(inBank.rotation[0][0], inBank.rotation[1][0], inBank.rotation[2][0]),
-                                            G4ThreeVector(inBank.rotation[0][1], inBank.rotation[1][1], inBank.rotation[2][1]),
-                                            G4ThreeVector(inBank.rotation[0][2], inBank.rotation[1][2], inBank.rotation[2][2]));
-      auto rotation = new G4RotationMatrix((toG4Rotation(bank) * rotationInBank).inverse());
+    // mounted on the front of bank 5 or 7: its placement in the bank frame, moved with the bank transform
+    const int bankId = BoronMasks::getBankIdOfTriangularMask(maskId);
+    const auto inBank = banks->getTriangularBoronMaskPlacementInBankFrame(maskId);
+    const BankTransform bank = banks->getBankTransform(bankId);
+    const auto position = bank.toGlobal(inBank.position);
+    // G4PVPlacement takes the frame rotation: the inverse of the object rotation (bank rotation * rotation in bank)
+    const G4RotationMatrix rotationInBank(G4ThreeVector(inBank.rotation[0][0], inBank.rotation[1][0], inBank.rotation[2][0]),
+                                          G4ThreeVector(inBank.rotation[0][1], inBank.rotation[1][1], inBank.rotation[2][1]),
+                                          G4ThreeVector(inBank.rotation[0][2], inBank.rotation[1][2], inBank.rotation[2][2]));
+    auto rotation = new G4RotationMatrix((toG4Rotation(bank) * rotationInBank).inverse());
 
-      place(lv_triangularMask, position[0], position[1], position[2], lvWorld, BLACK, -5, 0, rotation);
-    }
-  }
-
-  // Add Calibration slit masks for larmor2022experiment, which is outside of the bank
-  const bool withCalibrationSlits = getParameterBoolean("with_calibration_slits");
-  if (larmor2022experiment && withCalibrationSlits) {
-    const auto calibMask = CalibMasks::getCalibMask("larmorCdCalibMask");
-    auto lv_calibrationMask = createCalibrationMaskLV(calibMask);
-    auto rotation = new G4RotationMatrix();
-    rotation->rotateY(banks->getBankRotation(0, 1));
-    rotation->rotateX(banks->getBankRotation(0, 0));
-    rotation->rotateZ(banks->getBankRotation(0, 2));
-
-    place(lv_calibrationMask,
-          banks->getCalibMaskPositionOutsideBank(calibMask, 0, 0), banks->getCalibMaskPositionOutsideBank(calibMask, 0, 1), banks->getCalibMaskPositionOutsideBank(calibMask, 0, 2),
-          lvWorld, PURPLE, -5, 0, rotation);
+    place(lv_triangularMask, position[0], position[1], position[2], lvWorld, BLACK, -5, 0, rotation);
   }
 
   delete banks;
@@ -416,7 +378,6 @@ bool GeoBCS::validateParameters() {
   // you can apply conditions to control the sanity of the geometry parameters and warn the user of possible mistakes
   // a nice example: Projects/SingleCell/G4GeoSingleCell/libsrc/GeoB10SingleCell.cc
   double rear_detector_distance = getParameterDouble("rear_detector_distance_m")*Units::m;
-  const bool larmor2022experiment = getParameterBoolean("larmor_2022_experiment");
   const std::string bankCalibration = getParameterString("bank_calibration");
   try {
     BankCalibration::load(bankCalibration);
@@ -425,13 +386,7 @@ bool GeoBCS::validateParameters() {
     printf("ERROR: Wrong bank_calibration value: %s\n", error.what());
     return false;
   }
-  if(larmor2022experiment) {
-    if (rear_detector_distance != 4.099 *Units::m) {
-      printf("ERROR: Wrong rear_detector_distance_m value for the larmor_2022_experiment! (It should be 4.099)\n");
-      return false;
-    }
-  }
-  else if(rear_detector_distance < 5.0 *Units::m) {
+  if(rear_detector_distance < 5.0 *Units::m) {
     printf("ERROR: Wrong rear_detector_distance_m value for LOKI! (It should be >=5.0 m)\n");
       return false;
   }

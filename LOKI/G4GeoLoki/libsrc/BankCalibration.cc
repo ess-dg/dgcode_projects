@@ -9,10 +9,6 @@
 const std::string BankCalibration::nominalName = "nominal-geant4-geometry";
 const std::string BankCalibration::defaultName = "2026-September-SAM-606";
 
-std::string BankCalibration::effectiveName(const std::string& name, const bool isLarmor2022Experiment) {
-  return isLarmor2022Experiment ? nominalName : name;
-}
-
 BankCalibration::BankCalibration()
   : m_name(nominalName), m_fileName("")
 {

@@ -20,7 +20,7 @@ def snapshot(aim, n):
     for p in range(0, aim.getTotalNumberOfPixels(), max(1, aim.getTotalNumberOfPixels() // 997)):
         b = aim.getBankId(p)
         t = aim.getTubeId(p, b)
-        out.append((p, b, t, aim.getStrawId(p, b, t), aim.getPixelCentreCoordinates(p, False, False)))
+        out.append((p, b, t, aim.getStrawId(p, b, t), aim.getPixelCentreCoordinates(p)))
     return out
 
 def pc_snapshot(pc, aim):
@@ -29,7 +29,7 @@ def pc_snapshot(pc, aim):
         b = aim.getBankId(p)
         t = aim.getTubeId(p, b)
         s = aim.getStrawId(p, b, t)
-        out.append(pc.getPixelId3D(b, t, s, *aim.getPixelCentreCoordinates(p, False, False)))
+        out.append(pc.getPixelId3D(b, t, s, *aim.getPixelCentreCoordinates(p)))
     return out
 
 # references: each object made alone (and used before the next one exists)
@@ -46,7 +46,7 @@ chk.check(default_alone == reference[256][0], 'the default object differs from t
 objects = {n: LokiAim.AimHelper(REAR, n) for n in (256, 8, 512)}
 calcs = {n: TU.PixelCalc(REAR, n, 9) for n in (512, 8, 256)}
 default = LokiAim.AimHelper(REAR)  # made last: the default pixel number, not the last one used
-larmor = LokiAim.AimHelper(4099.0, 1024, 1)  # one bank, another pixel number
+rear_only = LokiAim.AimHelper(5000.0, 1024, 1)  # one bank (the rear bank), another pixel number
 for n in (8, 512, 256):
     same = snapshot(objects[n], n) == reference[n][0]
     same_ids = pc_snapshot(calcs[n], objects[n]) == reference[n][1]
@@ -56,8 +56,8 @@ for n in (8, 512, 256):
 same = snapshot(default, 256) == reference[256][0]
 chk.check(same, 'the default object made after the others is not the 256 pixel one')
 print(f'default ({LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW} pixels per straw), made after the others: unchanged: {same}')
-chk.check(larmor.getTotalNumberOfPixels() == 224 * NSTRAWS * 1024 and larmor.getNumberOfPixelsInStraw(0) == 1024,
-          'Larmor 2022 object')
-print(f'Larmor 2022 object (1 bank, 1024 pixels per straw): {larmor.getTotalNumberOfPixels()} pixels')
+chk.check(rear_only.getTotalNumberOfPixels() == 224 * NSTRAWS * 1024 and rear_only.getNumberOfPixelsInStraw(0) == 1024,
+          'rear bank only object')
+print(f'rear bank only object (1 bank, 1024 pixels per straw): {rear_only.getTotalNumberOfPixels()} pixels')
 
 chk.finish()

@@ -36,13 +36,9 @@ def run(title, pars, print_depth):
     print('=' * 100)
     print(f'{title}: {len(lines)} volumes, sha256 of the placements '
           f'{hashlib.sha256(chr(10).join(l for _, l in lines).encode()).hexdigest()}')
-    larmor = pars.get('larmor_2022_experiment', False)
     rear = pars.get('rear_detector_distance_m', 5.0) * 1000
-    if larmor:
-        aim = LokiAim.AimHelper(rear, 8, 1)
-    else:
-        aim = LokiAim.AimHelper(rear, 8, 9, pars.get('bank_calibration', NOMINAL))
-    centres = [fmt(aim.getPixelCentreCoordinates(p, pars.get('old_tube_numbering', False), larmor), 6)
+    aim = LokiAim.AimHelper(rear, 8, 9, pars.get('bank_calibration', NOMINAL))
+    centres = [fmt(aim.getPixelCentreCoordinates(p), 6)
                for p in range(aim.getTotalNumberOfPixels())]
     print(f'  {len(centres)} AimHelper pixel centres (8 per straw), sha256 '
           f'{hashlib.sha256(chr(10).join(centres).encode()).hexdigest()}')
@@ -56,6 +52,4 @@ run('nominal, rear 10 m, beamstop 3, calibration slits',
 run('2026-September-SAM-606, rear 10 m, beamstop 3, calibration slits',
     dict(bank_calibration=SAM606, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True), 2)
 run('nominal, defaults', dict(bank_calibration=NOMINAL), 0)
-run('2026-September-SAM-606, old tube numbering', dict(bank_calibration=SAM606, old_tube_numbering=True), 0)
-run('Larmor 2022, beamstop 1, calibration slits',
-    dict(rear_detector_distance_m=4.099, larmor_2022_experiment=True, beamstop_id=1, with_calibration_slits=True), 2)
+run('2026-September-SAM-606, defaults', dict(bank_calibration=SAM606), 0)
