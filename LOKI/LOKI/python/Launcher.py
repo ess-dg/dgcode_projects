@@ -58,7 +58,7 @@ def launch(geo):
           else: #single banks [0,8]
             bankId = int(bankFilter)
             aimHelper = LokiAim.AimHelper(5*units.m) #rear det distance shouldn't really matter
-            bankCentre = [aimHelper.getBankPosition(bankId, 0), aimHelper.getBankPosition(bankId, 1), aimHelper.getBankPosition(bankId, 2)]
+            bankCentre = aimHelper.getBankTransform(bankId)[1] #the centre of the bank volume (nominal placement)
             gen.ref_dir_x, gen.ref_dir_y, gen.ref_dir_z = np.array(bankCentre)/np.linalg.norm(bankCentre)
             bankConeAngle = [5.07, 9.9, 4.9, 9.9, 4.9, 31.9, 20.9, 29.5, 22.1] #HARDCODED for now
             angleRange = (0, bankConeAngle[bankId])

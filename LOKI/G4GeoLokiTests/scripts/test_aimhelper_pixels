@@ -5,7 +5,7 @@
 #
 #  A) Per bank: straw length, packs/tubes, vertical/upside-down flags, the bank
 #     rotation angles, bank box size, bank (box centre) position from
-#     AimHelper.getBankPosition (5 m and 10 m rear distance), pack positions in
+#     the bank transform (5 m and 10 m rear distance), pack positions in
 #     the bank and pixel id offsets for 256 and 512 pixels per straw.
 #  B) For a well-chosen sample of pixels in all 9 banks (all 4 tube layers,
 #     first/second/middle/last tube rows, all 7 straws, first/middle/last pixel
@@ -41,11 +41,13 @@ print('in-pack tube offsets (h,v):', ' '.join(fmtvec((TU.getHorizontalTubeOffset
 for b in range(NBANKS):
     print(f'Bank {b}: strawLength={fmt(TU.getStrawLengthByBankId(b),2)} packs={TU.getNumberOfPacksByBankId(b)} tubes={TU.getNumberOfTubes(b)}'
           f' vertical={TU.isVertical(b)} upsideDown(inverseNumbering)={TU.areTubesInverselyNumbered(b)}')
-    print(f'    rotation (a0,a1,a2) [deg]: {fmtvec([math.degrees(TU.getBankRotation(b,i)) for i in range(3)], 6)}')
+    R = a5.getBankTransform(b)[0]
+    print(f'    bank axes in the world (depth, across the tubes, along the tubes): '
+          f'{" ".join(fmtvec([R[i][j] for i in range(3)], 6) for j in range(3))}')
     print(f'    box size (along tubes, across, depth): {fmtvec([TU.getBankSize(b,i) for i in range(3)], 4)}')
-    print(f'    box centre position (rear 5 m):  {fmtvec([a5.getBankPosition(b,i) for i in range(3)], 6)}')
+    print(f'    box centre position (rear 5 m):  {fmtvec(a5.getBankTransform(b)[1], 6)}')
     if b == 0:
-        print(f'    box centre position (rear 10 m): {fmtvec([a10.getBankPosition(b,i) for i in range(3)], 6)}')
+        print(f'    box centre position (rear 10 m): {fmtvec(a10.getBankTransform(b)[1], 6)}')
     n = TU.getNumberOfPacksByBankId(b)
     print(f'    pack 0 / pack {n-1} position in bank: {fmtvec([TU.getPackPositionInBank(b,0,i) for i in range(3)], 6)}'
           f' / {fmtvec([TU.getPackPositionInBank(b,n-1,i) for i in range(3)], 6)}')

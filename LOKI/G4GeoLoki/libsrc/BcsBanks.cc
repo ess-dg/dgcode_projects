@@ -79,18 +79,6 @@ double BcsBanks::calcBankRotation(const int bankId){ //27.5+ (80-90)
   return (90 - (bankTiltAngle[bankId] - bankPositionAngle[bankId])) *Units::deg;
 }
 
-const double BcsBanks::bankRotation[9][3] = { // all in mm
-    {0.0,      0.5*M_PI, calcBankRotation(0)}, // 0 - rear
-    {M_PI,     0.5*M_PI, calcBankRotation(1)},  // 1 - mid top
-    {1.5*M_PI, 0.5*M_PI, calcBankRotation(2)}, // 2 - mid left
-    {0.0,      0.5*M_PI, calcBankRotation(3)},  // 3 - mid bottom
-    {0.5*M_PI, 0.5*M_PI, calcBankRotation(4)}, // 4 - mid right
-    {M_PI,     0.5*M_PI, calcBankRotation(5)}, // 5 - front top
-    {1.5*M_PI, 0.5*M_PI, calcBankRotation(6)}, // 6 - front left
-    {0.0,      0.5*M_PI, calcBankRotation(7)}, // 7 - front bottom
-    {0.5*M_PI, 0.5*M_PI, calcBankRotation(8)}, // 8 - front right
-};
-
 const double BcsBanks::bankSideDirection[9][3] = { // unit vector from the beam axis towards the bank
     {0.0, -1.0, 0.0}, // 0 - rear (on the beam axis; its frame is oriented like the bottom banks)
     {0.0, 1.0, 0.0},  // 1 - mid top
@@ -115,33 +103,6 @@ const double BcsBanks::bankDistance[9] = {
     1750.0, // 8 - front right
 };
 
-double BcsBanks::calcBankPositionZ(const int bankId) {
-  assert(0 <= bankId && bankId <= 8);
-  double intendedPosition = bankDistance[bankId] * std::cos(bankPositionAngle[bankId]*Units::deg);
-  double bankCentreOffsetZ = detectorSystemCentreOffsetInBank(bankId, 2) * std::cos(calcBankRotation(bankId)) - detectorSystemCentreOffsetInBank(bankId, 1) * std::sin(calcBankRotation(bankId));
-  return intendedPosition + bankCentreOffsetZ;
-}
-double BcsBanks::calcBankPositionXY(const int bankId) {
-  assert(0 <= bankId && bankId <= 8);
-  double intendedPosition = bankDistance[bankId] * std::sin(bankPositionAngle[bankId]*Units::deg);
-  double bankCentreOffsetXY = detectorSystemCentreOffsetInBank(bankId, 2) * std::sin(calcBankRotation(bankId)) + detectorSystemCentreOffsetInBank(bankId, 1) * std::cos(calcBankRotation(bankId));
-
-  return intendedPosition + bankCentreOffsetXY;
-}
-
-const int BcsBanks::bankPosDir[9] = { 1, 1, 1, -1, -1, 1, 1, -1, -1};
-
-const double BcsBanks::bankPosition[9][3] = {
-    {0, 0, 0}, // 0 - rear !calculated in getBankPosition function!
-    {0, calcBankPositionXY(1), calcBankPositionZ(1)},  // 1 - mid top
-    {calcBankPositionXY(2), 0, calcBankPositionZ(2)}, // 2 - mid left
-    {0, calcBankPositionXY(3)*bankPosDir[3], calcBankPositionZ(3)},  // 3 - mid bottom
-    {calcBankPositionXY(4)*bankPosDir[3], 0, calcBankPositionZ(4)}, // 4 - mid right
-    {0, calcBankPositionXY(5), calcBankPositionZ(5)}, // 5 - front top
-    {calcBankPositionXY(6), 0, calcBankPositionZ(6)}, // 6 - front left
-    {0, calcBankPositionXY(7)*bankPosDir[3], calcBankPositionZ(7)}, // 7 - front bottom
-    {calcBankPositionXY(8)*bankPosDir[3], 0, calcBankPositionZ(8)}, // 8 - front right
-};
 const double BcsBanks::bankPositionOffset[9][3] = {
     {0.0, 0.0, 0.0}, // 0 - rear
     {0.0, 0.0, 0.0},  // 1 - mid top
@@ -202,23 +163,6 @@ int BcsBanks::getNumberOfTubes(const int bankId){
   return numberOfPacksInBank[bankId] * 8;
 }
 
-double BcsBanks::getBankRotation(const int bankId, const int axisIndex) {
-  assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2);
-  return bankRotation[bankId][axisIndex];
-}
-
-double BcsBanks::getBankPosition(const int bankId, const int axisIndex) const {
-  assert(0 <= bankId && bankId <= 8);
-  assert(0 <= axisIndex && axisIndex <= 2);
-  if(bankId == 0){
-    double rearBankPosition[] = {0, -detectorSystemCentreOffsetInBank(bankId, 1), this->m_rearBankDistance + detectorSystemCentreOffsetInBank(bankId, 2)};
-    return rearBankPosition[axisIndex];
-  }
-  else{
-    return bankPosition[bankId][axisIndex] + bankPositionOffset[bankId][axisIndex];
-  }
-}
 std::array<double,3> BankTransform::toGlobal(const std::array<double,3>& local) const {
   std::array<double,3> global;
   for (int i = 0; i < 3; i++)

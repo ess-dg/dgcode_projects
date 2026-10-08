@@ -6,56 +6,56 @@ tube outer radius: 12.700000  straw inner radius: 3.724600
 straw positions in tube (x,y): (-6.7117, -3.8750) (0.0000, -7.7500) (6.7117, -3.8750) (0.0000, 0.0000) (-6.7117, 3.8750) (0.0000, 7.7500) (6.7117, 3.8750)
 in-pack tube offsets (h,v): (-89.7443, 13.8105) (-62.7443, 13.8105) (-35.7443, 13.8105) (-8.7443, 13.8105) (-96.3500, -13.8105) (-69.3500, -13.8105) (-42.3500, -13.8105) (-15.3500, -13.8105)
 Bank 0: strawLength=1000.00 packs=28 tubes=224 vertical=False upsideDown(inverseNumbering)=False
-    rotation (a0,a1,a2) [deg]: (0.000000, 90.000000, 0.000000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.000000, 0.000000, 1.000000) (0.000000, 1.000000, 0.000000) (-1.000000, 0.000000, 0.000000)
     box size (along tubes, across, depth): (1265.0500, 1806.0500, 300.0500)
     box centre position (rear 5 m):  (0.000000, -7.027077, 5091.006154)
     box centre position (rear 10 m): (0.000000, -7.027077, 10091.006154)
     pack 0 / pack 27 position in bank: (0.000000, 795.469534, 12.188994) / (0.000000, -738.130466, 12.188994)
     detector front distance from bank front: 59.018846
 Bank 1: strawLength=1000.00 packs=8 tubes=64 vertical=False upsideDown(inverseNumbering)=True
-    rotation (a0,a1,a2) [deg]: (180.000000, 90.000000, 5.700000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.000000, 0.099320, 0.995056) (0.000000, -0.995056, 0.099320) (1.000000, 0.000000, 0.000000)
     box size (along tubes, across, depth): (1265.0500, 590.2300, 297.8700)
     box centre position (rear 5 m):  (0.000000, 513.624376, 3000.874673)
     pack 0 / pack 7 position in bank: (0.000000, 227.699534, 8.958994) / (0.000000, -169.900466, 8.958994)
     detector front distance from bank front: 54.698846
 Bank 2: strawLength=500.00 packs=6 tubes=48 vertical=True upsideDown(inverseNumbering)=True
-    rotation (a0,a1,a2) [deg]: (270.000000, 90.000000, 4.500000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.078459, 0.000000, 0.996917) (-0.996917, 0.000000, 0.078459) (0.000000, -1.000000, 0.000000)
     box size (along tubes, across, depth): (765.0500, 447.5000, 298.9700)
     box centre position (rear 5 m):  (379.123009, 0.000000, 3423.553449)
     pack 0 / pack 5 position in bank: (0.000000, 156.074534, 8.408994) / (0.000000, -127.925466, 8.408994)
     detector front distance from bank front: 54.698846
 Bank 3: strawLength=1000.00 packs=8 tubes=64 vertical=False upsideDown(inverseNumbering)=False
-    rotation (a0,a1,a2) [deg]: (0.000000, 90.000000, 5.700000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.000000, -0.099320, 0.995056) (0.000000, 0.995056, 0.099320) (-1.000000, 0.000000, 0.000000)
     box size (along tubes, across, depth): (1265.0500, 590.2300, 297.8700)
     box centre position (rear 5 m):  (0.000000, -513.624376, 3000.874673)
     pack 0 / pack 7 position in bank: (0.000000, 227.699534, 8.958994) / (0.000000, -169.900466, 8.958994)
     detector front distance from bank front: 54.698846
 Bank 4: strawLength=500.00 packs=6 tubes=48 vertical=True upsideDown(inverseNumbering)=False
-    rotation (a0,a1,a2) [deg]: (90.000000, 90.000000, 4.500000)
+    bank axes in the world (depth, across the tubes, along the tubes): (-0.078459, 0.000000, 0.996917) (0.996917, 0.000000, 0.078459) (0.000000, 1.000000, 0.000000)
     box size (along tubes, across, depth): (765.0500, 447.5000, 298.9700)
     box centre position (rear 5 m):  (-379.123009, 0.000000, 3423.553449)
     pack 0 / pack 5 position in bank: (0.000000, 156.074534, 8.408994) / (0.000000, -127.925466, 8.408994)
     detector front distance from bank front: 54.698846
 Bank 5: strawLength=1200.00 packs=14 tubes=112 vertical=False upsideDown(inverseNumbering)=True
-    rotation (a0,a1,a2) [deg]: (180.000000, 90.000000, 17.500000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.000000, 0.300706, 0.953717) (0.000000, -0.953717, 0.300706) (1.000000, 0.000000, 0.000000)
     box size (along tubes, across, depth): (1465.0500, 945.0500, 303.1400)
     box centre position (rear 5 m):  (100.000000, 769.160020, 1243.126938)
     pack 0 / pack 13 position in bank: (0.000000, 404.289534, 6.323994) / (0.000000, -334.110466, 6.323994)
     detector front distance from bank front: 54.698846
 Bank 6: strawLength=1200.00 packs=16 tubes=128 vertical=True upsideDown(inverseNumbering)=True
-    rotation (a0,a1,a2) [deg]: (270.000000, 90.000000, 10.600000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.183951, 0.000000, 0.982935) (-0.982935, 0.000000, 0.183951) (0.000000, -1.000000, 0.000000)
     box size (along tubes, across, depth): (1465.0500, 1016.1600, 303.0400)
     box centre position (rear 5 m):  (766.315247, -15.000000, 1674.806616)
     pack 0 / pack 15 position in bank: (0.000000, 439.864534, 6.373994) / (0.000000, -412.135466, 6.373994)
     detector front distance from bank front: 54.698846
 Bank 7: strawLength=1200.00 packs=10 tubes=80 vertical=False upsideDown(inverseNumbering)=False
-    rotation (a0,a1,a2) [deg]: (0.000000, 90.000000, 17.500000)
+    bank axes in the world (depth, across the tubes, along the tubes): (0.000000, -0.300706, 0.953717) (0.000000, 0.953717, 0.300706) (-1.000000, 0.000000, 0.000000)
     box size (along tubes, across, depth): (1465.0500, 681.4800, 303.0400)
     box centre position (rear 5 m):  (-100.000000, -643.358261, 1282.353199)
     pack 0 / pack 9 position in bank: (0.000000, 272.524534, 6.373994) / (0.000000, -238.675466, 6.373994)
     detector front distance from bank front: 54.698846
 Bank 8: strawLength=1200.00 packs=16 tubes=128 vertical=True upsideDown(inverseNumbering)=False
-    rotation (a0,a1,a2) [deg]: (90.000000, 90.000000, 10.600000)
+    bank axes in the world (depth, across the tubes, along the tubes): (-0.183951, 0.000000, 0.982935) (0.982935, 0.000000, 0.183951) (0.000000, 1.000000, 0.000000)
     box size (along tubes, across, depth): (1465.0500, 1016.1600, 303.0400)
     box centre position (rear 5 m):  (-766.315247, 50.000000, 1674.806616)
     pack 0 / pack 15 position in bank: (0.000000, 439.864534, 6.373994) / (0.000000, -412.135466, 6.373994)

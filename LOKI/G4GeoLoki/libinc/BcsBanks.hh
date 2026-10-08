@@ -37,13 +37,6 @@ public:
   static int getNumberOfPacksByBankId(const int bankId);
   static int getNumberOfTubes(const int bankId);
 
-  /// The original description of the bank placement: the Euler angles of the Geant4 frame rotation
-  /// rotateY(a1) rotateX(a0) rotateZ(a2), and the position of the bank volume centre. LOKI places the banks with
-  /// getBankTransform; these are still used by the (x, y) getPixelId and the frozen copy of the original
-  /// implementation in the tests (G4GeoLokiTests/pycpp_Legacy).
-  static double getBankRotation(const int bankId, const int axisIndex); // 0 - x, 1 - y, 2 - z
-  double getBankPosition(const int bankId, const int axisIndex) const; // 0 - x, 1 - y, 2 - z
-
   /// The placement of a bank in the world (the single source for the Geant4 geometry, AimHelper and
   /// PixelatedBanks): from the front face centre F and the bank axes u, w, n (see BankCalibration.hh),
   /// R = [n | s*w | -s*u] (s = -1 for the banks mounted upside down, see areTubesInverselyNumbered) and
@@ -142,13 +135,10 @@ private:
   const static int numberOfPacksInBank[9];
 
   const static double bankSideDirection[9][3]; // from the beam axis towards the bank (in the section plane)
-  const static double bankRotation[9][3];
   const static double bankPositionAngle[9];
   const static double bankTiltAngle[9];
   static double calcBankRotation(const int bankId);
 
-  const static int bankPosDir[9]; //indicate direction along respective (X or Y) axis
-  const static double bankPosition[9][3];
   const static double bankPositionOffset[9][3];
   const static double bankSize[9][3];
   const static double topmostPackHolderPositionInBankFromTopFront[9][2];
@@ -156,8 +146,6 @@ private:
   static double packHolderToPackCentreCoordsInPack(const int axisIndex);
 
   const static double bankDistance[9];
-  static double calcBankPositionZ(const int bankId);
-  static double calcBankPositionXY(const int bankId);
 
   static double packHolderToFirstTubeCentreCoordsInPack(const int axisIndex);
   static double detectorSystemCentreDistanceFromBankTop(const int bankId);

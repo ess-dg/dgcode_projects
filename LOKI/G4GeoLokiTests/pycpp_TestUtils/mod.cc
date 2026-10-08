@@ -285,7 +285,6 @@ namespace {
                                              py::make_tuple(R[2][0],R[2][1],R[2][2]) ),
                              py::make_tuple(t.translation[0],t.translation[1],t.translation[2]) );
     }
-    double getBankPosition(int bank, int axis) const { return pb.getBankPosition(bank,axis); }
     py::tuple getNominalBankTransform(int bank) const {
       const BankTransform t = pb.getNominalBankTransform(bank);
       const auto& R = t.rotation;
@@ -342,7 +341,6 @@ PYTHON_MODULE( mod )
     .def(py::init<double,int,int,std::string>())
     .def("getPixelId", &PixelCalc::getPixelId)
     .def("getBankTransform", &PixelCalc::getBankTransform)
-    .def("getBankPosition", &PixelCalc::getBankPosition)
     .def("getNominalBankTransform", &PixelCalc::getNominalBankTransform)
     .def("getBankNotch", &PixelCalc::getBankNotch)
     .def("getBankBoxOverlapPoints", &PixelCalc::getBankBoxOverlapPoints)
@@ -358,7 +356,6 @@ PYTHON_MODULE( mod )
   mod.def("getTubeIdInBank", &BcsBanks::getTubeIdInBank);
   mod.def("getPackId", &BcsBanks::getPackId);
   mod.def("getInPackTubeId", &BcsBanks::getInPackTubeId);
-  mod.def("getBankRotation", &BcsBanks::getBankRotation);
   mod.def("getBankSize", &BcsBanks::getBankSize);
   mod.def("getStrawLengthByBankId", &BcsBanks::getStrawLengthByBankId);
   mod.def("getNumberOfPacksByBankId", &BcsBanks::getNumberOfPacksByBankId);
