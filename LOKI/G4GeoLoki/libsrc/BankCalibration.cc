@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 const std::string BankCalibration::nominalName = "nominal-geant4-geometry";
+// the default calibration (a file in G4GeoLoki/data; see BankCalibration.hh for adding a new one)
 const std::string BankCalibration::defaultName = "2026-September-SAM-606";
 
 BankCalibration::BankCalibration()

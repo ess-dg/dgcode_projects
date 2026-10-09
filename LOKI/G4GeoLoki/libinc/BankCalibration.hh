@@ -25,6 +25,20 @@
 /// All banks (0-8) can be calibrated; banks without a line keep their nominal placement. The rear
 /// bank (0) moves along the beam: its axes and the x and y of F are used, the z of F is replaced by
 /// the rear detector distance (see BcsBanks).
+///
+/// Adding a new calibration (e.g. from a new survey), with the loki-geometry package
+/// (https://github.com/MilanKlausz/loki-geometry, see its README "A new survey"):
+///   1. add the survey file to loki-geometry (its entry in survey_files gives the calibration name),
+///   2. loki-calibrate --survey-file NEW.txt --geant4-calibration-file <dgcode_projects>/LOKI/G4GeoLoki/data/
+///      writes G4GeoLoki/data/bank_calibration_<name>.txt (all 9 banks; banks not in the survey from the
+///      intended CAD geometry, marked with a comment),
+///   3. rebuild (sb) to install the file; it is then selected with bank_calibration=<name>,
+///   4. check the geometry for overlaps (add the name to the configurations of
+///      G4GeoLokiTests/scripts/test_geo_dense_overlaps), and
+///      verify the pixel JSON of loki-pixel-json -c <name> with sb_g4geoloki_verifyjson.
+/// To make it the default, change defaultName (BankCalibration.cc); the tests that pin the default
+/// (test_pixel_position_default and the SAM-606 sections of the tests) then need new logs.
+/// Without a survey entry, any file of this format can be used by its path (bank_calibration=/path/to/file.txt).
 class BankCalibration {
 public:
   struct Bank {
