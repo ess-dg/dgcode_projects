@@ -21,7 +21,10 @@
 # straws crossed per geantino. (Most middle and rear bank pixels are seen from
 # the sample only past the boron masks / B4C panels of the banks in front.)
 # Run for the nominal geometry and for the 2026-September-SAM-606 bank calibration
-# (survey-based placements: geometry, aiming and analysis use the calibration).
+# (survey-based placements: geometry, aiming and analysis use the calibration), rear bank at
+# 5 m: every straw. The other configurations (rear bank distance, pixels per straw, beamstop,
+# calibration slits) only change the absorbers and the bank positions, not the straws inside a
+# tube (a calibration moves whole banks): there only the centre straw of every tube (faster).
 # Also checked: the exit point of every Converter crossing (the point the masking
 # analysis converts to a pixel id) gives a pixel of that same straw.
 
@@ -37,16 +40,16 @@ chk = Checker()
 NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
 
-def run(title, rear_m, n, geo_args, calibration=NOMINAL):
+def run(title, rear_m, n, geo_args, calibration=NOMINAL, straws=range(NSTRAWS)):
     print('=' * 90)
-    print(title)
+    print(title + ('' if len(straws) == NSTRAWS else f' (targets in straw {", ".join(map(str, straws))} of every tube)'))
     # the geometry, the aiming and the analysis use the same bank calibration
     geo_args = geo_args + [f'bank_calibration={calibration}', f'aiming_bank_calibration={calibration}']
     aim = LokiAim.AimHelper(rear_m * 1000, n, 9, calibration)
     targets = []
     for b in range(9):
         for t in range(TU.getNumberOfTubes(b)):
-            for s in range(NSTRAWS):
+            for s in straws:
                 base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * n
                 targets += [base + j for j in sorted({0, n // 2, n - 1})]
     d = f'run_{title.split(",")[0].replace(" ", "_")}_{n}'
@@ -106,10 +109,11 @@ def run(title, rear_m, n, geo_args, calibration=NOMINAL):
             print('      first absorber crossed: ' + ', '.join(f'{k} {v}' for k, v in sorted(shadowing[b].items())))
 
 run('LOKI, rear 5 m', 5.0, 256, [])
-run('LOKI, rear 10 m, beamstop', 10.0, 512, ['beamstop_id=3'])
-run('LOKI, rear 7.3 m, calibration slits', 7.3, 64, ['with_calibration_slits=True'])
+CENTRE_STRAW = (NSTRAWS // 2,)
+run('LOKI, rear 10 m, beamstop', 10.0, 512, ['beamstop_id=3'], straws=CENTRE_STRAW)
+run('LOKI, rear 7.3 m, calibration slits', 7.3, 64, ['with_calibration_slits=True'], straws=CENTRE_STRAW)
 run('LOKI SAM-606 bank calibration, rear 5 m', 5.0, 256, [], calibration='2026-September-SAM-606')
 run('LOKI SAM-606 bank calibration, rear 10 m, beamstop, calibration slits', 10.0, 64,
-    ['beamstop_id=3', 'with_calibration_slits=True'], calibration='2026-September-SAM-606')
+    ['beamstop_id=3', 'with_calibration_slits=True'], calibration='2026-September-SAM-606', straws=CENTRE_STRAW)
 
 chk.finish()

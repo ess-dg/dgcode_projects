@@ -2,7 +2,8 @@
 
 # The production masking chain for the WHOLE instrument (long):
 #   sb_lokimasking_sim: MaskingSourceGen aims one geantino at the AimHelper centre
-#   of every pixel of all 9 banks (8 pixels per straw, rear bank at 5 m);
+#   of every pixel of all 9 banks (4 pixels per straw, rear bank at 5 m; the details of the
+#   masking along a straw are tested by test_masking_chain);
 #   sb_lokimasking_ana: pixels entered without crossing an absorber are visible,
 #   all others are written as masked, one Mantid mask file per bank.
 #
@@ -31,7 +32,7 @@ from G4GeoLokiTests.testhelpers import Checker
 chk = Checker()
 NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
 
-N = 8
+N = 4
 
 def run(calibration=NOMINAL):
     """calibration: the bank_calibration of the geometry (also used by the aiming and the analysis)"""
