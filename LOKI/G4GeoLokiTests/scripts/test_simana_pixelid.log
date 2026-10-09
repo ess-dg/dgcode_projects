@@ -1,0 +1,29 @@
+==========================================================================================
+bank_calibration=nominal-geant4-geometry, 16 pixels per straw
+Targets (pixelId: bank, tube, straw, pixel): 3189: (0, 28, 3, 5), 3194: (0, 28, 3, 10), 26037: (1, 8, 3, 5), 26042: (1, 8, 3, 10), 32981: (2, 6, 3, 5), 32986: (2, 6, 3, 10), 38581: (3, 8, 3, 5), 38586: (3, 8, 3, 10), 45525: (4, 6, 3, 5), 45530: (4, 6, 3, 10), 51797: (5, 14, 3, 5), 51802: (5, 14, 3, 10), 64565: (6, 16, 3, 5), 64570: (6, 16, 3, 10), 78229: (7, 10, 3, 5), 78234: (7, 10, 3, 10), 87861: (8, 16, 3, 5), 87866: (8, 16, 3, 10)
+ana: Total number of pixels: 100352
+ana: Number of pixels per straw: 16
+ana: Number of straws: 6272
+All detections are at the pixels of conversion points (within 0 pixel along the straw): True
+Conversions in the target bank at the targeted pixel position (except for a few scattered neutrons): True
+Every target has detections in its bank at the targeted pixel position: True
+==========================================================================================
+bank_calibration=2026-September-SAM-606, 16 pixels per straw
+Targets (pixelId: bank, tube, straw, pixel): 3189: (0, 28, 3, 5), 3194: (0, 28, 3, 10), 26037: (1, 8, 3, 5), 26042: (1, 8, 3, 10), 32981: (2, 6, 3, 5), 32986: (2, 6, 3, 10), 38581: (3, 8, 3, 5), 38586: (3, 8, 3, 10), 45525: (4, 6, 3, 5), 45530: (4, 6, 3, 10), 51797: (5, 14, 3, 5), 51802: (5, 14, 3, 10), 64565: (6, 16, 3, 5), 64570: (6, 16, 3, 10), 78229: (7, 10, 3, 5), 78234: (7, 10, 3, 10), 87861: (8, 16, 3, 5), 87866: (8, 16, 3, 10)
+ana: Total number of pixels: 100352
+ana: Number of pixels per straw: 16
+ana: Number of straws: 6272
+All detections are at the pixels of conversion points (within 0 pixel along the straw): True
+Conversions in the target bank at the targeted pixel position (except for a few scattered neutrons): True
+Every target has detections in its bank at the targeted pixel position: True
+==========================================================================================
+bank_calibration=bank_calibration_sam606-rear-moved.txt, 16 pixels per straw
+Targets (pixelId: bank, tube, straw, pixel): 3189: (0, 28, 3, 5), 3194: (0, 28, 3, 10), 26037: (1, 8, 3, 5), 26042: (1, 8, 3, 10), 32981: (2, 6, 3, 5), 32986: (2, 6, 3, 10), 38581: (3, 8, 3, 5), 38586: (3, 8, 3, 10), 45525: (4, 6, 3, 5), 45530: (4, 6, 3, 10), 51797: (5, 14, 3, 5), 51802: (5, 14, 3, 10), 64565: (6, 16, 3, 5), 64570: (6, 16, 3, 10), 78229: (7, 10, 3, 5), 78234: (7, 10, 3, 10), 87861: (8, 16, 3, 5), 87866: (8, 16, 3, 10)
+ana: Total number of pixels: 100352
+ana: Number of pixels per straw: 16
+ana: Number of straws: 6272
+All detections are at the pixels of conversion points (within 0 pixel along the straw): True
+Conversions in the target bank at the targeted pixel position (except for a few scattered neutrons): True
+Every target has detections in its bank at the targeted pixel position: True
+Detections whose conversion pixel differs from the nominal one: > 0: True, all at the calibrated pixel: True
+checks performed: 908, failures: 0

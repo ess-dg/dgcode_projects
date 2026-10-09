@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+
+# Pins the current (nominal) LOKI bank placement parameters and the AimHelper
+# pixel-id decoding and pixel-centre coordinates (no Geant4 geometry needed):
+#
+#  A) Per bank: straw length, packs/tubes, vertical/upside-down flags, the bank
+#     rotation angles, bank box size, bank (box centre) position from
+#     the bank transform (5 m and 10 m rear distance), pack positions in
+#     the bank and pixel id offsets for 256 and 512 pixels per straw.
+#  B) For a well-chosen sample of pixels in all 9 banks (all 4 tube layers,
+#     first/second/middle/last tube rows, all 7 straws, first/middle/last pixel
+#     of the straw, first and last pixel of every bank): the decoded
+#     bank/tube/pack/straw/layer ids and the pixel centre [mm] (rear 5 m,
+#     256 pixels/straw; and rear 10 m, 512 pixels/straw).
+#  D) Global consistency checks on all straws: pixel pitch along the straw,
+#     pixel-0 -> pixel-(N-1) direction per bank, all straw axes distinct; the tube numbering
+#     (BcsBanks::getTubeIdInBank, the TubeWall copy numbers) equals the formula of the original
+#     geometry module and getPackId / getInPackTubeId / getTubeLayerId invert it, for every tube.
+# (The old tube numbering and the Larmor 2022 setup are no longer part of LOKI: they are in LOKI/Larmor.)
+#
+# Coordinates: X horizontal (positive to the left seen from the sample along
+# the beam), Y up, Z along the beam, origin at the nominal sample position.
+
+import math
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import fmt, fmtvec, sample_pixels, NBANKS, NSTRAWS, Checker
+
+chk = Checker()
+
+print('='*100)
+print('A) Bank parameters')
+print('='*100)
+a5 = LokiAim.AimHelper(5000.0, 256)
+a10 = LokiAim.AimHelper(10000.0, 256)
+print(f'pack rotation [deg]: {fmt(math.degrees(TU.getPackRotation()),6)}  pack pitch [mm]: {fmt(TU.getPackPackDistance(),6)}'
+      f'  tube (straw pattern) rotation [deg]: {fmt(math.degrees(TU.getTubeRotation()),6)}')
+print(f'tube outer radius: {fmt(TU.getTubeOuterRadius(),6)}  straw inner radius: {fmt(TU.getStrawInnerRadius(),6)}')
+print('straw positions in tube (x,y):', ' '.join(fmtvec((TU.getStrawPositionX(s), TU.getStrawPositionY(s))) for s in range(NSTRAWS)))
+print('in-pack tube offsets (h,v):', ' '.join(fmtvec((TU.getHorizontalTubeOffset(t), TU.getVerticalTubeOffset(t))) for t in range(8)))
+for b in range(NBANKS):
+    print(f'Bank {b}: strawLength={fmt(TU.getStrawLengthByBankId(b),2)} packs={TU.getNumberOfPacksByBankId(b)} tubes={TU.getNumberOfTubes(b)}'
+          f' vertical={TU.isVertical(b)} upsideDown(inverseNumbering)={TU.areTubesInverselyNumbered(b)}')
+    R = a5.getBankTransform(b)[0]
+    print(f'    bank axes in the world (depth, across the tubes, along the tubes): '
+          f'{" ".join(fmtvec([R[i][j] for i in range(3)], 6) for j in range(3))}')
+    print(f'    box size (along tubes, across, depth): {fmtvec([TU.getBankSize(b,i) for i in range(3)], 4)}')
+    print(f'    box centre position (rear 5 m):  {fmtvec(a5.getBankTransform(b)[1], 6)}')
+    if b == 0:
+        print(f'    box centre position (rear 10 m): {fmtvec(a10.getBankTransform(b)[1], 6)}')
+    n = TU.getNumberOfPacksByBankId(b)
+    print(f'    pack 0 / pack {n-1} position in bank: {fmtvec([TU.getPackPositionInBank(b,0,i) for i in range(3)], 6)}'
+          f' / {fmtvec([TU.getPackPositionInBank(b,n-1,i) for i in range(3)], 6)}')
+    print(f'    detector front distance from bank front: {fmt(TU.detectorSystemFrontDistanceFromBankFront(b),6)}')
+print('Beamstop sizes:', ' '.join(fmtvec([TU.getBeamstopSize(i,ax) for ax in range(3)],1) for i in range(1,6)))
+for N in (256, 512):
+    a = LokiAim.AimHelper(5000.0, N)
+    print(f'Pixel offsets for {N} pixels/straw:', [a.getBankPixelOffset(b) for b in range(NBANKS+1)],
+          'total:', a.getTotalNumberOfPixels())
+
+def print_sample(aim, N, banks=range(NBANKS)):
+    print(f'{"pixelId":>8} {"bank":>4} {"tube":>4} {"pack":>4} {"straw":>5} {"inStraw":>7} {"layer":>5}   centre [mm]')
+    for (b, t, s, j, pid) in sample_pixels(aim, N, banks):
+        bank = aim.getBankId(pid)
+        tube = aim.getTubeId(pid, bank)
+        straw = aim.getStrawId(pid, bank, tube)
+        pack = aim.getPackId(bank, tube)
+        layer = TU.getTubeLayerId(bank, tube)
+        chk.check((bank, tube, straw, pid % N) == (b, t, s, j), f'decoding of pixel {pid}')
+        c = aim.getPixelCentreCoordinates(pid)
+        print(f'{pid:8} {bank:4} {tube:4} {pack:4} {straw:5} {pid % N:7} {layer:5}   {fmtvec(c, 4)}')
+
+print('='*100)
+print('B1) Sample pixels, rear 5 m, 256 pixels/straw')
+print('='*100)
+aim = LokiAim.AimHelper(5000.0, 256)
+print_sample(aim, 256)
+print('='*100)
+print('B2) Sample pixels, rear 10 m, 512 pixels/straw, banks 0, 1, 6')
+print('='*100)
+aim512 = LokiAim.AimHelper(10000.0, 512)
+print_sample(aim512, 512, banks=(0, 1, 6))
+
+print('='*100)
+print('D) Consistency checks over all straws (rear 5 m, 256 pixels/straw)')
+print('='*100)
+N = 256
+aim = LokiAim.AimHelper(5000.0, N)
+for b in range(NBANKS):
+    L = TU.getStrawLengthByBankId(b)
+    pitch = L / N
+    centres = []
+    dirs = set()
+    for t in range(TU.getNumberOfTubes(b)):
+        for s in range(NSTRAWS):
+            base = aim.getBankPixelOffset(b) + (t * NSTRAWS + s) * N
+            c0 = aim.getPixelCentreCoordinates(base)
+            c1 = aim.getPixelCentreCoordinates(base + 1)
+            cN = aim.getPixelCentreCoordinates(base + N - 1)
+            d01 = math.dist(c0, c1)
+            d0N = math.dist(c0, cN)
+            chk.check(abs(d01 - pitch) < 1e-9 and abs(d0N - (N - 1) * pitch) < 1e-9,
+                      f'pixel pitch bank {b} tube {t} straw {s}: {d01} {d0N}')
+            u = tuple(round((cN[i] - c0[i]) / d0N, 9) + 0.0 for i in range(3))
+            dirs.add(u)
+            centres.append(tuple(round((c0[i] + cN[i]) / 2, 6) for i in range(3)))
+    chk.check(len(set(centres)) == len(centres), f'bank {b}: duplicate straw centres')
+    print(f'Bank {b}: direction of increasing pixel index along the straws: {", ".join(fmtvec(d, 6) for d in sorted(dirs))}')
+    xs = centres
+    lo = [min(c[i] for c in xs) for i in range(3)]
+    hi = [max(c[i] for c in xs) for i in range(3)]
+    print(f'    straw centre bounding box: min {fmtvec(lo, 4)} max {fmtvec(hi, 4)}')
+    nPacks = TU.getNumberOfPacksByBankId(b)
+    tubes = set()
+    for pack in range(nPacks):
+        for i in range(8):
+            tube = TU.getTubeIdInBank(b, pack, i)
+            tubes.add(tube)
+            row = pack + 0.5 * (i // 4)  # the formula of the original geometry module (getTubeVolumeNumber)
+            original = int(row * 2 + (i % 4) * nPacks * 2) if not TU.areTubesInverselyNumbered(b) else \
+                int((nPacks * 2 - 1) - row * 2 + (i % 4) * nPacks * 2)
+            chk.check(tube == original and TU.getPackId(b, tube) == pack and TU.getInPackTubeId(b, tube) == i
+                      and TU.getTubeLayerId(b, tube) == i % 4, f'bank {b} pack {pack} tube {i}: tube id {tube}')
+    chk.check(tubes == set(range(TU.getNumberOfTubes(b))), f'bank {b}: the tube ids are not 0..{TU.getNumberOfTubes(b) - 1}')
+
+chk.finish()

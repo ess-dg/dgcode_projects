@@ -1,0 +1,70 @@
+==========================================================================================
+1. Names and files
+default bank calibration (geometry parameter and scripts): 2026-September-SAM-606
+  bank_calibration='unknown-calibration': BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
+  bank_calibration='': BankCalibration: empty calibration name (use 'nominal-geant4-geometry' for the nominal geometry)
+  bank_calibration='nominal': BankCalibration: unknown bank calibration 'nominal' (no data file G4GeoLoki/bank_calibration_nominal.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
+  no format line            : 3: the first line must be 'loki_bank_calibration <version>'
+  unsupported version       : 3: unsupported format version 2 (supported: 1)
+  bank before name          : 4: the 'name' line must come before the bank lines
+  bank -1                   : 5: invalid bank id -1 (0-8)
+  bank 9                    : 5: invalid bank id 9 (0-8)
+  repeated bank             : 6: bank 3 appears twice
+  11 numbers                : 5: a bank line needs the bank id and 12 finite numbers (F, u, w, n)
+  13 numbers                : 5: unexpected value '5' after the 12 numbers of the bank line
+  not a number              : 5: a bank line needs the bank id and 12 finite numbers (F, u, w, n)
+  nan                       : 5: a bank line needs the bank id and 12 finite numbers (F, u, w, n)
+  not unit                  : 5: u, w and n must be unit vectors
+  not perpendicular         : 5: u, w and n must be perpendicular to each other
+  left-handed               : 5: n must be u x w (right-handed basis), got -(u x w)
+  normal towards the sample : 5: the layer normal n must point away from the sample
+  unknown line              : 5: unknown line 'banks'
+  no name                   : 3: incomplete file (the 'loki_bank_calibration' and 'name' lines are required)
+  no bank line              : 4: no bank line (use 'nominal-geant4-geometry' for the nominal geometry)
+  values in m               : 5: implausible front face centre: 2.942788 mm from the sample (0.5-20 m; the values must be in mm)
+  too far                   : 5: implausible front face centre: 29004.310025 mm from the sample (0.5-20 m; the values must be in mm)
+  extra word, format line   : 3: the first line must be 'loki_bank_calibration <version>'
+  extra word, name line     : 4: invalid or repeated 'name' line ('name <name>')
+  invalid name              : 4: invalid calibration name 'x/y' (letters, digits, '.', '_', '-')
+  reserved name             : 4: the name 'nominal-geant4-geometry' is reserved for the built-in nominal geometry
+  geometry {'bank_calibration': 'unknown-calibration'}: rejected (exit code != 0: True): ERROR: Wrong bank_calibration value: BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
+==========================================================================================
+2. A calibration file made from the nominal geometry reproduces it
+    1 pixels/straw: largest difference from nominal: rotation < 1e-12: True, translation < 1e-9 mm: True, pixel centres < 1e-9 mm: True
+    7 pixels/straw: largest difference from nominal: rotation < 1e-12: True, translation < 1e-9 mm: True, pixel centres < 1e-9 mm: True
+  256 pixels/straw: largest difference from nominal: rotation < 1e-12: True, translation < 1e-9 mm: True, pixel centres < 1e-9 mm: True
+  512 pixels/straw: largest difference from nominal: rotation < 1e-12: True, translation < 1e-9 mm: True, pixel centres < 1e-9 mm: True
+  rear bank at 4 m (file made at 5 m): bank placements and pixel centres as nominal (< 1e-9 mm): True
+  rear bank at 10 m (file made at 5 m): bank placements and pixel centres as nominal (< 1e-9 mm): True
+  built geometry defaults: 21364 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
+  built geometry {'rear_detector_distance_m': 10.0, 'beamstop_id': 3, 'with_calibration_slits': True}: 21471 volumes, same volumes: True, global positions < 1e-9 mm: True, rotations < 1e-12: True
+  nominal-geant4-geometry: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 0.38 mm), notch nominal: True
+  nominal-geant4-geometry: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 0.82 mm), notch nominal: True
+==========================================================================================
+3. A calibrated rear bank, shifted and rotated
+  rear 5 m: front face centre (3.000, -2.000, 5000.000) mm (z = rear distance), beamstop centre (0.000, 0.000, 4950.015) mm: on the beam axis and 50.000 mm in front of the detector front
+  rear 5 m: no overlaps (dense check): True, bank 0 pixel centres in their straw with their pixel id: True
+  rear 8 m: front face centre (3.000, -2.000, 8000.000) mm (z = rear distance), beamstop centre (0.000, 0.000, 7950.015) mm: on the beam axis and 50.000 mm in front of the detector front
+  rear 8 m: no overlaps (dense check): True, bank 0 pixel centres in their straw with their pixel id: True
+==========================================================================================
+4. The 2026-September-SAM-606 calibration
+2026-September-SAM-606: file bank_calibration_2026-September-SAM-606.txt, calibrated banks: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+  bank 0: front face centre F (0.000, 0.000, 5000.000) mm, bank centre moved by (0.000, 0.000, 0.000) mm, rotated by 0.000 deg from nominal
+  bank 1: front face centre F (-1.653, 496.649, 2909.410) mm, bank centre moved by (-1.755, -0.581, 1.617) mm, rotated by 0.130 deg from nominal
+  bank 2: front face centre F (379.498, -1.179, 3360.794) mm, bank centre moved by (-0.254, -1.143, 32.326) mm, rotated by 0.317 deg from nominal
+  bank 3: front face centre F (-1.346, -497.478, 2908.796) mm, bank centre moved by (-1.369, -0.329, 0.990) mm, rotated by 0.074 deg from nominal
+  bank 4: front face centre F (-379.931, -0.992, 3358.422) mm, bank centre moved by (-0.496, -0.858, 29.956) mm, rotated by 0.153 deg from nominal
+  bank 5: front face centre F (102.047, 723.057, 1141.389) mm, bank centre moved by (2.205, -5.156, -12.923) mm, rotated by 0.659 deg from nominal
+  bank 6: front face centre F (757.360, -17.302, 1561.837) mm, bank centre moved by (0.907, -2.432, -16.338) mm, rotated by 0.198 deg from nominal
+  bank 7: front face centre F (-91.967, -622.787, 1171.495) mm, bank centre moved by (8.286, -3.395, -16.932) mm, rotated by 0.430 deg from nominal
+  bank 8: front face centre F (-756.958, 45.936, 1560.456) mm, bank centre moved by (-0.688, -4.164, -17.738) mm, rotated by 0.130 deg from nominal
+  pixel centres vs loki-geometry (24 pixels, first / middle / last of banks 1-8): within 1e-6 mm: True
+  8 pixels/straw: 50176 pixel centres -> pixel id round trip OK: True
+  256 pixels/straw: 123511 pixel centres -> pixel id round trip OK: True
+  BoronMask-triangular-5-0: position in its bank (-154.070, 134.477, 892.500) mm, unchanged from nominal: True
+  BoronMask-triangular-5-1: position in its bank (-154.070, 19.477, -972.500) mm, unchanged from nominal: True
+  BoronMask-triangular-7-2: position in its bank (-154.020, -140.728, -917.500) mm, unchanged from nominal: True
+  BoronMask-triangular-7-3: position in its bank (-154.020, -90.738, 877.500) mm, unchanged from nominal: True
+  2026-September-SAM-606: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 2.13 mm), notch nominal: True
+  2026-September-SAM-606: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 1.63 mm), notch nominal: True
+checks performed: 94, failures: 0

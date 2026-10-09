@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+
+# The number of pixels per straw is a property of each PixelatedBanks / AimHelper object.
+# (It used to be one static array shared by all objects: every new object with a pixel number
+# changed it for all existing ones.) Objects with 256, 8, 512 and the default pixel number are
+# used side by side, in any order: each must keep its own pixel number, pixel id ranges, id
+# decoding, pixel centres and hit -> pixel id, equal to those of an object made alone.
+
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import Checker, NBANKS, NSTRAWS
+
+chk = Checker()
+REAR = 5000.0
+
+def snapshot(aim, n):
+    """What an object computes, for a sample of its pixels."""
+    out = [aim.getTotalNumberOfPixels()] + [aim.getBankPixelOffset(b) for b in range(NBANKS + 1)]
+    out += [aim.getNumberOfPixelsInStraw(b) for b in range(NBANKS)] + [aim.getNumberOfPixels(b) for b in range(NBANKS)]
+    for p in range(0, aim.getTotalNumberOfPixels(), max(1, aim.getTotalNumberOfPixels() // 997)):
+        b = aim.getBankId(p)
+        t = aim.getTubeId(p, b)
+        out.append((p, b, t, aim.getStrawId(p, b, t), aim.getPixelCentreCoordinates(p)))
+    return out
+
+def pc_snapshot(pc, aim):
+    out = []
+    for p in range(0, aim.getTotalNumberOfPixels(), max(1, aim.getTotalNumberOfPixels() // 499)):
+        b = aim.getBankId(p)
+        t = aim.getTubeId(p, b)
+        s = aim.getStrawId(p, b, t)
+        out.append(pc.getPixelId(b, t, s, *aim.getPixelCentreCoordinates(p)))
+    return out
+
+# references: each object made alone (and used before the next one exists)
+reference = {}
+for n in (256, 8, 512):
+    aim = LokiAim.AimHelper(REAR, n)
+    reference[n] = (snapshot(aim, n), pc_snapshot(TU.PixelCalc(REAR, n, 9), aim))
+    del aim
+chk.check(LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW == 256, 'default pixel number')
+default_alone = snapshot(LokiAim.AimHelper(REAR), 256)
+chk.check(default_alone == reference[256][0], 'the default object differs from the 256 pixel one')
+
+# all side by side, created in one order and used in another
+objects = {n: LokiAim.AimHelper(REAR, n) for n in (256, 8, 512)}
+calcs = {n: TU.PixelCalc(REAR, n, 9) for n in (512, 8, 256)}
+default = LokiAim.AimHelper(REAR)  # made last: the default pixel number, not the last one used
+rear_only = LokiAim.AimHelper(5000.0, 1024, 1)  # one bank (the rear bank), another pixel number
+for n in (8, 512, 256):
+    same = snapshot(objects[n], n) == reference[n][0]
+    same_ids = pc_snapshot(calcs[n], objects[n]) == reference[n][1]
+    chk.check(same and same_ids, f'{n} pixels per straw: changed by the other objects')
+    print(f'{n:4} pixels per straw: total {objects[n].getTotalNumberOfPixels():8} pixels, unchanged next to the other '
+          f'objects: {same}, hit -> pixel ids unchanged: {same_ids}')
+same = snapshot(default, 256) == reference[256][0]
+chk.check(same, 'the default object made after the others is not the 256 pixel one')
+print(f'default ({LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW} pixels per straw), made after the others: unchanged: {same}')
+chk.check(rear_only.getTotalNumberOfPixels() == 224 * NSTRAWS * 1024 and rear_only.getNumberOfPixelsInStraw(0) == 1024,
+          'rear bank only object')
+print(f'rear bank only object (1 bank, 1024 pixels per straw): {rear_only.getTotalNumberOfPixels()} pixels')
+
+chk.finish()

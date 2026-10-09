@@ -8,32 +8,23 @@ parser.add_argument('-rear', '--rearDetectorDistance', type=float, default=5.0, 
 parser.add_argument('-ssd', '--sourceSampleDistance', type=float, default=0.0, help = 'Source sample distance [m] (defaults to 0 m)')
 parser.add_argument('-n', '--strawPixelNumber', type=int, help = 'Rear detector pixel number (defaults to the value defined in the PixelatedBanks class)')
 parser.add_argument('--bankId', type=int, default=None, help = 'Provide bank id [0,8] to output pixels only for the selected bank. Default is to output info for all banks.')
-parser.add_argument('--larmor2022experiment', action = 'store_true', help = 'User Larmor 2022 experiment setup (uses 512 pixels by default)')
-parser.add_argument('--larmor2022fullGeomOutput', action = 'store_true', default=False, help = 'Output all pixels in the detector model, not just those which were present in the Larmor 2022 experiment setup')
-parser.add_argument('--oldPixelNumbering', action = 'store_true', help = 'Use old pixel (tube) numbering')
 parser.add_argument('--print', action = 'store_true', help = 'Print pixel positions to output insted of a file.')
+parser.add_argument('--bankCalibration', default=None, help = f'Bank placements (the bank_calibration geometry parameter): {LokiAim.NOMINAL_BANK_CALIBRATION}, the name of a bank calibration in G4GeoLoki/data (bank_calibration_<name>.txt) or the path of such a file. Default: {LokiAim.DEFAULT_BANK_CALIBRATION}.')
 
 args = parser.parse_args()
+if args.bankId is not None and not 0 <= args.bankId <= 8:
+  parser.error(f'--bankId must be 0-8, not {args.bankId}')
+if args.strawPixelNumber is not None and args.strawPixelNumber < 1:
+  parser.error(f'--strawPixelNumber must be positive, not {args.strawPixelNumber}')
 
 rearBankDistance = args.rearDetectorDistance
-strawPixelNumber = args.strawPixelNumber
-numberOfBanks = None #use default
+strawPixelNumber = args.strawPixelNumber if args.strawPixelNumber is not None else LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW
+bankCalibration = args.bankCalibration if args.bankCalibration is not None else LokiAim.DEFAULT_BANK_CALIBRATION
+try:
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, 9, bankCalibration)
+except Exception as error:
+  parser.error(str(error))
 
-if args.larmor2022experiment:
-  rearBankDistance = 4.099
-  numberOfBanks = 1
-  if strawPixelNumber is None:
-    strawPixelNumber = 512
-
-if numberOfBanks is not None:
-  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, numberOfBanks)
-elif strawPixelNumber is not None:
-  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber)
-else:
-  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000)
-
-oldNumbering = args.oldPixelNumbering
-larmor2022 = args.larmor2022experiment
 ssd = args.sourceSampleDistance
 
 fileName = f"{args.fileName}.txt"
@@ -45,22 +36,12 @@ with open(fileName, "w") as pixelFile:
     pixelMin = 0
     pixelMax = aimHelper.getTotalNumberOfPixels()
 
-  pixelIdConverter = lambda id : id + 1 # +1 because the detector IDs in the IDF (and ICD) file start from 1 (as opposed to the zero-based numbering in the Geant4 geometry);
-  skipPixelFilter = lambda _ : False
-
-  if larmor2022 and not args.larmor2022fullGeomOutput:
-    from LokiUtils.PixelIdConverters import Larmor2022GeometryConverter
-    converter = Larmor2022GeometryConverter(strawPixelNumber)
-    pixelIdConverter = lambda id : id + 1 - converter.getReductionPixelOffset_newGeom(id)
-    skipPixelFilter = lambda id : not converter.isPixelInLarmor2022Geom(id)
-
   for pixelId in range(pixelMin, pixelMax):
-    if skipPixelFilter(pixelId):
-      continue
-    pixelCentreX, pixelCentreY, pixelCentreZ = aimHelper.getPixelCentreCoordinates(pixelId, oldNumbering, larmor2022)
-    pixelCentreZ = pixelCentreZ + ssd *1000 #Larmor SSD is 25.61 (source to sample distance)
+    pixelCentreX, pixelCentreY, pixelCentreZ = aimHelper.getPixelCentreCoordinates(pixelId)
+    pixelCentreZ = pixelCentreZ + ssd *1000
 
-    pixelFile.write( f"{pixelIdConverter(pixelId)}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}\n")
+    # +1: the detector ids in the IDF (and ICD) file start from 1 (the pixel ids of the Geant4 geometry from 0)
+    pixelFile.write( f"{pixelId + 1}, {pixelCentreX/1000:.4f}, {pixelCentreY/1000:.4f}, {pixelCentreZ/1000:.4f}\n")
 
 
 if not args.print:

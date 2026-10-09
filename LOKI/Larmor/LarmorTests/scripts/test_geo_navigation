@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+# Consistency of the BUILT Larmor 2022 geometry (Larmor/GeoLarmor2022) with the Larmor2022Bank pixel centres and
+# with the hit -> pixel mapping of the analysis programs (the Larmor version of G4GeoLokiTests/test_geo_navigation).
+#
+# The geometry is constructed directly (no run manager / physics) and a G4Navigator is used to locate the pixel
+# centres. For each pixel it is checked that:
+#   * the point lies in the CountingGas of a straw, and the touchable history is exactly the volume chain the
+#     analysis programs rely on (CountingGas/Converter/StrawWall/EmptyTube/TubeWall/EmptyPackBox/Bank/World;
+#     from a Converter segment: copy number depth 1 = straw, 3 = tube, 5 = bank),
+#   * the StrawWall/TubeWall/Bank copy numbers equal the straw/tube/bank ids decoded from the pixel id (Converter
+#     copy number = straw+100),
+#   * the point is on the straw axis (local x,y = 0) at the expected position along the straw (local z),
+#   * Larmor2022Bank::getPixelId(tube copy no., straw copy no., x, y, z) returns the pixel id (as in the analysis).
+# This is done for the first, middle and last pixel of EVERY straw, for the new and old tube numbering; a sample of
+# pixels is printed (ids, copy numbers, global position, local position, global straw axis direction).
+
+import Larmor.GeoLarmor2022 as GEO
+import Larmor.Larmor2022Bank as LB
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import captured_fd_output, fmtvec, NSTRAWS, Checker
+from LarmorTests.larmorhelpers import sample_tubes
+
+chk = Checker()
+
+EXPECTED_CHAIN = ['CountingGas', 'Converter', 'StrawWall', 'EmptyTube', 'TubeWall', 'EmptyPackBox', 'Bank', 'World']
+
+def check_pixel(bank, pid, N, old, verbose):
+    t = bank.getTubeId(pid)
+    s = bank.getStrawId(pid)
+    j = pid % N
+    c = bank.getPixelCentre(pid, old)
+    hist, loc, axis, _ = TU.locate(*c)
+    names = [h[0] for h in hist]
+    copies = [h[1] for h in hist]
+    ok = chk.check(names == EXPECTED_CHAIN, f'pixel {pid}: unexpected volume chain {names}')
+    if ok:
+        L = TU.getStrawLengthByBankId(0)
+        z = -0.5 * L + (j + 0.5) * L / N
+        chk.check(copies[1] == s + 100 and copies[2] == s and copies[4] == t and copies[6] == 0,
+                  f'pixel {pid}: copy numbers {copies} vs tube {t} straw {s}')
+        chk.check(abs(loc[0]) < 1e-6 and abs(loc[1]) < 1e-6 and abs(loc[2] - z) < 1e-6,
+                  f'pixel {pid}: local position {loc}, expected z {z}')
+        # hit -> pixel id exactly as in the analysis (copy numbers from the touchable):
+        chk.check(bank.getPixelId(copies[4], copies[2], *c) == pid,
+                  f'pixel {pid}: getPixelId from touchable -> {bank.getPixelId(copies[4], copies[2], *c)}')
+    if verbose:
+        print(f'{pid:8} {t:4} {s:5} {j:5}  bank/tube/straw copyNo: {copies[6]:2} {copies[4]:4} {copies[2]:2}'
+              f'  centre {fmtvec(c,4)}  local {fmtvec(loc,4)}  straw axis {fmtvec(axis,6)}')
+
+def run(title, geopars, N):
+    old = geopars.get('old_tube_numbering', False)
+    print('=' * 100)
+    print(title)
+    print('=' * 100)
+    geo = GEO.create()
+    for k, v in geopars.items():
+        setattr(geo, k, v)
+    with captured_fd_output() as lines:
+        TU.construct_world(geo)
+    nok = sum(1 for l in lines if l.startswith('Checking overlaps') and l.rstrip().endswith('OK!'))
+    print(f'(geometry built, {nok} placements passed the overlap check)')
+    bank = LB.Larmor2022Bank(4099.0, N)
+    c0 = bank.getPixelCentre(0, old)
+    print('Volume chain at pixel 0 (name:copyNo):', ' / '.join(f'{h[0]}:{h[1]}' for h in TU.locate(*c0)[0]))
+    print(f'{"pixelId":>8} {"tube":>4} {"straw":>5} {"pix":>5}')
+    nPacks = bank.getNumberOfPacks()
+    tubes = sample_tubes(nPacks, old)
+    for it, t in enumerate(tubes):
+        s = it % NSTRAWS
+        check_pixel(bank, (t * NSTRAWS + s) * N + [0, N - 1, N // 2][it % 3], N, old, True)
+    n0 = chk.nchecks
+    for t in range(bank.getNumberOfTubes()):
+        for s in range(NSTRAWS):
+            base = (t * NSTRAWS + s) * N
+            for j in (0, N // 2, N - 1):
+                check_pixel(bank, base + j, N, old, False)
+    print(f'All straws (first/middle/last pixel): {chk.nchecks - n0} checks done, failures so far: {chk.nfail}')
+
+run('Larmor 2022 experiment: rear 4.099 m, NEW tube numbering, 512 pixels/straw', dict(), 512)
+run('Larmor 2022 experiment: rear 4.099 m, OLD tube numbering, beamstop 1, calibration mask, 512 pixels/straw',
+    dict(old_tube_numbering=True, beamstop_id=1, with_calibration_slits=True), 512)
+
+chk.finish()

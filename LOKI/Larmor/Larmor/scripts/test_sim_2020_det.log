@@ -1,0 +1,5 @@
+larmor_det_events.shist:
+  neutron_Q_hit: empty
+  neutron_counters: count_initial_neutrons 10.0, count_neutrons_hit 0.0
+  neutron_xy_hit: empty
+detectionEvents_minimal.mcpl: 0 detection events, sha256 of the pixel ids e3b0c44298fc1c14

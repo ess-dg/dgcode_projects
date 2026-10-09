@@ -1,0 +1,21 @@
+--- rear=5.0 m, 256 pixels/straw, banks=9
+  bank 0: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000), translation (0.000000, -7.027077, 5091.006154); 43904 pixel id checks
+  bank 1: proper rotation, local z = -straw direction, local z axis (1.000000, 0.000000, 0.000000), translation (0.000000, 513.624376, 3000.874673); 12544 pixel id checks
+  bank 2: proper rotation, local z = -straw direction, local z axis (0.000000, -1.000000, 0.000000), translation (379.123009, 0.000000, 3423.553449); 9408 pixel id checks
+  bank 3: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000), translation (0.000000, -513.624376, 3000.874673); 12544 pixel id checks
+  bank 4: proper rotation, local z = +straw direction, local z axis (0.000000, 1.000000, 0.000000), translation (-379.123009, 0.000000, 3423.553449); 9408 pixel id checks
+  bank 5: proper rotation, local z = -straw direction, local z axis (1.000000, 0.000000, 0.000000), translation (100.000000, 769.160020, 1243.126938); 21952 pixel id checks
+  bank 6: proper rotation, local z = -straw direction, local z axis (0.000000, -1.000000, 0.000000), translation (766.315247, -15.000000, 1674.806616); 25088 pixel id checks
+  bank 7: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000), translation (-100.000000, -643.358261, 1282.353199); 15680 pixel id checks
+  bank 8: proper rotation, local z = +straw direction, local z axis (0.000000, 1.000000, 0.000000), translation (-766.315247, 50.000000, 1674.806616); 25088 pixel id checks
+--- rear=5.0 m, 256 pixels/straw, banks=9, 2026-September-SAM-606
+  bank 0: proper rotation, local z = +straw direction, local z axis (-1.000000, 0.000000, 0.000000), translation (0.000000, -7.027077, 5091.006154); 43904 pixel id checks
+  bank 1: proper rotation, local z = -straw direction, local z axis (0.999999, 0.000389, 0.001020), translation (-1.754783, 513.043514, 3002.491859); 12544 pixel id checks
+  bank 2: proper rotation, local z = -straw direction, local z axis (-0.000661, -1.000000, 0.000378), translation (378.868558, -1.142820, 3455.879577); 9408 pixel id checks
+  bank 3: proper rotation, local z = +straw direction, local z axis (-1.000000, -0.000534, -0.000340), translation (-1.369198, -513.953168, 3001.864548); 12544 pixel id checks
+  bank 4: proper rotation, local z = +straw direction, local z axis (-0.000754, 0.999999, -0.001414), translation (-379.619270, -0.857510, 3453.509245); 9408 pixel id checks
+  bank 5: proper rotation, local z = -straw direction, local z axis (0.999999, -0.000163, -0.001708), translation (102.205074, 764.003931, 1230.204272); 21952 pixel id checks
+  bank 6: proper rotation, local z = -straw direction, local z axis (0.000366, -0.999999, -0.001383), translation (767.221798, -17.431630, 1658.468461); 25088 pixel id checks
+  bank 7: proper rotation, local z = +straw direction, local z axis (-0.999996, -0.001949, 0.002193), translation (-91.713881, -646.753324, 1265.421584); 15680 pixel id checks
+  bank 8: proper rotation, local z = +straw direction, local z axis (-0.001708, 0.999998, 0.000854), translation (-767.003519, 45.835900, 1657.068308); 25088 pixel id checks
+checks performed: 351412, failures: 0

@@ -1,0 +1,11 @@
+==========================================================================================
+Neutrons (sb_loki_sim flood source at bank 2, QGSP_BIC_HP) -> sb_loki_ana
+  detection events: > 0: True
+  the same detection events with the original, the changed and without the calibration file: True
+  detection file header: bank_calibration=./mycal.txt, the text of the calibration: True
+  conversion points with another pixel id for the changed calibration: > 0: True
+==========================================================================================
+Geantinos (sb_lokimasking_sim at bank 2) -> sb_lokimasking_ana
+  the same mask file with the original, the changed and without the calibration file: True
+  Converter exit points with another pixel id for the changed calibration: > 0: True
+checks performed: 6, failures: 0

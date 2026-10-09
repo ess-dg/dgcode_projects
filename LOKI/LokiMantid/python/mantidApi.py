@@ -89,7 +89,7 @@ def addMcplDetectionEventsToWorkspaces(workspaces, filename, idConverter=(lambda
        print(f'    {colWarning}WARNING: Number of addEventQuickly errors in file {filename} is: {countAddEventError}. Possibly wrong IDF for the simulation (simulation pixel index range out of the pixel range defined in the IDF file). Minimum of ids causing error: {int(addEventErrorIdMin)}, maximum of ids causing error: {int(addEventErrorIdMax)} {colEnd}', file=sys.stderr)
   return countFilteredOutEvents
 
-#Legacy version needed for Larmor2020 and Larmor2022 processing
+#Legacy version needed for the Larmor 2020 and 2022 processing (the scripts of LarmorMantid)
 def addMcplDetectionEventsToWorkspace(workspace, filename, idConverter=(lambda id:id), idFilter=(lambda _:True), verbose=False):
   pulsetime = datetime.now() #dummy pulse time
   dateTime = DateAndTime(pulsetime.isoformat(sep="T"))

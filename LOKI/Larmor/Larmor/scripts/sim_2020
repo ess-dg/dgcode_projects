@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+import Larmor.GeoLarmor2020 as GEO
+
+geo = GEO.create()
+
+import Larmor.Launcher2020
+Larmor.Launcher2020.launch(geo)

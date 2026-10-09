@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+# Overlap checks of the Larmor geometries (Larmor/GeoLarmor2020, Larmor/GeoLarmor2022):
+#  * the standard Geant4 overlap check of every placement during the construction (1000 surface points per volume),
+#    summarised per volume name: number of placements checked and with problems;
+#  * the dense check of the volumes placed in the world (500k random surface points of every world volume against
+#    every other world volume) and of the content of the bank (100k points of every volume inside the bank must be
+#    inside the bank solid).
+# Any problem makes the test fail. (Each geometry is built in its own process.)
+
+import collections
+import re
+import subprocess
+import sys
+
+SETUPS = {
+    'larmor2020': ('Larmor 2020, withBeamstop', 'GeoLarmor2020', dict(withBeamstop=True)),
+    'larmor2022': ('Larmor 2022, beamstop 1, calibration slits', 'GeoLarmor2022', dict(beamstop_id=1, with_calibration_slits=True)),
+    'larmor2022_old': ('Larmor 2022, old tube numbering, beamstop 5', 'GeoLarmor2022', dict(old_tube_numbering=True, beamstop_id=5)),
+}
+
+def check(key):
+    import importlib
+    import G4GeoLokiTests.TestUtils as TU
+    from G4GeoLokiTests.testhelpers import captured_fd_output
+    title, module, params = SETUPS[key]
+    geo = importlib.import_module(f'Larmor.{module}').create()
+    for k, v in params.items():
+        setattr(geo, k, v)
+    with captured_fd_output() as lines:
+        ndaughters = TU.construct_world(geo)
+    print(f'{title}: world daughters: {ndaughters}')
+    checks, problems, problem_lines = collections.Counter(), collections.Counter(), []
+    for line in lines:
+        if line.startswith('Checking overlaps for volume '):
+            volname = re.sub(r'^(BoronMask-\d)-\d+$', r'\1-*', line[len('Checking overlaps for volume '):].split(':')[0])
+            checks[volname] += 1
+            if not line.rstrip().endswith('OK!'):
+                problems[volname] += 1
+                problem_lines.append(line)
+        elif 'G4Exception' in line or 'GeomVol1002' in line or 'Overlap' in line or 'ERROR' in line:
+            problems['<G4Exception/other>'] += 1
+            problem_lines.append(line)
+    print(f'  construction check: {sum(checks.values())} placements checked')
+    for volname in sorted(checks):
+        print(f'     {volname:32} checked: {checks[volname]:5}  problems: {problems.get(volname, 0)}')
+    for line in problem_lines[:50]:
+        print('    ', line)
+    overlaps = TU.dense_world_overlaps(500000, 1e-6)
+    outside = TU.dense_bank_containment(100000, 1e-6)
+    print(f'  dense check: {len(TU.world_daughters())} world volumes, overlaps: {len(overlaps)}, '
+          f'bank content outside its bank: {len(outside)}')
+    for a, b, n, depth in overlaps:
+        print(f'    {a} in {b}: {n} points, up to {depth:.1f} mm deep')
+    for bank, daughter, n, distance in outside:
+        print(f'    bank {bank}: {daughter} outside the bank: {n} points, up to {distance:.1f} mm')
+    return not problems and not overlaps and not outside
+
+if len(sys.argv) == 2:  # child process: one geometry
+    sys.exit(0 if check(sys.argv[1]) else 1)
+
+failed = False
+for key in SETUPS:
+    r = subprocess.run([sys.executable, sys.argv[0], key], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    print('=' * 90)
+    print(r.stdout.rstrip())
+    if r.returncode != 0:
+        print(f'TEST FAILED: {key}')
+        failed = True
+print('=' * 90)
+print('TEST FAILED' if failed else 'All overlap checks OK')
+sys.exit(1 if failed else 0)

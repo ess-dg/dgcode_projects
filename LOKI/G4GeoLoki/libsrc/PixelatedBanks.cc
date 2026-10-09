@@ -1,62 +1,63 @@
 #include "G4GeoLoki/PixelatedBanks.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <array>
 #include <cassert>
+#include <stdexcept>
 
 PixelatedBanks::PixelatedBanks(double rearBankDistance)
   : BcsBanks(rearBankDistance)
 {
+  setNumberOfPixelsInStraw(defaultNumberOfPixelsInStraw);
+}
+
+void PixelatedBanks::setNumberOfPixelsInStraw(const int strawPixelNumber) {
+  if (strawPixelNumber < 1)
+    throw std::invalid_argument("PixelatedBanks: the number of pixels per straw must be positive, not " + std::to_string(strawPixelNumber));
+  m_numberOfPixelsInStraw.fill(strawPixelNumber);
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber)
   : BcsBanks(rearBankDistance)
 {
-  for(int i=0; i<getNumberOfBanks(); i++) {
-    numberOfPixelsInStraw[i] = strawPixelNumber;
-  }
+  setNumberOfPixelsInStraw(strawPixelNumber);
 }
 PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks)
   : BcsBanks(rearBankDistance, numberOfBanks)
 {
-  for(int i=0; i<getNumberOfBanks(); i++) {
-    numberOfPixelsInStraw[i] = strawPixelNumber;
-  }
+  setNumberOfPixelsInStraw(strawPixelNumber);
+}
+PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks, const std::string& bankCalibration)
+  : BcsBanks(rearBankDistance, numberOfBanks, bankCalibration)
+{
+  setNumberOfPixelsInStraw(strawPixelNumber);
+}
+PixelatedBanks::PixelatedBanks(double rearBankDistance, int strawPixelNumber, int numberOfBanks, const BankCalibration& bankCalibration)
+  : BcsBanks(rearBankDistance, numberOfBanks, bankCalibration)
+{
+  setNumberOfPixelsInStraw(strawPixelNumber);
 }
 
-int PixelatedBanks::numberOfPixelsInStraw[9] = { // number of pixels along the straws
-    256, // 0 - rear
-    256,  // 1 - mid top
-    256, // 2 - mid left
-    256,  // 3 - mid bottom
-    256, // 4 - mid right
-    256, // 5 - front top
-    256, // 6 - front left
-    256, // 7 - front bottom
-    256, // 8 - front right
-};
-int PixelatedBanks::getNumberOfPixelsInStraw(const int bankId) {
-  assert(0 <= bankId && bankId <= 8);
-  return numberOfPixelsInStraw[bankId];
+int PixelatedBanks::getNumberOfPixelsInStraw(const int bankId) const {
+  checkBankId(bankId);
+  return m_numberOfPixelsInStraw[bankId];
 }
 
-int PixelatedBanks::getNumberOfPixels(const int bankId) {
+int PixelatedBanks::getNumberOfPixels(const int bankId) const {
   const int numberOfStrawsInBank = getNumberOfTubes(bankId) * 7;
   return numberOfStrawsInBank * getNumberOfPixelsInStraw(bankId);
 }
 
-int PixelatedBanks::getTotalNumberOfPixels() {
+int PixelatedBanks::getTotalNumberOfPixels() const {
   return getBankPixelOffset(getNumberOfBanks());
 }
 
-int PixelatedBanks::getTubeLayerId(const int bankId, const int tubeId, const bool oldTubeNumbering) {
-  const int tubePerLayer = getNumberOfTubes(bankId) / 4;
-  return oldTubeNumbering ? (tubeId % 4) : (int) tubeId / tubePerLayer;
-}
 
-
-int PixelatedBanks::getBankPixelOffset(const int bankId) {
-  assert(0 <= bankId && bankId <= 9);
+int PixelatedBanks::getBankPixelOffset(const int bankId) const {
+  if (bankId < 0 || bankId > getNumberOfBanks())
+    throw std::out_of_range("PixelatedBanks::getBankPixelOffset: bank " + std::to_string(bankId) + " (0-"
+                            + std::to_string(getNumberOfBanks()) + ")");
   int offset = 0;
   for (int bankIndex = 0; bankIndex < bankId; bankIndex++) {
     const int numberOfStrawsInBank = getNumberOfTubes(bankIndex) * 7;
@@ -65,28 +66,29 @@ int PixelatedBanks::getBankPixelOffset(const int bankId) {
   return offset;
 }
 
-int PixelatedBanks::getPositionPixelId(const int bankId, const double positionX, const double positionY) const{
-  const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
-
-  if (isVertical(bankId)) { //vertical straw
-    const double strawBegin = getBankPosition(bankId, 1) - 0.5* getStrawLengthByBankId(bankId);
-    return std::floor((positionY - strawBegin) / pixelLength);
-  }
-  else { //horizontal straw
-    const double strawBegin = getBankPosition(bankId, 0) - 0.5* getStrawLengthByBankId(bankId);
-    const int invertedPixelId = std::floor((positionX - strawBegin) / pixelLength);
-    return (getNumberOfPixelsInStraw(bankId) - 1) - invertedPixelId; //pixels are numbered in minus x direction
-  }
+int PixelatedBanks::getLocalPositionPixelId(const int bankId, const double positionX, const double positionY, const double positionZ) const{
+  const double strawLength = getStrawLengthByBankId(bankId);
+  const double pixelLength = strawLength / getNumberOfPixelsInStraw(bankId);
+  // bank-local z is the straw axis, centred on the straw (see AimHelper::getPixelPositionInStraw)
+  const double localZ = getBankTransform(bankId).toLocal({positionX, positionY, positionZ})[2];
+  const double distanceFromFirstPixelEnd = areTubesInverselyNumbered(bankId) ? 0.5 * strawLength - localZ
+                                                                             : localZ + 0.5 * strawLength;
+  // a position at or beyond a straw end (e.g. exactly at the end) gives the end pixel of this straw, never a pixel
+  // of the neighbouring straw (the counting gas ends inside the straw, so real hits are not affected)
+  const int pixel = std::floor(distanceFromFirstPixelEnd / pixelLength);
+  return std::min(std::max(pixel, 0), getNumberOfPixelsInStraw(bankId) - 1);
 }
 
-int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY) const{
+int PixelatedBanks::getPixelId(const int bankId, const int tubeId, const int strawId, const double positionX, const double positionY, const double positionZ) const{
+  if (bankId < 0 || bankId >= getNumberOfBanks() || tubeId < 0 || tubeId >= getNumberOfTubes(bankId) || strawId < 0 || strawId > 6)
+    throw std::out_of_range("PixelatedBanks::getPixelId: no bank " + std::to_string(bankId) + " tube " + std::to_string(tubeId)
+                            + " straw " + std::to_string(strawId) + " in the geometry");
   const int bankPixelOffset = getBankPixelOffset(bankId);
   const int strawPixelOffset = (tubeId * 7 + strawId) * getNumberOfPixelsInStraw(bankId);
-  const int positionPixelId = getPositionPixelId(bankId, positionX, positionY);
-  return bankPixelOffset + strawPixelOffset + positionPixelId;
+  return bankPixelOffset + strawPixelOffset + getLocalPositionPixelId(bankId, positionX, positionY, positionZ);
 }
 
-void PixelatedBanks::dumpInfo(){
+void PixelatedBanks::dumpInfo() const {
   int totalTumberOfPacks = 0;
   int totalTumberOfTubes = 0;
   int totalTumberOfStraws = 0;

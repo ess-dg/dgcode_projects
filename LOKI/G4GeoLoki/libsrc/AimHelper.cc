@@ -4,13 +4,15 @@
 #include <iostream>
 #include <array>
 #include <cassert>
+#include <stdexcept>
+#include <string>
 
 //////// Utilities for getting the centre coordinates of a pixel ////////
-std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId, const bool isOldPixelNumbering = false, const bool isLarmor2022Experiment = false) const {
+std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId) const {
   const int bankId = getBankId(pixelId);
   const int tubeId = getTubeId(pixelId, bankId);
-  const int inPackTubeId = getInPackTubeId(bankId, tubeId, isOldPixelNumbering);
-  const int packId = getPackId(bankId, tubeId, isOldPixelNumbering);
+  const int inPackTubeId = getInPackTubeId(bankId, tubeId);
+  const int packId = getPackId(bankId, tubeId);
   const int strawId = getStrawId(pixelId, bankId, tubeId);
 
   ///////// pixel in straw /////////
@@ -31,21 +33,15 @@ std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int 
   // apply pack rotation
   coordinateRotation(positionX, positionY, getPackRotation());
   // place pack in bank
-  positionX += getPackPositionInBank(bankId, packId, 2);
-  positionY += getPackPositionInBank(bankId, packId, 1);
-  positionZ += getPackPositionInBank(bankId, packId, 0);
+  const auto packPosition = getPackPositionInBankFrame(bankId, packId);
+  positionX += packPosition[0];
+  positionY += packPosition[1];
+  positionZ += packPosition[2];
 
-  ///////// bank position /////////
-  // apply bank rotations
-  coordinateRotation(positionY, positionX, getBankRotation(bankId, 2)); // Assuming left-handed coordinate sytem
-  coordinateRotation(positionZ, positionY, getBankRotation(bankId, 0));
-  coordinateRotation(positionZ, positionX, -getBankRotation(bankId, 1));
-  // place bank in world
-  positionX += getBankPosition(bankId, 0);
-  positionY += !isLarmor2022Experiment ? getBankPosition(bankId, 1) : getLarmor2022ExperimentBankPositionY();
-  positionZ += getBankPosition(bankId, 2);
+  ///////// bank in world /////////
+  const auto global = getBankTransform(bankId).toGlobal({positionX, positionY, positionZ});
 
-  return { positionX, positionY, positionZ };
+  return { global[0], global[1], global[2] };
 }
 
 void AimHelper::coordinateRotation(double &x, double &y, const double angle) {
@@ -56,47 +52,29 @@ void AimHelper::coordinateRotation(double &x, double &y, const double angle) {
 }
 
 int AimHelper::getBankId(const int pixelId) const {
+  if (pixelId < 0)
+    throw std::out_of_range("Pixel id " + std::to_string(pixelId) + " is negative");
   for (int bankId = 0; bankId < getNumberOfBanks(); bankId++){
     if(pixelId < getBankPixelOffset(bankId+1)){
       return bankId;
     }
   }
-  throw std::runtime_error("Pixel id is out of the range for the banks in the geometry");
+  throw std::out_of_range("Pixel id " + std::to_string(pixelId) + " is out of the range for the banks in the geometry");
 }
 
-int AimHelper::getPackId(const int bankId, const int tubeId, const bool isOldPixelNumbering) {
-  const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  const int normalPackId = isOldPixelNumbering ?
-                           (int) tubeId / 8 :
-                           (int) (tubeId % (numberOfPacks * 2)) / 2;
-  return !areTubesInverselyNumbered(bankId) ? normalPackId : ((numberOfPacks - 1) - normalPackId);
-}
-
-int AimHelper::getInPackTubeId(const int bankId, const int tubeId, const bool isOldPixelNumbering) {
-  const int numberOfPacks = getNumberOfPacksByBankId(bankId);
-  const int newTubeIdConvertedToOldId = ((tubeId % 2) * 4) + ((int) tubeId / (numberOfPacks * 2));
-
-  if(isOldPixelNumbering){
-    return areTubesInverselyNumbered(bankId) ? (tubeId + 4) % 8 : tubeId % 8;
-  }
-  else{
-    return areTubesInverselyNumbered(bankId) ? (newTubeIdConvertedToOldId + 4) % 8 : newTubeIdConvertedToOldId % 8;
-  }
-}
-
-int AimHelper::getTubeId(const int pixelId, const int bankId) {
+int AimHelper::getTubeId(const int pixelId, const int bankId) const {
   const int pixelIdInBank = pixelId - getBankPixelOffset(bankId);
   const int numberOfPixelsInATube = getNumberOfPixelsInStraw(bankId) * 7;
   return (int) pixelIdInBank / numberOfPixelsInATube;
 }
 
-int AimHelper::getStrawId(const int pixelId, const int bankId, const int tubeId) {
+int AimHelper::getStrawId(const int pixelId, const int bankId, const int tubeId) const {
   const int pixelIdInBank = pixelId - getBankPixelOffset(bankId);
   const int pixelIdInTube = pixelIdInBank - tubeId * 7 * getNumberOfPixelsInStraw(bankId);
   return (int) pixelIdInTube / getNumberOfPixelsInStraw(bankId);
 }
 
-double AimHelper::getPixelPositionInStraw(const int pixelId, const int bankId) {
+double AimHelper::getPixelPositionInStraw(const int pixelId, const int bankId) const {
   const int locPixelId = pixelId % getNumberOfPixelsInStraw(bankId);
   const double pixelLength = getStrawLengthByBankId(bankId) / getNumberOfPixelsInStraw(bankId);
   const double position = - 0.5* getStrawLengthByBankId(bankId) + (locPixelId + 0.5) * pixelLength;

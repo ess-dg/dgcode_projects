@@ -1,12 +1,42 @@
 
+import sys
 from Core import FindData
 from tempfile import NamedTemporaryFile
 import LokiMantid.mantidApi as api
 
+NOMINAL_BANK_CALIBRATION = 'nominal-geant4-geometry'
+
+def checkBankCalibration(mcplMetadata):
+  '''The instrument definition (data/LOKI_Definition_template_detectors.xml) describes the NOMINAL Geant4 geometry
+  (geometry parameter bank_calibration=nominal-geant4-geometry), while the default of the Geant4 geometry is the
+  surveyed geometry (e.g. 2026-September-SAM-606, whose banks are up to ~33 mm from the nominal positions). Prints a
+  warning if the simulation used another bank calibration.
+
+  To process simulations of a calibrated geometry, new instrument definition files would be needed, with the bank
+  positions and orientations of that calibration: e.g. made per bank from the bank transforms of G4GeoLoki
+  (LokiAimHelper.AimHelper(rear, pixels, 9, calibration).getBankTransform(bank): rotation and position of the bank
+  volume), or with per-pixel positions from sb_g4geoloki_writepixelfile --bankCalibration NAME; and the template
+  placeholders and checks of this module would have to be adapted to them.'''
+  calibration = mcplMetadata.get('bank_calibration', '')
+  if not calibration:
+    print(f'    NOTE: the bank calibration of the simulation is not recorded in the detection file (files from before it '
+          f'was recorded): assuming the nominal Geant4 geometry ({NOMINAL_BANK_CALIBRATION}), as the instrument '
+          f'definition.', file=sys.stderr)
+  elif calibration != NOMINAL_BANK_CALIBRATION:
+    print(f'\033[93m    WARNING: the simulation used the bank calibration {calibration}, but the Mantid instrument '
+          f'definition (LokiMantid/data/LOKI_Definition_template_detectors.xml) describes the NOMINAL Geant4 geometry '
+          f'({NOMINAL_BANK_CALIBRATION}): the pixel positions in Mantid differ from those of the simulation (by up to '
+          f'~33 mm for 2026-September-SAM-606), so the results (e.g. Q) are wrong. For the Mantid processing, simulate '
+          f'with bank_calibration={NOMINAL_BANK_CALIBRATION}. (Processing a calibrated geometry would need new '
+          f'instrument definition files with its bank positions, see LokiMantid/python/workspaceCreator.py.)\033[0m',
+          file=sys.stderr)
+
 class workspaceCreator:
-  '''Creates Mantid workspaces for mantidpython processing'''
+  '''Creates Mantid workspaces for mantidpython processing. NOTE: the instrument definition is the NOMINAL Geant4
+  geometry (see checkBankCalibration).'''
 
   def __init__(self, params, singleNexus, idfCreation):
+    checkBankCalibration(params.getMcplMetadata())
     self.bankIds = params.get('aiming_bank_id')
     self.nominalSourceSampleDistance = params.get('nominal_source_sample_distance_meters')
     self.preSampleMonitorDistance = params.get('source_monitor_distance_meters')

@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+# Builds the GeoBCSBanks geometry for several configurations (without any
+# Geant4 run manager or physics, so it is fast) and checks the result of the
+# standard Geant4 overlap check, which G4Interfaces' GeoBase::place(..) performs
+# for every single placement during construction (1000 surface points per
+# volume). The detailed per-volume output is summarised per volume name: number
+# of placements checked and number of placements with problems (any line not
+# ending in "OK!", or any G4Exception such as GeomVol1002). Any problem makes
+# the test fail.
+#
+# (Volumes named BoronMask-<bank>-<maskId> are grouped as BoronMask-<bank>-*.)
+#
+# This is much faster than "sb_loki_sim -t" (/geometry/test/run), while still
+# checking every placement against its mother and its already placed siblings.
+
+import collections
+import re
+import G4GeoLoki.GeoBCSBanks as GEO
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import captured_fd_output
+
+NOMINAL = 'nominal-geant4-geometry'  # (explicit: the default of the geometry is the 2026-September-SAM-606 calibration)
+configs = [
+    dict(bank_calibration=NOMINAL),
+    dict(bank_calibration=NOMINAL, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True),
+    # the survey-based bank placements (G4GeoLoki/data/bank_calibration_2026-September-SAM-606.txt)
+    dict(bank_calibration='2026-September-SAM-606'),
+    dict(bank_calibration='2026-September-SAM-606', rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True),
+]
+
+nproblems_total = 0
+for cfg in configs:
+    geo = GEO.create()
+    for k, v in cfg.items():
+        setattr(geo, k, v)
+    print('='*80)
+    print('Configuration:', ', '.join(f'{k}={v}' for k, v in cfg.items()) or 'defaults')
+    with captured_fd_output() as lines:
+        ndaughters = TU.construct_world(geo)
+    print(f'World daughters: {ndaughters}')
+    checks = collections.Counter()
+    problems = collections.Counter()
+    problem_lines = []
+    for line in lines:
+        if line.startswith('Checking overlaps for volume '):
+            volname = line[len('Checking overlaps for volume '):].split(':')[0]
+            volname = re.sub(r'^(BoronMask-\d)-\d+$', r'\1-*', volname) #group the per-bank boron masks
+            checks[volname] += 1
+            if not line.rstrip().endswith('OK!'):
+                problems[volname] += 1
+                problem_lines.append(line)
+        elif 'G4Exception' in line or 'GeomVol1002' in line or 'Overlap' in line or 'ERROR' in line:
+            problems['<G4Exception/other>'] += 1
+            problem_lines.append(line)
+    print(f'Total placements checked for overlaps: {sum(checks.values())}')
+    for volname in sorted(checks):
+        print(f'   {volname:32} checked: {checks[volname]:5}  problems: {problems.get(volname,0)}')
+    if problems:
+        print('Problems found:')
+        for line in problem_lines[:50]:
+            print('   ', line)
+    nproblems_total += sum(problems.values())
+
+print('='*80)
+if nproblems_total:
+    print(f'TEST FAILED: {nproblems_total} overlap problems')
+    raise SystemExit(1)
+print('All overlap checks OK')

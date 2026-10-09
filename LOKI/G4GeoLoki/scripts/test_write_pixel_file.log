@@ -1,0 +1,8 @@
+--bankId 2 -n 2, bank calibration default (2026-September-SAM-606): 672 pixels, detector numbers 4033..4704, the AimHelper centres (4 decimals): True
+--bankId 2 -n 2, bank calibration nominal-geant4-geometry: 672 pixels, detector numbers 4033..4704, the AimHelper centres (4 decimals): True
+-ssd 23.6: z larger by 23.6 m, x and y unchanged: True
+-f bank5: File created: bank5.txt, 784 lines
+--bankId 9: exit code 2, "--bankId must be 0-8"
+-n 0: exit code 2, "--strawPixelNumber must be positive"
+--bankCalibration unknown-calibration: exit code 2, "unknown bank calibration"
+checks performed: 7, failures: 0

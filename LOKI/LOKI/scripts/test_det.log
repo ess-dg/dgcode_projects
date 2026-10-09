@@ -1,0 +1,4 @@
+bcsloki_sans.shist:
+  neutron_counters: count_initial_neutrons 8.0, count_neutrons_hit 0.0
+  neutron_xy_hit: empty
+detectionEvents.mcpl: 0 detection events, sha256 of the pixel ids e3b0c44298fc1c14

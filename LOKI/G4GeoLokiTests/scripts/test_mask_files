@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+
+# The mask file writing and combining of LokiMasking, without simulations:
+#   * MaskFileCreator (the writer used by the masking analyses): banks with masked
+#     pixels, a bank with NO masked pixel (valid empty <detids>), out-of-range pixel
+#     numbers (ignored, no out-of-bounds access), a single aimed bank, and a geometry
+#     with a single bank (file name without the bank prefix);
+#   * maskMerger: intersection of several mask files.
+# (The Larmor 2022 mask converter is tested in LOKI/Larmor/LarmorTests.)
+# The mask files must be valid XML with 1-based, increasing detector ids.
+
+import os
+import subprocess
+import xml.etree.ElementTree as ET
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import Checker, captured_fd_output
+
+chk = Checker()
+
+def read_ids(path):
+    with open(path) as f:
+        text = f.read()
+    root = ET.fromstring(text)
+    detids = root.find('group').find('detids')
+    chk.check(root.tag == 'detector-masking' and detids is not None, f'{path}: unexpected XML structure')
+    return [int(e) for e in (detids.text or '').split(',') if e.strip()]
+
+def create(m):
+    """MaskFileCreator.createMaskFile, with its C++ output printed in order."""
+    with captured_fd_output() as lines:
+        m.createMaskFile()
+    for line in lines:
+        print('   ', line)
+
+def write_mask(path, ids):
+    with open(path, 'w') as f:
+        f.write('<?xml version="1.0"?>\n<detector-masking>\n\t<group>\n\t\t<detids> ')
+        f.write(', '.join(map(str, ids)) + ' </detids>\n\t</group>\n</detector-masking>')
+
+os.makedirs('run_mask_files', exist_ok=True)
+os.chdir('run_mask_files')
+
+print('--- MaskFileCreator, 3 banks (pixels 0-9, 10-24, 25-39), detector ids = pixel + 1')
+limits = [0, 10, 25, 40]
+entered = {0: [0, 3, 4, 9], 1: list(range(10, 25)), 2: [25, 39]}  # bank 1: every pixel entered
+m = TU.MaskFileCreator('maskFile.xml', 1, limits, -1)
+for pixels in entered.values():
+    for p in pixels:
+        m.setPixelEntered(p)
+for p in (-1, -100, 40, 1000):  # out of range: ignored, reported as entered
+    m.setPixelEntered(p)
+    chk.check(m.isPixelEntered(p), f'out-of-range pixel {p} not reported as entered')
+create(m)
+for b in range(3):
+    ids = read_ids(f'bank{b}_maskFile.xml')
+    expected = [p + 1 for p in range(limits[b], limits[b + 1]) if p not in entered[b]]
+    chk.check(ids == expected, f'bank {b}: masked ids {ids}, expected {expected}')
+    print(f'bank {b}: masked detector ids {ids}')
+with open('bank1_maskFile.xml') as f:
+    print('bank 1 file (nothing masked):', f.read().replace('\n', '|').replace('\t', ''))
+
+print('--- MaskFileCreator, only bank 2 aimed at')
+for name in os.listdir('.'):
+    os.remove(name)
+m = TU.MaskFileCreator('maskFile.xml', 1, limits, 2)
+m.setPixelEntered(30)
+create(m)
+chk.check(sorted(os.listdir('.')) == ['bank2_maskFile.xml'], f'files written: {sorted(os.listdir("."))}')
+print('bank 2: masked detector ids', read_ids('bank2_maskFile.xml'))
+
+print('--- MaskFileCreator, a geometry with one bank')
+m = TU.MaskFileCreator('maskFile.xml', 1, [0, 5], -1)
+m.setPixelEntered(2)
+create(m)
+chk.check(os.path.exists('maskFile.xml'), 'single bank: maskFile.xml not written')
+print('single bank: masked detector ids', read_ids('maskFile.xml'))
+
+print('--- maskMerger: intersection')
+write_mask('a.xml', [1, 2, 3, 5, 8, 13])
+write_mask('b.xml', [2, 3, 5, 7, 11, 13])
+write_mask('c.xml', [3, 5, 13, 21])
+r = subprocess.run(['sb_lokimasking_maskMerger', 'a.xml', 'b.xml', 'c.xml', '-s', 'merged.xml'],
+                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+if chk.check(r.returncode == 0, f'maskMerger failed:\n{r.stdout}'):
+    print(r.stdout.strip())
+    ids = read_ids('merged.xml')
+    chk.check(ids == [3, 5, 13], f'merged ids {ids}')
+    print('merged detector ids', ids)
+
+chk.finish()

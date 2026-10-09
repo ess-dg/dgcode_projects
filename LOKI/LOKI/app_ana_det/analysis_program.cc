@@ -26,7 +26,7 @@ int main(int argc, char**argv) {
   auto setup = dr.setup();
   auto &geo = setup->geo();
   //printf("QQQ=============  %s \n", geo.getName().c_str());
-  if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
+  if (geo.getName()!="G4GeoLoki/GeoBCSBanks") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
   }
@@ -57,14 +57,28 @@ int main(int argc, char**argv) {
   SimpleHists::HistCollection hc;
 
   auto userData = setup->userData();
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   if(userData.count("analysis_straw_pixel_number")){
     const int strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
+  }
+  { // the bank placements of the simulation (checked by the LokiMantid scripts)
+    mcpl_hdr_add_data(detMcpl, "bank_calibration", bankCalibrationName.size(), bankCalibrationName.c_str());
+    if (!bankCalibration.isNominal())
+      printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
+             "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibrationName.c_str(), BankCalibration::nominalName.c_str());
   }
 
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");
@@ -94,7 +108,7 @@ int main(int argc, char**argv) {
 
         h_neutron_xy_hit->fill(-hit.eventHitPositionX()/Units::mm, hit.eventHitPositionY()/Units::mm, hit.eventHitWeight());
 
-        const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, hit.eventHitPositionX(), hit.eventHitPositionY());
+        const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, hit.eventHitPositionX(), hit.eventHitPositionY(), hit.eventHitPositionZ());
 
         mcplParticle->time = hit.eventHitTime()/Units::ms;
         mcplParticle->weight = hit.eventHitWeight();

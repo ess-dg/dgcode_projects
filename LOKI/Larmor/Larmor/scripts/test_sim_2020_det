@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# The Larmor 2020 detector-only simulation (no interactions) and its analysis.
+# Each step must succeed (its output is in <step>.log); the log of the test is a summary of the output files
+# (LOKI.OutputSummary: histograms, detection events, mask files).
+
+run() { local name=$1; shift; "$@" > $name.log 2>&1 || { tail -40 $name.log; echo "TEST FAILED: $name"; exit 1; }; }
+run sim sb_larmor_sim_2020 det_only=true -lPL_Empty
+run ana sb_larmor_ana_2020_det larmor_CountingGas_Converter.griff
+python3 -m LOKI.OutputSummary

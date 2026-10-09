@@ -1,0 +1,29 @@
+====================================================================================================
+Front left bank (vertical, upside down), back layer: bank 6, tube 103, aimed pixel ids 18564..18577
+====================================================================================================
+sim: Number of pixels in bank6: 3584 (set -n accordingly to cover the whole bank!)
+sim: Lowest pixel id in bank6: 15680
+sim: aiming_pixel_id_min is set to: 18564. This will be used as the first pixel to aim at, overriding the lowest pixel id in the selected/default bank.
+ana: Created masking file: bank6_maskFile.xml
+ana: WARNING: 3534/3584 pixels were not hit by any of the geantinos!
+entered pixel ids: [15932, 15933, 15936, 15937, 15938, 15939, 15940, 15941, 16800, 16801, 16802, 16803, 16808, 16809, 16810, 16811, 16812, 16813, 16814, 16815, 16816, 16817, 16818, 16819, 16820, 16821, 16824, 16825, 16826, 16827, 17688, 17689, 17690, 17691, 17700, 17701, 18564, 18565, 18566, 18567, 18568, 18569, 18570, 18571, 18572, 18573, 18574, 18575, 18576, 18577]
+entered without passing masks: [15932, 15933, 15936, 15937, 15938, 15940, 15941, 16800, 16801, 16802, 16808, 16809, 16810, 16812, 16813, 16814, 16816, 16817, 16818, 16820, 16821, 16824, 16825, 16826, 17688, 17689, 17690, 17700, 17701, 18564, 18565, 18566, 18568, 18569, 18570, 18572, 18573, 18574, 18576, 18577]
+entered (bank, tube, straw): [(6, 9, 0), (6, 9, 1), (6, 9, 2), (6, 40, 0), (6, 40, 2), (6, 40, 3), (6, 40, 4), (6, 40, 5), (6, 40, 6), (6, 71, 5), (6, 72, 1), (6, 103, 0), (6, 103, 1), (6, 103, 2), (6, 103, 3)]
+mask file: 3544 masked ids (bank pixel range 15681..19264)
+====================================================================================================
+Mid top bank (horizontal, upside down), front layer: bank 1, tube 3, aimed pixel ids 6356..6369
+====================================================================================================
+sim: Number of pixels in bank1: 1792 (set -n accordingly to cover the whole bank!)
+sim: Lowest pixel id in bank1: 6272
+sim: aiming_pixel_id_min is set to: 6356. This will be used as the first pixel to aim at, overriding the lowest pixel id in the selected/default bank.
+ana: Created masking file: bank1_maskFile.xml
+ana: WARNING: 1736/1792 pixels were not hit by any of the geantinos!
+entered pixel ids: [6356, 6357, 6358, 6359, 6360, 6361, 6362, 6363, 6364, 6365, 6366, 6367, 6368, 6369, 6370, 6371, 6380, 6381, 6808, 6809, 7236, 7237, 7238, 7239, 7240, 7241, 7242, 7243, 7244, 7245, 7246, 7247, 7248, 7249, 7250, 7251, 7672, 7673, 7674, 7675, 7676, 7677, 7678, 7679, 7680, 7681, 7682, 7683, 7684, 7685, 7686, 7687, 7696, 7697, 7698, 7699]
+entered without passing masks: [6356, 6357, 6358, 6359, 6360, 6361, 6362, 6363, 6364, 6365, 6366, 6367, 6368, 6369, 6370, 6371, 6380, 6381, 6808, 6809, 7236, 7237, 7238, 7239, 7240, 7241, 7242, 7243, 7244, 7245, 7246, 7247, 7248, 7249, 7250, 7251, 7672, 7673, 7674, 7675, 7676, 7677, 7678, 7679, 7680, 7681, 7682, 7683, 7684, 7685, 7686, 7687, 7696, 7697, 7698, 7699]
+entered (bank, tube, straw): [(1, 3, 0), (1, 3, 1), (1, 3, 2), (1, 3, 3), (1, 3, 6), (1, 19, 1), (1, 34, 3), (1, 34, 4), (1, 34, 5), (1, 34, 6), (1, 50, 0), (1, 50, 1), (1, 50, 2), (1, 50, 3), (1, 50, 6)]
+mask file: 1736 masked ids (bank pixel range 6273..8064)
+====================================================================================================
+Rear bank moved by 40 mm along its tubes, 16 pixels per straw: the analysis uses the calibration
+====================================================================================================
+visible pixels of the analysis = those of the moved placement: True; different from the nominal placement: True
+checks performed: 12, failures: 0

@@ -1,0 +1,12 @@
+recorded calibration (SAM-606), rear 5 m: exit code 1; bank 0 differs, bank 2 agrees, bank 4 agrees
+recorded calibration (SAM-606), -rear 4.9998: exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees
+--bankCalibration nominal-geant4-geometry: exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs
+no info (like loki.json): nominal Geant4 geometry, 1 pixel per straw from the file: exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs; "bank_calibration=nominal-geant4-geometry, rear detector distance 4.9998 m, 1 pixels per straw"
+--geant4 (writePixelFile, SAM-606, 4.9998 m): exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees; "Geant4 pixel positions: from the file g4.txt"
+--geant4 with -t 0.00001 (the file has 4 decimals in m): exit code 1; bank 0 differs, bank 2 differs, bank 4 differs
+recorded nominal-cad-geometry: banks 2 and 4 are the surveyed ones (differ): exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs; "bank_calibration=nominal-cad-geometry"
+wrong -s 2: exit code 1; bank 0 differs, bank 2 differs, bank 4 differs; "Pixel ids don't agree"
+pixel shape not centred on the offsets: exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees; "NOTE: the pixel shape is not centred on the pixel offsets"
+a rotation in the depends_on chain: exit code 1; "only translations are supported"
+depends_on to a missing node: exit code 1; "not found in the file"
+checks performed: 11, failures: 0

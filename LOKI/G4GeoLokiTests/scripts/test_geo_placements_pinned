@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+# Pins the placement of every volume of the GeoBCSBanks geometry and the AimHelper pixel centres,
+# so that a refactoring of the placement code (e.g. of how the bank transforms or the triangular
+# boron masks are computed) can be shown to change nothing.
+#
+# For each configuration: a checksum of the global position (rounded to 1e-6 mm) and rotation
+# (rounded to 1e-9) of every physical volume (the whole tree: banks, packs, tubes, straws, masks,
+# ...), and a checksum of all AimHelper pixel centres (8 pixels per straw, rounded to 1e-6 mm).
+# For the richest configurations the volumes down to depth 2 (banks, world masks, packs, masks in
+# the banks, calibration slits, beamstop) are also printed, so that a change shows where it is.
+
+import hashlib
+import numpy as np
+import G4GeoLoki.GeoBCSBanks as GEO
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import captured_fd_output
+
+NOMINAL = 'nominal-geant4-geometry'
+SAM606 = '2026-September-SAM-606'
+
+def fmt(v, decimals):
+    return ' '.join(f'{x:.{decimals}f}'.replace('-0.' + '0' * decimals, '0.' + '0' * decimals) for x in v)
+
+def run(title, pars, print_depth):
+    geo = GEO.create()
+    for k, v in pars.items():
+        setattr(geo, k, v)
+    with captured_fd_output():
+        TU.construct_world(geo)
+    lines = []
+    for depth, name, copy, lv, t, rows in TU.world_tree():
+        R = np.array(rows).flatten()
+        lines.append((depth, f'{"  " * depth}{name}:{copy} [{lv}] pos ({fmt(t, 6)}) rot ({fmt(R, 9)})'))
+    print('=' * 100)
+    print(f'{title}: {len(lines)} volumes, sha256 of the placements '
+          f'{hashlib.sha256(chr(10).join(l for _, l in lines).encode()).hexdigest()}')
+    rear = pars.get('rear_detector_distance_m', 5.0) * 1000
+    aim = LokiAim.AimHelper(rear, 8, 9, pars.get('bank_calibration', NOMINAL))
+    centres = [fmt(aim.getPixelCentreCoordinates(p), 6)
+               for p in range(aim.getTotalNumberOfPixels())]
+    print(f'  {len(centres)} AimHelper pixel centres (8 per straw), sha256 '
+          f'{hashlib.sha256(chr(10).join(centres).encode()).hexdigest()}')
+    if print_depth:
+        for depth, line in lines:
+            if depth <= print_depth:
+                print(line)
+
+run('nominal, rear 10 m, beamstop 3, calibration slits',
+    dict(bank_calibration=NOMINAL, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True), 2)
+run('2026-September-SAM-606, rear 10 m, beamstop 3, calibration slits',
+    dict(bank_calibration=SAM606, rear_detector_distance_m=10.0, beamstop_id=3, with_calibration_slits=True), 2)
+run('nominal, defaults', dict(bank_calibration=NOMINAL), 0)
+run('2026-September-SAM-606, defaults', dict(bank_calibration=SAM606), 0)

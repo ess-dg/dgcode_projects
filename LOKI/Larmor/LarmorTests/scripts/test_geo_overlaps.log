@@ -1,0 +1,48 @@
+==========================================================================================
+Larmor 2020, withBeamstop: world daughters: 1
+  construction check: 234 placements checked
+     AlPanel                          checked:     8  problems: 0
+     B4CPanel                         checked:    12  problems: 0
+     Bank                             checked:     1  problems: 0
+     BoronMask-Beamstop               checked:     1  problems: 0
+     Converter                        checked:    56  problems: 0
+     CountingGas                      checked:    56  problems: 0
+     EmptyPackBox                     checked:     4  problems: 0
+     EmptyTube                        checked:     8  problems: 0
+     StrawWall                        checked:    56  problems: 0
+     TubeWall                         checked:    32  problems: 0
+  dense check: 1 world volumes, overlaps: 0, bank content outside its bank: 0
+==========================================================================================
+Larmor 2022, beamstop 1, calibration slits: world daughters: 2
+  construction check: 1643 placements checked
+     AlPanel                          checked:    56  problems: 0
+     B4CPanel                         checked:    84  problems: 0
+     Bank                             checked:     1  problems: 0
+     BoronMask-0-*                    checked:     6  problems: 0
+     BoronMask-Beamstop               checked:     1  problems: 0
+     BoronMask-larmorCdCalibMask      checked:    10  problems: 0
+     CalibMaskBox                     checked:     1  problems: 0
+     Converter                        checked:   392  problems: 0
+     CountingGas                      checked:   392  problems: 0
+     EmptyPackBox                     checked:    28  problems: 0
+     EmptyTube                        checked:    56  problems: 0
+     StrawWall                        checked:   392  problems: 0
+     TubeWall                         checked:   224  problems: 0
+  dense check: 2 world volumes, overlaps: 0, bank content outside its bank: 0
+==========================================================================================
+Larmor 2022, old tube numbering, beamstop 5: world daughters: 1
+  construction check: 1632 placements checked
+     AlPanel                          checked:    56  problems: 0
+     B4CPanel                         checked:    84  problems: 0
+     Bank                             checked:     1  problems: 0
+     BoronMask-0-*                    checked:     6  problems: 0
+     BoronMask-Beamstop               checked:     1  problems: 0
+     Converter                        checked:   392  problems: 0
+     CountingGas                      checked:   392  problems: 0
+     EmptyPackBox                     checked:    28  problems: 0
+     EmptyTube                        checked:    56  problems: 0
+     StrawWall                        checked:   392  problems: 0
+     TubeWall                         checked:   224  problems: 0
+  dense check: 1 world volumes, overlaps: 0, bank content outside its bank: 0
+==========================================================================================
+All overlap checks OK

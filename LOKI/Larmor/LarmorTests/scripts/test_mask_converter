@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+
+# maskConverter_2022: conversion of a full-geometry mask (512 pixels per straw) to the reduced Larmor 2022 geometry
+# (pinned output; moved from G4GeoLokiTests/test_mask_files). The mask files must be valid XML with 1-based,
+# increasing detector ids.
+
+import os
+import subprocess
+import xml.etree.ElementTree as ET
+from G4GeoLokiTests.testhelpers import Checker
+
+chk = Checker()
+
+def read_ids(path):
+    with open(path) as f:
+        text = f.read()
+    root = ET.fromstring(text)
+    detids = root.find('group').find('detids')
+    chk.check(root.tag == 'detector-masking' and detids is not None, f'{path}: unexpected XML structure')
+    return [int(e) for e in (detids.text or '').split(',') if e.strip()]
+
+def write_mask(path, ids):
+    with open(path, 'w') as f:
+        f.write('<?xml version="1.0"?>\n<detector-masking>\n\t<group>\n\t\t<detids> ')
+        f.write(', '.join(map(str, ids)) + ' </detids>\n\t</group>\n</detector-masking>')
+
+os.makedirs('run_mask_converter', exist_ok=True)
+os.chdir('run_mask_converter')
+
+print('--- maskConverter_2022: full geometry (512 px/straw) -> reduced Larmor 2022 geometry')
+full = [1, 2, 512, 513, 3584, 3585, 400000, 802816, 802817, 900000]  # banks 0 and 1 of the full geometry
+write_mask('full.xml', full)
+for extra in ([], ['--convert_old_to_new_tube_numbering']):
+    r = subprocess.run(['sb_larmor_maskConverter_2022', 'full.xml', '-s', 'larmor.xml'] + extra,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if chk.check(r.returncode == 0, f'maskConverter_2022 {extra} failed:\n{r.stdout}'):
+        ids = read_ids('larmor.xml')
+        chk.check(ids == sorted(set(ids)) and all(1 <= i <= 802816 for i in ids), f'converted ids {ids}')
+        print(f'converted {" ".join(extra) or "(new numbering)"}: {full} -> {ids}')
+
+chk.finish()

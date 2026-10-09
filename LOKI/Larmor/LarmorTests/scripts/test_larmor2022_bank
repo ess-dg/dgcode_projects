@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+
+# Pins the frozen bank placement, tube numbering and pixel logic of the Larmor 2022 experiment (Larmor2022Bank;
+# no Geant4 geometry needed):
+#
+#  A) The bank placement (rotation, translation), the bank height, the calibration mask position and the numbers of
+#     packs, tubes and pixels.
+#  B) The tube numbering: the TubeWall copy numbers (new and old numbering) of the tubes of some packs, and the
+#     checks that getPackId / getInPackTubeId / getTubeLayerId invert them for all tubes.
+#  C) For a sample of pixels (all 4 layers, first/second/middle/last tube rows, all 7 straws, first/middle/last pixel
+#     of the straw), new and old tube numbering, 512 pixels per straw: the decoded tube/pack/straw/layer ids and the
+#     pixel centre [mm]. (The new numbering lines are the same as section C of G4GeoLokiTests/test_aimhelper_pixels
+#     before the Larmor code was moved to the Larmor package.)
+#  D) Checksums of all pixel centres (8 and 512 pixels per straw, new and old numbering).
+#  E) Pixel id round trip for the first, middle and last pixel of every straw: getPixelId(tube, straw, x, y, z) of
+#     the pixel centre, of the points 0.49 pixel lengths from it along the straw and of points 3 mm across the straw
+#     gives the pixel id; 0.51 pixel lengths away along the straw: the neighbouring pixel.
+
+import hashlib
+import Larmor.Larmor2022Bank as LB
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import fmt, fmtvec, NSTRAWS, Checker
+from LarmorTests.larmorhelpers import sample_pixels
+
+chk = Checker()
+REAR = 4099.0
+
+print('=' * 100)
+print('A) Bank placement')
+print('=' * 100)
+bank = LB.Larmor2022Bank(REAR)
+R, t = bank.getBankTransform()
+print('rotation rows (columns: the bank depth, across-tubes and along-tubes axes in the world):',
+      ' '.join(fmtvec(row, 6) for row in R))
+print(f'translation (bank box centre): {fmtvec(t, 6)}')
+print(f'bank y position: {fmt(LB.Larmor2022Bank.getBankPositionY(), 6)}')
+print(f'calibration mask centre (with_calibration_slits): {fmtvec(bank.getCalibMaskPosition(), 6)}')
+print(f'packs: {bank.getNumberOfPacks()}, tubes: {bank.getNumberOfTubes()}, default pixels per straw: '
+      f'{LB.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW} ({bank.getNumberOfPixelsInStraw()}), total pixels: {bank.getTotalNumberOfPixels()}')
+chk.check(bank.getTotalNumberOfPixels() == 224 * NSTRAWS * 512, 'total number of pixels')
+
+print('=' * 100)
+print('B) Tube numbering: TubeWall copy numbers (in-pack tubes 0-7) new / old numbering')
+print('=' * 100)
+nPacks = bank.getNumberOfPacks()
+for pack in (0, 1, nPacks // 2, nPacks - 1):
+    print(f'pack {pack:2}: new {[LB.Larmor2022Bank.getTubeVolumeNumber(pack, i, False) for i in range(8)]}'
+          f'  old {[LB.Larmor2022Bank.getTubeVolumeNumber(pack, i, True) for i in range(8)]}')
+for old in (False, True):
+    tubes = set()
+    for pack in range(nPacks):
+        for i in range(8):
+            tube = LB.Larmor2022Bank.getTubeVolumeNumber(pack, i, old)
+            tubes.add(tube)
+            chk.check(LB.Larmor2022Bank.getPackId(tube, old) == pack and LB.Larmor2022Bank.getInPackTubeId(tube, old) == i
+                      and LB.Larmor2022Bank.getTubeLayerId(tube, old) == i % 4,
+                      f'old={old}: pack {pack} tube {i} -> {tube}')
+    chk.check(tubes == set(range(bank.getNumberOfTubes())), f'old={old}: tube ids not 0..{bank.getNumberOfTubes() - 1}')
+print('getPackId / getInPackTubeId / getTubeLayerId invert the copy numbers of all tubes (both numberings)')
+
+def print_sample(bank, N, old):
+    print(f'{"pixelId":>8} {"bank":>4} {"tube":>4} {"pack":>4} {"straw":>5} {"inStraw":>7} {"layer":>5}   centre [mm]')
+    for (t, s, j, pid) in sample_pixels(bank.getNumberOfPacks(), N, old):
+        tube = bank.getTubeId(pid)
+        straw = bank.getStrawId(pid)
+        pack = bank.getPackId(tube, old)
+        layer = bank.getTubeLayerId(tube, old)
+        chk.check((tube, straw) == (t, s), f'decoding of pixel {pid}')
+        c = bank.getPixelCentre(pid, old)
+        print(f'{pid:8} {0:4} {tube:4} {pack:4} {straw:5} {pid % N:7} {layer:5}   {fmtvec(c, 4)}')
+
+for old in (False, True):
+    print('=' * 100)
+    print(f'C) Sample pixels: rear 4.099 m, 512 pixels/straw, {"OLD" if old else "NEW"} tube numbering')
+    print('=' * 100)
+    print_sample(bank, 512, old)
+
+print('=' * 100)
+print('D) Checksums of all pixel centres (rounded to 1e-6 mm)')
+print('=' * 100)
+for N in (8, 512):
+    b = LB.Larmor2022Bank(REAR, N)
+    for old in (False, True):
+        centres = '\n'.join(fmtvec(b.getPixelCentre(p, old), 6) for p in range(b.getTotalNumberOfPixels()))
+        print(f'{N:4} pixels/straw, {"old" if old else "new"} numbering: {b.getTotalNumberOfPixels()} pixels, '
+              f'sha256 {hashlib.sha256(centres.encode()).hexdigest()}')
+
+print('=' * 100)
+print('E) Pixel id round trip (first/middle/last pixel of every straw, 512 pixels/straw)')
+print('=' * 100)
+N = 512
+pitch = TU.getStrawLengthByBankId(0) / N
+n0 = chk.nchecks
+for old in (False, True):
+    for tube in range(bank.getNumberOfTubes()):
+        for straw in range(NSTRAWS):
+            for j in (0, N // 2, N - 1):
+                pid = (tube * NSTRAWS + straw) * N + j
+                x, y, z = bank.getPixelCentre(pid, old)
+                # the straws are along the world x axis, the pixel index increases towards -x
+                probes = [(0.0, 0, 0.0), (-0.49 * pitch, 0, 0.0), (0.49 * pitch, 0, 0.0), (0.0, 0, 3.0), (0.0, 0, -3.0)]
+                if j < N - 1:
+                    probes.append((-0.51 * pitch, 1, 0.0))
+                if j > 0:
+                    probes.append((0.51 * pitch, -1, 0.0))
+                for dx, dj, dyz in probes:
+                    got = bank.getPixelId(tube, straw, x + dx, y + dyz, z + dyz)
+                    chk.check(got == pid + dj, f'pixel {pid} (old={old}): getPixelId at {dx:+.3f} mm -> {got}')
+print(f'{chk.nchecks - n0} checks done, failures: {chk.nfail}')
+
+chk.finish()

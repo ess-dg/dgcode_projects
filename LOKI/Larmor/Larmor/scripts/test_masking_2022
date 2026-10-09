@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# The Larmor 2022 masking simulation (geantinos) and analysis.
+# Each step must succeed (its output is in <step>.log); the log of the test is a summary of the output files
+# (LOKI.OutputSummary: histograms, detection events, mask files).
+
+run() { local name=$1; shift; "$@" > $name.log 2>&1 || { tail -40 $name.log; echo "TEST FAILED: $name"; exit 1; }; }
+run sim sb_larmor_masking_sim_2022 rear_detector_distance_m=4.099 aiming_straw_pixel_number=1024 analysis_straw_pixel_number=512 beamstop_id=0 gen_x_offset_meters=0.005 -lPL_Empty
+run ana sb_larmor_masking_ana_2022 loki_masking.griff
+python3 -m LOKI.OutputSummary

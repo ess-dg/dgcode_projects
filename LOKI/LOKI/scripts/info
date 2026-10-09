@@ -3,34 +3,48 @@
 import argparse
 import G4GeoLoki.LokiAimHelper as LokiAim
 
-parser = argparse.ArgumentParser(description = 'Geometry information tools.')
+parser = argparse.ArgumentParser(description = 'Geometry information tools (from the Geant4 geometry, G4GeoLoki).')
 parser.add_argument('-d', '--dump', action = 'store_true', help = 'Dump information about the geometry.')
 parser.add_argument('-r', '--rear_detector_distance_m', default=5.0, type=float, help = 'Sample to rear detector distance.')
 parser.add_argument('-s', '--straw_pixel_number', default=256, type=int, help = 'Number of pixels per straw.')
 parser.add_argument('-p', '--pixel', type=int, help = 'Get information about a particular pixel.')
 # parser.add_argument('-s', '--straw', type=int, help = 'Get information about a particular straw.')
-parser.add_argument('--old_tube_numbering', default=False, action = 'store_true', help = 'Use old tube numbering.')
-parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.6, help = 'Source sample distance [m] (defaults to 0 m)')
+parser.add_argument('--nominal_source_sample_distance_meters', type=float, default=23.6, help = 'Source sample distance [m] (added to the Z of the pixel positions).')
+parser.add_argument('-c', '--bank_calibration', default=LokiAim.DEFAULT_BANK_CALIBRATION,
+                    help = f'Bank placements (the bank_calibration geometry parameter): {LokiAim.NOMINAL_BANK_CALIBRATION}, '
+                           'the name of a bank calibration in G4GeoLoki/data (bank_calibration_<name>.txt) or the path of such a file '
+                           f'(default: {LokiAim.DEFAULT_BANK_CALIBRATION}).')
+parser.add_argument('--unit', choices=['m', 'mm'], default='m', help = 'Unit of the printed positions (default: m).')
+parser.add_argument('--precision', type=int, default=4, help = 'Number of decimals of the printed positions (default: 4).')
 
 args = parser.parse_args()
+if args.precision < 0:
+  parser.error('--precision must not be negative')
 
-print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} nominal_source_sample_distance_meters={args.nominal_source_sample_distance_meters}\n")
-geoHelper = LokiAim.AimHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number)
+print(f"Used parameters: straw_pixel_number={args.straw_pixel_number} rear_detector_distance_m={args.rear_detector_distance_m} nominal_source_sample_distance_meters={args.nominal_source_sample_distance_meters} bank_calibration={args.bank_calibration}\n")
+try:
+  geoHelper = LokiAim.AimHelper(args.rear_detector_distance_m * 1000, args.straw_pixel_number, 9, args.bank_calibration)
+except Exception as error:
+  parser.error(str(error))
 
 if args.dump:
   geoHelper.dumpInfo()
   exit()
 
 if not args.pixel is None:
-  larmor_2022_experiment=False #TODO input? must be handled everywhere
-  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel, args.old_tube_numbering, larmor_2022_experiment)
+  if not 0 <= args.pixel < geoHelper.getTotalNumberOfPixels():
+    parser.error(f'--pixel must be 0-{geoHelper.getTotalNumberOfPixels() - 1} (with {args.straw_pixel_number} pixels per straw), not {args.pixel}')
+  pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel)
+  pixelCentreZ += args.nominal_source_sample_distance_meters * 1000.0
   bankId = geoHelper.getBankId(args.pixel)
   tubeId = geoHelper.getTubeId(args.pixel, bankId)
-  packId = geoHelper.getPackId(bankId, tubeId, args.old_tube_numbering)
+  packId = geoHelper.getPackId(bankId, tubeId)
   strawId = geoHelper.getStrawId(args.pixel, bankId, tubeId)
   inStrawId = args.pixel % args.straw_pixel_number
+  scale = 1000.0 if args.unit == 'm' else 1.0 # positions are in mm
+  x, y, z = (f"{value / scale:.{args.precision}f}" for value in (pixelCentreX, pixelCentreY, pixelCentreZ))
   print(f"Pixel number: {args.pixel} (according to the Geant4 geometry. It corresponds to the pixelID {args.pixel+1} in the ICD.)")
-  print(f"Pixel centre position [m] X: {pixelCentreX/1000:.4f} Y: {pixelCentreY/1000:.4f} Z: {(args.nominal_source_sample_distance_meters+pixelCentreZ/1000):.4f}")
+  print(f"Pixel centre position [{args.unit}] X: {x} Y: {y} Z: {z}")
   print(f"Bank id: {bankId}")
   print(f"Pack id: {packId}")
   print(f"Tube id: {tubeId}")

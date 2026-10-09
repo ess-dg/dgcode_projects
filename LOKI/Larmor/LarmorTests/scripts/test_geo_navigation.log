@@ -1,0 +1,47 @@
+====================================================================================================
+Larmor 2022 experiment: rear 4.099 m, NEW tube numbering, 512 pixels/straw
+====================================================================================================
+(geometry built, 1631 placements passed the overlap check)
+Volume chain at pixel 0 (name:copyNo): CountingGas:0 / Converter:100 / StrawWall:0 / EmptyTube:-2 / TubeWall:0 / EmptyPackBox:-2 / Bank:0 / World:0
+ pixelId tube straw   pix
+       0    0     0     0  bank/tube/straw copyNo:  0    0  0  centre (499.0234, 571.9132, 4104.0341)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+    4607    1     1   511  bank/tube/straw copyNo:  0    1  1  centre (-499.0234, 537.4438, 4108.8533)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  101632   28     2   256  bank/tube/straw copyNo:  0   28  2  centre (-0.9766, -228.2173, 4116.5192)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  198656   55     3     0  bank/tube/straw copyNo:  0   55  3  centre (499.0234, -988.9479, 4111.7000)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  203263   56     4   511  bank/tube/straw copyNo:  0   56  4  centre (-499.0234, 585.4016, 4133.1403)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  207104   57     5   256  bank/tube/straw copyNo:  0   57  5  centre (-0.9766, 558.1404, 4140.8062)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  304128   84     6     0  bank/tube/straw copyNo:  0   84  6  centre (499.0234, -214.7290, 4145.6253)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  398335  111     0   511  bank/tube/straw copyNo:  0  111  0  centre (-499.0234, -983.8066, 4130.2936)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  402176  112     1   256  bank/tube/straw copyNo:  0  112  1  centre (-0.9766, 578.4040, 4161.3723)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  406016  113     2     0  bank/tube/straw copyNo:  0  113  2  centre (499.0234, 551.1429, 4169.0382)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  503807  140     3   511  bank/tube/straw copyNo:  0  140  3  centre (-499.0234, -209.5877, 4164.2190)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  600832  167     4   256  bank/tube/straw copyNo:  0  167  4  centre (-0.9766, -970.3183, 4159.3998)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  604672  168     5     0  bank/tube/straw copyNo:  0  168  5  centre (499.0234, 599.1007, 4193.3251)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  609279  169     6   511  bank/tube/straw copyNo:  0  169  6  centre (-499.0234, 564.6312, 4198.1443)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  702720  196     0   256  bank/tube/straw copyNo:  0  196  0  centre (-0.9766, -204.4464, 4182.8126)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  799744  223     1     0  bank/tube/straw copyNo:  0  223  1  centre (499.0234, -977.3158, 4187.6318)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+All straws (first/middle/last pixel): 18816 checks done, failures so far: 0
+====================================================================================================
+Larmor 2022 experiment: rear 4.099 m, OLD tube numbering, beamstop 1, calibration mask, 512 pixels/straw
+====================================================================================================
+(geometry built, 1643 placements passed the overlap check)
+Volume chain at pixel 0 (name:copyNo): CountingGas:0 / Converter:100 / StrawWall:0 / EmptyTube:-2 / TubeWall:0 / EmptyPackBox:-2 / Bank:0 / World:0
+ pixelId tube straw   pix
+       0    0     0     0  bank/tube/straw copyNo:  0    0  0  centre (499.0234, 571.9132, 4104.0341)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+    4607    1     1   511  bank/tube/straw copyNo:  0    1  1  centre (-499.0234, 572.1239, 4135.1128)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+    8448    2     2   256  bank/tube/straw copyNo:  0    2  2  centre (-0.9766, 579.5429, 4169.0382)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+   12288    3     3     0  bank/tube/straw copyNo:  0    3  3  centre (499.0234, 591.8924, 4190.4784)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+   16895    4     4   511  bank/tube/straw copyNo:  0    4  4  centre (-499.0234, 550.7215, 4106.8808)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+   20736    5     5   256  bank/tube/straw copyNo:  0    5  5  centre (-0.9766, 558.1404, 4140.8062)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+   24576    6     6     0  bank/tube/straw copyNo:  0    6  6  centre (499.0234, 558.3511, 4171.8848)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+   25599    7     0   511  bank/tube/straw copyNo:  0    7  0  centre (-499.0234, 562.3536, 4182.8126)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  774912  216     1   256  bank/tube/straw copyNo:  0  216  1  centre (-0.9766, -967.7562, 4108.8533)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  778752  217     2     0  bank/tube/straw copyNo:  0  217  2  centre (499.0234, -960.3372, 4142.7787)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  783359  218     3   511  bank/tube/straw copyNo:  0  218  3  centre (-499.0234, -947.9877, 4164.2190)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  787200  219     4   256  bank/tube/straw copyNo:  0  219  4  centre (-0.9766, -935.6382, 4185.6592)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  791040  220     5     0  bank/tube/straw copyNo:  0  220  5  centre (499.0234, -981.7397, 4114.5467)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  795647  221     6   511  bank/tube/straw copyNo:  0  221  6  centre (-499.0234, -981.5290, 4145.6253)  local (0.0000, 0.0000, 499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+  795904  222     0   256  bank/tube/straw copyNo:  0  222  0  centre (-0.9766, -977.5265, 4156.5531)  local (0.0000, 0.0000, 0.9766)  straw axis (-1.000000, 0.000000, 0.000000)
+  799744  223     1     0  bank/tube/straw copyNo:  0  223  1  centre (499.0234, -977.3158, 4187.6318)  local (0.0000, 0.0000, -499.0234)  straw axis (-1.000000, 0.000000, 0.000000)
+All straws (first/middle/last pixel): 18816 checks done, failures so far: 0
+checks performed: 37760, failures: 0

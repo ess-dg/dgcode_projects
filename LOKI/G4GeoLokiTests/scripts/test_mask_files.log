@@ -1,0 +1,26 @@
+--- MaskFileCreator, 3 banks (pixels 0-9, 10-24, 25-39), detector ids = pixel + 1
+    Created masking file: bank0_maskFile.xml
+    WARNING: 10/10 pixels were not hit by any of the geantinos!
+    Created masking file: bank1_maskFile.xml
+    WARNING: 15/15 pixels were not hit by any of the geantinos!
+    Created masking file: bank2_maskFile.xml
+    WARNING: 15/15 pixels were not hit by any of the geantinos!
+bank 0: masked detector ids [2, 3, 6, 7, 8, 9]
+bank 1: masked detector ids []
+bank 2: masked detector ids [27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+bank 1 file (nothing masked): <?xml version="1.0"?>|<detector-masking>|<group>|<detids>  </detids>|</group>|</detector-masking>
+--- MaskFileCreator, only bank 2 aimed at
+    Created masking file: bank2_maskFile.xml
+    WARNING: 15/15 pixels were not hit by any of the geantinos!
+bank 2: masked detector ids [26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+--- MaskFileCreator, a geometry with one bank
+    Created masking file: maskFile.xml
+    WARNING: 5/5 pixels were not hit by any of the geantinos!
+single bank: masked detector ids [1, 2, 4, 5]
+--- maskMerger: intersection
+File: a.xml, number of masked IDs: 6, intersected IDs so far: 6
+File: b.xml, number of masked IDs: 6, intersected IDs so far: 4
+File: c.xml, number of masked IDs: 4, intersected IDs so far: 3
+Final number of masked IDs (intersections): 3
+merged detector ids [3, 5, 13]
+checks performed: 17, failures: 0

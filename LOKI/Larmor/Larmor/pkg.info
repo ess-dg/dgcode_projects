@@ -1,0 +1,13 @@
+package(USEPKG G4GeoLoki LOKI LokiMasking G4Interfaces G4Launcher G4CustomPyGen GriffAnaUtils GriffB10Common SimpleHists Units USEEXT MCPL)
+
+######################################################################
+
+Package providing the geometries, simulation and analysis scripts of the tests of
+the LOKI rear detector bank at the Larmor instrument (ISIS) in 2020 and 2022.
+
+The Larmor setups are frozen: they keep their own copy of the bank placement and
+of the tube and pixel numbering (Larmor2022Bank), so that changes of the LOKI
+geometry do not change them. The detector hardware (tubes, packs, the rear bank
+box and its masks) comes from G4GeoLoki.
+
+Primary author: milan.klausz@ess.eu

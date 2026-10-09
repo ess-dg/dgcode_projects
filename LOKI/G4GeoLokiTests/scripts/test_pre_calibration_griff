@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+# GRIFF files from before the bank calibration (no bank_calibration geometry parameter, no calibration in the
+# user data) are analysed with the nominal Geant4 geometry, not with the default calibration of the current code.
+#
+# data/loki_masking_a653830_bank7.griff.gz: sb_lokimasking_sim of commit a653830 (dgcode_projects main before the
+# bank calibration work), 4 geantinos aimed at bank 7 (tube 0, straw 3, pixels 128-131 of 256), made with
+#   sb_lokimasking_sim -lPL_Empty -n4 aiming_bank_id=7 aiming_pixel_id_min=1233792 aiming_straw_pixel_number=256 \
+#       analysis_straw_pixel_number=256 rear_detector_distance_m=5
+# The visible pixels of sb_lokimasking_ana (h_geantino_pixel_enter_masked) must be those of the Converter exit
+# points with the nominal placement (emulated from the GRIFF file), which differ from those with the
+# 2026-September-SAM-606 calibration (bank 7 is surveyed 8 mm off along its tubes, 256 pixels per straw).
+
+import gzip
+import shutil
+import subprocess
+import numpy as np
+import SimpleHists as sh
+import GriffDataRead
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import Checker, captured_fd_output
+from Core import FindData
+
+chk = Checker()
+N = 256
+GRIFF = 'loki_masking.griff'
+with gzip.open(FindData('G4GeoLokiTests', 'loki_masking_a653830_bank7.griff.gz'), 'rb') as f, open(GRIFF, 'wb') as out:
+    shutil.copyfileobj(f, out)
+
+with captured_fd_output():
+    dr = GriffDataRead.GriffDataReader(GRIFF)
+    dr.goToFirstEvent()
+setup = dr.setup()
+user_data = dict(setup.userData())
+has_parameter = setup.geo().hasParameterString('bank_calibration')
+print(f'GRIFF file: bank_calibration geometry parameter: {has_parameter}, calibration in the user data: '
+      f'{"bank_calibration" in user_data or "bank_calibration_text" in user_data}')
+chk.check(not has_parameter and 'bank_calibration' not in user_data and 'bank_calibration_text' not in user_data,
+          f'the test file has a calibration: {sorted(user_data)}')
+
+def emulated(calibration):
+    """The visible pixels of the analysis (pixel of the Converter exit point, before any absorber)."""
+    pc = TU.PixelCalc(5000.0, N, 9, calibration)
+    with captured_fd_output():
+        dr = GriffDataRead.GriffDataReader(GRIFF)
+    result = set()
+    while dr.loopEvents():
+        for trk in dr.primaryTracks:
+            absorbed = False
+            for seg in trk.segments:
+                name = seg.volumeName()
+                if not absorbed and ('BoronMask-' in name or name in ('B4CPanel', 'AlPanel')):
+                    absorbed = True
+                elif name == 'Converter' and not absorbed:
+                    st = seg.lastStep()
+                    result.add(pc.getPixelId(seg.volumeCopyNumber(5), seg.volumeCopyNumber(3), seg.volumeCopyNumber(1),
+                                             st.postGlobalX(), st.postGlobalY(), st.postGlobalZ()))
+    return result
+
+ana = subprocess.run(['sb_lokimasking_ana', GRIFF], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+if chk.check(ana.returncode == 0, f'analysis failed:\n{ana.stdout[-3000:]}'):
+    c = np.asarray(sh.HistCollection('bcsloki_masking.shist').hist('h_geantino_pixel_enter_masked').contents())
+    visible = {int(straw * N + j) for j, straw in np.argwhere(c > 0)}
+    nominal, sam606 = emulated('nominal-geant4-geometry'), emulated('2026-September-SAM-606')
+    chk.check(len(visible) > 0, 'no visible pixels')
+    chk.check(visible == nominal, 'the analysis does not use the nominal geometry')
+    chk.check(nominal != sam606, 'the calibration does not change the visible pixels (the test can not fail)')
+    print(f'visible pixels of the analysis: {len(visible)}; = those of the nominal placement: {visible == nominal}; '
+          f'different from 2026-September-SAM-606: {nominal != sam606}')
+
+chk.finish()

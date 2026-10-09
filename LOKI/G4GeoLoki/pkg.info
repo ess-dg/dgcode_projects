@@ -1,4 +1,4 @@
-package(USEPKG G4Interfaces LokiUtils)
+package(USEPKG G4Interfaces)
 
 ######################################################################
 

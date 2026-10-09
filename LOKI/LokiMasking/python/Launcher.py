@@ -1,3 +1,4 @@
+import G4GeoLoki.LokiAimHelper as LokiAim
 
 def launch(geo):
     import G4Launcher
@@ -15,24 +16,22 @@ def launch(geo):
     from LokiMasking.MaskingSourceGen import MaskingSourceGen as Gen
     gen = Gen()
     gen.exposeParameter("rear_detector_distance_m",geo,"geo_rear_detector_distance_m")
-    gen.exposeParameter("old_tube_numbering",geo,"geo_old_tube_numbering")
     gen.gen_x_offset_meters = launcher.getParameterDouble('gen_x_offset_meters')
     gen.aiming_bank_id = launcher.getParameterInt('aiming_bank_id')
-    gen.exposeParameter("larmor_2022_experiment",geo,"geo_larmor_2022_experiment")
+    if geo.hasParameterString("bank_calibration"):
+        gen.exposeParameter("bank_calibration",geo,"geo_bank_calibration") #aim at the pixels of the calibrated banks
     launcher.setGen(gen)
-
-    def assertParamsForLarmor2022Experiment(): #note: prone to generator name change
-      if(launcher.getGen().hasParameterBoolean('geo_larmor_2022_experiment') and
-         launcher.getGen().getParameterBoolean('geo_larmor_2022_experiment')==True):
-        assert launcher.getParameterInt('analysis_straw_pixel_number') == 512, "analysis_straw_pixel_number must be 512 for the Larmor2022 experiment!"
-        assert launcher.getGen().gen_x_offset_meters == 0.005, "gen_x_offset_meters should be 0.005 for the Larmor2022 experiment!"
 
     def addUserData():
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
       launcher.setUserData("aiming_bank_id", str(launcher.getParameterInt('aiming_bank_id')))
+      # the bank placements: the name and the text of the calibration (the analysis uses the recorded text, so that
+      # it has the placements of the simulation even if the calibration file changes or is not there)
+      bankCalibration = launcher.getGeo().getParameterString("bank_calibration")
+      launcher.setUserData("bank_calibration", bankCalibration)
+      launcher.setUserData("bank_calibration_text", LokiAim.bankCalibrationText(bankCalibration))
 
-    launcher.addPrePreInitHook(assertParamsForLarmor2022Experiment) #Do it after the geo.larmor_2022_experiment input parameter's value is available
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 
     #filter:
@@ -49,7 +48,9 @@ def launch(geo):
         "BoronMask-3-0", "BoronMask-3-1", "BoronMask-3-2", "BoronMask-3-3",  "BoronMask-3-4", "BoronMask-3-5", "BoronMask-3-6", "BoronMask-3-7",
         "BoronMask-2-0", "BoronMask-2-1", "BoronMask-2-2", "BoronMask-2-3",  "BoronMask-2-4", "BoronMask-2-5", "BoronMask-2-6", "BoronMask-2-7",
         "BoronMask-1-0", "BoronMask-1-1", "BoronMask-1-2", "BoronMask-1-3",  "BoronMask-1-4", "BoronMask-1-5", "BoronMask-1-6", "BoronMask-1-7",
-        "BoronMask-0-0", "BoronMask-0-1", "BoronMask-0-2", "BoronMask-0-3",  "BoronMask-0-4", "BoronMask-0-5" ]
+        "BoronMask-0-0", "BoronMask-0-1", "BoronMask-0-2", "BoronMask-0-3",  "BoronMask-0-4", "BoronMask-0-5",
+        # the beamstop (beamstop_id) and the calibration slit masks (with_calibration_slits) absorb as well
+        "BoronMask-Beamstop", *[f"BoronMask-lokiStandard-{bankId}" for bankId in range(9)] ]
         import G4CollectFilters.StepFilterVolume
         f = G4CollectFilters.StepFilterVolume.create()
         f.volumeList = griff_output_volumes

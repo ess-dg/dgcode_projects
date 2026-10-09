@@ -132,6 +132,10 @@ int BoronMasks::getNumberOfBoronMasks(const int bankId) {
   }
 }
 
+std::array<double,3> BoronMasks::getSizeInBankFrame(const int bankId, const int maskId) {
+  return {getSize(bankId, maskId, 2), getSize(bankId, maskId, 1), getSize(bankId, maskId, 0)};
+}
+
 double BoronMasks::getSize(const int bankId, const int maskId, const int axisIndex) {
   assert(0 <= axisIndex && axisIndex <= 2);
   return getBoronMaskParameter(bankId, maskId, axisIndex);

@@ -1,7 +1,0 @@
-package(USEPKG)
-
-######################################################################
-
-Package providing python utilities for LOKI packages.
-
-Primary author: milan.klausz@ess.eu

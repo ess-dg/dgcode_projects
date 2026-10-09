@@ -1,0 +1,7 @@
+bcsloki_masking.shist:
+  geantino_counters: all_geantino 10.0, geantino_in_mask 0.0
+  geantino_xy_bank: integral 10.0, mean -487.5, 563.0
+  geantino_xy_bank_filtered: empty
+  h_geantino_pixel_enter: empty
+  h_geantino_pixel_enter_masked: empty
+maskFile.xml: 802816 masked ids, sha256 0b2937d6392e00c9

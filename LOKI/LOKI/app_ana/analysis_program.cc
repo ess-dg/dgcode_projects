@@ -37,7 +37,7 @@ int main(int argc, char**argv) {
   auto &gen = setup->gen();
   auto userData = setup->userData();
   //printf("QQQ=============  %s \n", geo.getName().c_str());
-  if (geo.getName()!="G4GeoLoki/GeoBCSBanks" && geo.getName()!="G4GeoBCS/GeoLarmorBCSExperiment") {
+  if (geo.getName()!="G4GeoLoki/GeoBCSBanks") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
   }
@@ -96,21 +96,23 @@ int main(int argc, char**argv) {
     preGeant4Distance = nominalSamplePosDistance + nominalSamplePosToGeneratorDistance; //approximation, mainly ignoring x and y
   }
 
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
   if(userData.count("analysis_straw_pixel_number")){
     strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
     strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
-  }
-
-  bool oldTubeNumbering = false;
-  if (!geo.hasParameterBoolean("old_tube_numbering") || geo.getParameterBoolean("old_tube_numbering")) {
-    oldTubeNumbering = true;
   }
 
   bool (*bankFilter) (int);
@@ -198,6 +200,11 @@ int main(int argc, char**argv) {
 
   DetectionFileCreator* detectionFile = nullptr;
   if (createDetectionMcplFile == true) {
+    userData["bank_calibration"] = bankCalibrationName; // (checked by the LokiMantid scripts)
+    if (!bankCalibration.isNominal())
+      printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
+             "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibrationName.c_str(), BankCalibration::nominalName.c_str());
     detectionFile = new DetectionFileCreator("detectionEvents.mcpl", userData);
   }
   // auto h_neutron_pixel_hit_count = hc.book1D("Number of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_count");
@@ -341,7 +348,7 @@ int main(int argc, char**argv) {
 
         bankNumber = (int)tubeWallSegment->volumeCopyNumber(2);
         const int tubeId = (int)tubeWallSegment->volumeCopyNumber();
-        layerNumber = banks->getTubeLayerId(bankNumber, tubeId, oldTubeNumbering);
+        layerNumber = banks->getTubeLayerId(bankNumber, tubeId);
         neutron_weight = tubeWallSegment->getTrack()->weight();
 
 
@@ -406,7 +413,7 @@ int main(int argc, char**argv) {
 
         h_neutron_xy_conv->fill(-position_conv[0]/Units::mm, position_conv[1]/Units::mm, neutron->weight());
 
-        const int layerNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv, oldTubeNumbering);
+        const int layerNumber_conv = banks->getTubeLayerId(bankId_conv, tubeId_conv);
         h_neutron_bankLayerConvCounter->fill(bankId_conv, layerNumber_conv, neutron->weight());
         h_neutron_LayerConvCounter->fill(layerNumber_conv, neutron->weight());
 
@@ -420,7 +427,7 @@ int main(int argc, char**argv) {
           const double theta_hit = Utils::theta(hit.eventHitPosition())/Units::deg;
           h_neutron_theta_hit->fill(theta_hit, hit.eventHitWeight());
 
-          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, position_hit[0], position_hit[1]);
+          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, position_hit[0], position_hit[1], position_hit[2]);
           //h_neutron_pixel_hit_count->fill(pixelId, 1);
           //h_neutron_pixel_hit_weight->fill(pixelId, hit.eventHitWeight());
           h_neutron_pixel_hit->fill(pixelId%strawPixelNumber, std::floor(pixelId/strawPixelNumber), hit.eventHitWeight());
@@ -458,7 +465,7 @@ int main(int argc, char**argv) {
           }
 
           h_bank_lambda_hit -> fill(lambda_hit_calculated, bankId_conv, hit.eventHitWeight());
-          h_layer_lambda_hit->fill(lambda_hit_calculated, layerNumber, hit.eventHitWeight());
+          h_layer_lambda_hit->fill(lambda_hit_calculated, layerNumber_conv, hit.eventHitWeight()); // the layer of the conversion
 
           if (createDetectionMcplFile == true && bankFilter(bankId_conv)) {
             detectionFile->addDetectionEvent(pixelId, hit.eventHitTime()/Units::ms);

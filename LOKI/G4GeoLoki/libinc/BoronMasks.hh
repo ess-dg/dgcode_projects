@@ -9,7 +9,9 @@ public:
   static G4Material* maskMaterial;
   /// regular rectangular masks ///
   static int getNumberOfBoronMasks(const int bankId);
-  static double getSize(const int bankId, const int maskId, const int axisIndex);
+  static double getSize(const int bankId, const int maskId, const int axisIndex); // 0: width, 1: height, 2: thickness
+  /// The size in the bank frame (x = depth: the thickness, y = across the tubes, z = along the tubes).
+  static std::array<double,3> getSizeInBankFrame(const int bankId, const int maskId);
   static double getPosition(const int bankId, const int maskId, const int axisIndex);
   static double getRotation(const int bankId, const int maskId);
 

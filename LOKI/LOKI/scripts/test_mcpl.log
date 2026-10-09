@@ -1,0 +1,32 @@
+bcsloki_sans.shist:
+  bank_lambda: filled
+  bank_lambda_hit: filled
+  h_neutron_pixel_hit: filled
+  h_neutron_pixel_rear_hit: filled
+  layer_lambda: filled
+  layer_lambda_hit: filled
+  layer_neutronNr_all: filled
+  neutron_LayerConvCounter: filled
+  neutron_Q_hit: filled
+  neutron_Q_rear_bank_hit: filled
+  neutron_bankIncidentCounter: filled
+  neutron_bankLayerConvCounter: filled
+  neutron_bankLayerHitCounter: filled
+  neutron_bankToBankIncident: empty
+  neutron_bank_Q_hit: filled
+  neutron_bank_theta_hit: filled
+  neutron_counters: counters count_initial_neutrons, count_neutrons_entering_aluminium, count_neutrons_converted, count_neutrons_hit, count_neutrons_entering_b4cpanel, count_neutrons_only_world
+  neutron_ending_counters: counters count_neutrons_abs_tubewall, count_neutrons_abs_strawwall, count_neutrons_abs_converter, count_neutrons_abs_b4cpanel, count_neutrons_abs_alpanel, count_neutrons_abs_boronmask, count_neutrons_abs_gas, count_neutrons_end_world
+  neutron_layerHitCounter: filled
+  neutron_nonFirstBankIncident: empty
+  neutron_segment_number_World: filled
+  neutron_theta_conv: filled
+  neutron_theta_hit: filled
+  neutron_true_theta: filled
+  neutron_xy_conv: filled
+  neutron_xy_hit: filled
+  neutron_yz_conv: filled
+  neutron_yz_hit: filled
+  neutron_zx_big_conv: filled
+  neutron_zy_big_conv: filled
+detectionEvents.mcpl: detection events > 0: True

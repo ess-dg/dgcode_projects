@@ -1,5 +1,10 @@
 <?xml version='1.0' encoding='ASCII'?>
 <!-- For help on the notation used to specify an Instrument Definition File see http://www.mantidproject.org/IDF -->
+<!-- NOTE: the detector banks are placed here as in the NOMINAL Geant4 geometry (G4GeoLoki, geometry parameter
+     bank_calibration=nominal-geant4-geometry), NOT as in the default of the Geant4 geometry (the surveyed bank
+     positions, e.g. 2026-September-SAM-606, up to ~33 mm from these). Simulations to be processed with this file must be
+     made with bank_calibration=nominal-geant4-geometry (the scripts warn otherwise); a calibrated geometry would need a
+     new file with its bank positions and orientations (see LokiMantid/python/workspaceCreator.py). -->
 <instrument xmlns="http://www.mantidproject.org/IDF/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://www.mantidproject.org/IDF/1.0 http://schema.mantidproject.org/IDF/1.0/IDFSchema.xsd"
 name="LOKI" valid-from   ="1900-01-31 23:59:59"

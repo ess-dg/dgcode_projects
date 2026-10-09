@@ -1,0 +1,37 @@
+50176 pixels aimed at (8 per straw), rear bank at 5 m
+counter all_geantino: 50176
+counter geantino_in_mask: 7193
+bank 0: 12544 pixels, 9580 masked (76.4 %), detector numbers 1..12544, file sha256 7ff8449853fa176c
+bank 1: 3584 pixels, 280 masked (7.8 %), detector numbers 12545..16128, file sha256 a1b2016cc5a9ecd2
+bank 2: 2688 pixels, 232 masked (8.6 %), detector numbers 16129..18816, file sha256 33f3c40b4c63b0bf
+bank 3: 3584 pixels, 280 masked (7.8 %), detector numbers 18817..22400, file sha256 50f8ebafb6079c0f
+bank 4: 2688 pixels, 232 masked (8.6 %), detector numbers 22401..25088, file sha256 d8926d6871661816
+bank 5: 6272 pixels, 200 masked (3.2 %), detector numbers 25089..31360, file sha256 ab82cf1d06d16a44
+bank 6: 7168 pixels, 1565 masked (21.8 %), detector numbers 31361..38528, file sha256 2904886db94d3614
+bank 7: 4480 pixels, 320 masked (7.1 %), detector numbers 38529..43008, file sha256 8ee00b5c9cd891b9
+bank 8: 7168 pixels, 2003 masked (27.9 %), detector numbers 43009..50176, file sha256 90c9fb321597cf98
+==========================================================================================
+bank_calibration=2026-September-SAM-606
+50176 pixels aimed at (8 per straw), rear bank at 5 m
+counter all_geantino: 50176
+counter geantino_in_mask: 7217
+bank 0: 12544 pixels, 9580 masked (76.4 %), detector numbers 1..12544, file sha256 7ff8449853fa176c
+bank 1: 3584 pixels, 304 masked (8.5 %), detector numbers 12545..16128, file sha256 f07f958e6a425439
+bank 2: 2688 pixels, 248 masked (9.2 %), detector numbers 16129..18816, file sha256 74c415dae684db28
+bank 3: 3584 pixels, 280 masked (7.8 %), detector numbers 18817..22400, file sha256 50f8ebafb6079c0f
+bank 4: 2688 pixels, 232 masked (8.6 %), detector numbers 22401..25088, file sha256 d8926d6871661816
+bank 5: 6272 pixels, 208 masked (3.3 %), detector numbers 25089..31360, file sha256 eef2ca53a92782c8
+bank 6: 7168 pixels, 1575 masked (22.0 %), detector numbers 31361..38528, file sha256 f80bcad69020b281
+bank 7: 4480 pixels, 318 masked (7.1 %), detector numbers 38529..43008, file sha256 94e4a6b376d3bacf
+bank 8: 7168 pixels, 1992 masked (27.8 %), detector numbers 43009..50176, file sha256 63ca4043aec52b77
+Masked pixels with the SAM-606 calibration compared with the nominal geometry:
+  bank 0: 0 more masked, 0 no longer masked
+  bank 1: 24 more masked, 0 no longer masked
+  bank 2: 16 more masked, 0 no longer masked
+  bank 3: 0 more masked, 0 no longer masked
+  bank 4: 0 more masked, 0 no longer masked
+  bank 5: 8 more masked, 0 no longer masked
+  bank 6: 25 more masked, 15 no longer masked
+  bank 7: 14 more masked, 16 no longer masked
+  bank 8: 0 more masked, 11 no longer masked
+checks performed: 78, failures: 0

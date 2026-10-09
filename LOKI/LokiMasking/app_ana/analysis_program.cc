@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   auto setup = dr.setup();
   auto &geo = setup->geo();
 
-  if (geo.getName() != "G4GeoLoki/GeoBCSBanks" && geo.getName() != "G4GeoBCS/GeoLarmorBCSExperiment") {
+  if (geo.getName() != "G4GeoLoki/GeoBCSBanks") {
     printf("Error: Wrong setup for this analysis\n");
     return 1;
   }
@@ -38,15 +38,22 @@ int main(int argc, char **argv) {
   SimpleHists::HistCollection hc;
 
   auto userData = setup->userData();
+  // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
   if(userData.count("analysis_straw_pixel_number")){
     strawPixelNumber = std::stoi(userData["analysis_straw_pixel_number"].c_str());
-    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber);
+    banks = new PixelatedBanks(rearDetectorDistance, strawPixelNumber, 9, bankCalibration);
   }
   else{ // use default rear bank pixel number
-    banks = new PixelatedBanks(rearDetectorDistance);
+    banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
     strawPixelNumber = banks->getNumberOfPixelsInStraw(0);//NOTE: assuming same number of pixels for each bank
   }
 
@@ -81,20 +88,26 @@ int main(int argc, char **argv) {
       countTestGeantino += 1;
 
       bool geantinoAbsorbed = false;
+      bool converterReached = false;
       for (auto seg = trk_geantino->segmentBegin(); seg != trk_geantino->segmentEnd(); ++seg) {
 
         if (!geantinoAbsorbed && (seg->volumeName().find("BoronMask-") != std::string::npos || seg->volumeName() == "B4CPanel" || seg->volumeName() == "AlPanel")) {
-          countTestGeantinoAbsInMask += 1;
+          // counted as "in mask" only if the absorber is crossed before any straw is reached
+          // (the B4C panel behind the tubes of a bank is crossed by every geantino after its straws)
+          if (!converterReached) {
+            countTestGeantinoAbsInMask += 1;
+          }
           geantinoAbsorbed = true;
           //break;
         }
         else if (seg->volumeName() == "Converter") {
+          converterReached = true;
           const int strawId_conv = seg->volumeCopyNumber(1);
           const int tubeId_conv = seg->volumeCopyNumber(3);
           const int bankId_conv = seg->volumeCopyNumber(5);
 
           auto step = seg->lastStep();
-          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY());
+          const int pixelId = banks->getPixelId(bankId_conv, tubeId_conv, strawId_conv, step->postGlobalX(), step->postGlobalY(), step->postGlobalZ());
 
           if (!geantinoAbsorbed && !masking.isPixelEntered(pixelId)) {
             h_geantino_pixel_enter_masked->fill(pixelId % strawPixelNumber, std::floor(pixelId / strawPixelNumber), 1);

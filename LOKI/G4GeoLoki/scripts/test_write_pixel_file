@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+# writePixelFile (sb_g4geoloki_writepixelfile): the pixel file (detector number = pixel id + 1, x, y, z [m], 4
+# decimals) for one bank (--bankId) agrees with LokiAimHelper (the default bank calibration 2026-September-SAM-606,
+# --bankCalibration nominal-geant4-geometry), -ssd adds the source-sample distance to z, -f writes <name>.txt; invalid
+# options are errors (exit code 2).
+
+import subprocess
+import numpy as np
+import G4GeoLoki.LokiAimHelper as LokiAim
+from G4GeoLokiTests.testhelpers import Checker
+
+chk = Checker()
+
+def pixel_file(args):
+    result = subprocess.run(['sb_g4geoloki_writepixelfile'] + args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True)
+    return result.returncode, result.stdout
+
+def table(text):
+    return np.array([[float(v) for v in line.split(',')] for line in text.strip().splitlines()])
+
+for calibration in (None, 'nominal-geant4-geometry'):
+    args = ['--bankId', '2', '-n', '2', '--print'] + (['--bankCalibration', calibration] if calibration else [])
+    code, out = pixel_file(args)
+    data = table(out)
+    aim = LokiAim.AimHelper(5000.0, 2, 9, calibration or LokiAim.DEFAULT_BANK_CALIBRATION)
+    first, last = aim.getBankPixelOffset(2), aim.getBankPixelOffset(3)
+    expected = np.array([aim.getPixelCentreCoordinates(p) for p in range(first, last)]) / 1000
+    ok = (code == 0 and len(data) == last - first and np.array_equal(data[:, 0], np.arange(first, last) + 1)
+          and np.abs(data[:, 1:] - expected).max() <= 0.00005 + 1e-12)
+    chk.check(ok, f'bank 2 with {calibration}: {code} {len(data)} lines')
+    print(f'--bankId 2 -n 2, bank calibration {calibration or "default (" + LokiAim.DEFAULT_BANK_CALIBRATION + ")"}: '
+          f'{len(data)} pixels, detector numbers {int(data[0, 0])}..{int(data[-1, 0])}, the AimHelper centres (4 decimals): {ok}')
+
+_, plain = pixel_file(['--bankId', '0', '-n', '1', '--print'])
+_, shifted = pixel_file(['--bankId', '0', '-n', '1', '--print', '-ssd', '23.6'])
+dz = table(shifted)[:, 3] - table(plain)[:, 3]
+chk.check(np.allclose(dz, 23.6, atol=1e-4) and np.array_equal(table(shifted)[:, :3], table(plain)[:, :3]), '-ssd')
+print(f'-ssd 23.6: z larger by 23.6 m, x and y unchanged: {np.allclose(dz, 23.6, atol=1e-4)}')
+
+code, out = pixel_file(['--bankId', '5', '-n', '1', '-f', 'bank5'])
+written = table(open('bank5.txt').read())
+chk.check(code == 0 and 'File created: bank5.txt' in out and len(written) == 14 * 8 * 7, '-f')
+print(f'-f bank5: {out.strip()}, {len(written)} lines')
+
+for args, message in ((['--bankId', '9'], '--bankId must be 0-8'), (['-n', '0'], '--strawPixelNumber must be positive'),
+                      (['--bankCalibration', 'unknown-calibration'], 'unknown bank calibration')):
+    code, out = pixel_file(args + ['--print'])
+    chk.check(code == 2 and message in out, f'{args}: {code} {out[-500:]}')
+    print(f'{" ".join(args)}: exit code {code}, "{message}"')
+
+chk.finish()
