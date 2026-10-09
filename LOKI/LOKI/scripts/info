@@ -32,6 +32,8 @@ if args.dump:
   exit()
 
 if not args.pixel is None:
+  if not 0 <= args.pixel < geoHelper.getTotalNumberOfPixels():
+    parser.error(f'--pixel must be 0-{geoHelper.getTotalNumberOfPixels() - 1} (with {args.straw_pixel_number} pixels per straw), not {args.pixel}')
   pixelCentreX, pixelCentreY, pixelCentreZ = geoHelper.getPixelCentreCoordinates(args.pixel)
   pixelCentreZ += args.nominal_source_sample_distance_meters * 1000.0
   bankId = geoHelper.getBankId(args.pixel)

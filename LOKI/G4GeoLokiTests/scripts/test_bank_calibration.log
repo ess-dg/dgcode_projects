@@ -20,6 +20,13 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   normal towards the sample : 5: the layer normal n must point away from the sample
   unknown line              : 5: unknown line 'banks'
   no name                   : 3: incomplete file (the 'loki_bank_calibration' and 'name' lines are required)
+  no bank line              : 4: no bank line (use 'nominal-geant4-geometry' for the nominal geometry)
+  values in m               : 5: implausible front face centre: 2.942788 mm from the sample (0.5-20 m; the values must be in mm)
+  too far                   : 5: implausible front face centre: 29004.310025 mm from the sample (0.5-20 m; the values must be in mm)
+  extra word, format line   : 3: the first line must be 'loki_bank_calibration <version>'
+  extra word, name line     : 4: invalid or repeated 'name' line ('name <name>')
+  invalid name              : 4: invalid calibration name 'x/y' (letters, digits, '.', '_', '-')
+  reserved name             : 4: the name 'nominal-geant4-geometry' is reserved for the built-in nominal geometry
   geometry {'bank_calibration': 'unknown-calibration'}: rejected (exit code != 0: True): ERROR: Wrong bank_calibration value: BankCalibration: unknown bank calibration 'unknown-calibration' (no data file G4GeoLoki/bank_calibration_unknown-calibration.txt; use 'nominal-geant4-geometry' or the name of a file in G4GeoLoki/data)
 ==========================================================================================
 2. A calibration file made from the nominal geometry reproduces it
@@ -60,4 +67,4 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   BoronMask-triangular-7-3: position in its bank (-154.020, -90.738, 877.500) mm, unchanged from nominal: True
   2026-September-SAM-606: bank 6 box overlaps bank 5 box (inside the nominal notch, smallest margin 2.13 mm), notch nominal: True
   2026-September-SAM-606: bank 8 box overlaps bank 7 box (inside the nominal notch, smallest margin 1.63 mm), notch nominal: True
-checks performed: 86, failures: 0
+checks performed: 94, failures: 0

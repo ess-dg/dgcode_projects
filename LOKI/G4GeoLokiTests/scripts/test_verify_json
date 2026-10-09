@@ -1,15 +1,103 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-# sb_g4geoloki_verifyjson with a NeXus-JSON file written by loki-pixel-json (https://github.com/MilanKlausz/loki-geometry,
-# the instrument tree layout, here banks 0, 2 and 4 of the 2026-September-SAM-606 bank calibration with 1 pixel per
-# straw, data/loki_pixels_SAM-606_1px_banks_0_2_4.json):
-#  * with the calibration recorded in the file (2026-September-SAM-606): banks 2 and 4 agree; bank 0 (not surveyed: the
-#    CAD geometry, front face at 4.9998 m) is 0.2 mm off with the default rear detector distance of 5 m (exit code 1),
-#    and agrees with -rear 4.9998 (exit code 0);
-#  * against the nominal Geant4 geometry: the surveyed banks 2 and 4 are tens of mm off (exit code 1).
-JSON=$(sb_core_finddata G4GeoLokiTests loki_pixels_SAM-606_1px_banks_0_2_4.json)
-cp $JSON pixels.json  # (the path of the data file is not printed)
-run() { echo "========== verifyjson $*"; sb_g4geoloki_verifyjson --json pixels.json --printPixelNumber 2 "$@"; echo "exit code $?"; }
-run
-run -rear 4.9998
-run --bankCalibration nominal-geant4-geometry -rear 4.9998
+# sb_g4geoloki_verifyjson with NeXus-JSON files written by loki-pixel-json (https://github.com/MilanKlausz/loki-geometry,
+# the instrument tree layout): data/loki_pixels_SAM-606_1px_banks_0_2_4.json (banks 0, 2 and 4 of the
+# 2026-September-SAM-606 bank calibration, 1 pixel per straw) and variants of it made here. Each case checks the exit
+# code (0: all compared banks agree) and the verdict per bank:
+#  * the calibration recorded in the file (2026-September-SAM-606): banks 2 and 4 agree; bank 0 (not surveyed: the
+#    CAD geometry, front face at 4.9998 m) is 0.2 mm off with the default rear detector distance of 5 m, and agrees
+#    with -rear 4.9998;
+#  * --bankCalibration nominal-geant4-geometry: the surveyed banks 2 and 4 are tens of mm off;
+#  * a file without "info" (like the instrument file loki.json): compared with the nominal Geant4 geometry, with the
+#    pixel number per straw taken from the file;
+#  * --geant4 with a writePixelFile output (4 decimals in m: tolerance 0.1 mm) and a too tight -t;
+#  * a file recorded with nominal-cad-geometry: the Geant4 calibration of that name (G4GeoLoki/data);
+#  * errors: a wrong -s (pixel ids), a pixel shape not centred on the offsets (reported, offsets compared), a rotation
+#    in the depends_on chain, a depends_on to a missing node.
+
+import copy
+import json
+import subprocess
+from G4GeoLokiTests.testhelpers import Checker
+from Core import FindData
+
+chk = Checker()
+DATA = FindData('G4GeoLokiTests', 'loki_pixels_SAM-606_1px_banks_0_2_4.json')
+original = json.load(open(DATA))
+
+def write(name, data):
+    with open(name, 'w') as f:
+        json.dump(data, f)
+    return name
+
+def node(data, path):
+    current = data
+    for name in path.strip('/').split('/'):
+        current = next(c for c in current['children'] if c.get('name', c.get('config', {}).get('name')) == name)
+    return current
+
+def verify(title, args, expected_code, expected_banks=None, expected_text=None):
+    """Runs verifyjson; expected_banks: {bank: True (agrees) / False (does not)}."""
+    result = subprocess.run(['sb_g4geoloki_verifyjson', '--printPixelNumber', '0'] + args,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    verdicts, bank = {}, None
+    for line in result.stdout.splitlines():
+        if line.startswith('Bank id:'):
+            bank = int(line.split(':')[1])
+        elif 'pixel positions are equal' in line:
+            verdicts[bank] = True
+        elif 'pixel positions are NOT equal' in line or "Pixel ids don't agree" in line:
+            verdicts[bank] = False
+    ok = result.returncode == expected_code
+    if expected_banks is not None:
+        ok = ok and verdicts == expected_banks
+    if expected_text is not None:
+        ok = ok and expected_text in result.stdout
+    chk.check(ok, f'{title}: exit code {result.returncode}, verdicts {verdicts}:\n{result.stdout[-2000:]}')
+    shown = ', '.join(f'bank {b} {"agrees" if v else "differs"}' for b, v in sorted(verdicts.items()))
+    print(f'{title}: exit code {result.returncode}' + (f'; {shown}' if shown else '')
+          + (f'; "{expected_text}"' if expected_text and expected_text in result.stdout else ''))
+    return result.stdout
+
+pixels = write('pixels.json', original)
+verify('recorded calibration (SAM-606), rear 5 m', ['--json', pixels], 1, {0: False, 2: True, 4: True})
+verify('recorded calibration (SAM-606), -rear 4.9998', ['--json', pixels, '-rear', '4.9998'], 0, {0: True, 2: True, 4: True})
+verify('--bankCalibration nominal-geant4-geometry', ['--json', pixels, '--bankCalibration', 'nominal-geant4-geometry',
+                                                     '-rear', '4.9998'], 1, {0: True, 2: False, 4: False})
+
+no_info = copy.deepcopy(original)
+del no_info['info']
+verify('no info (like loki.json): nominal Geant4 geometry, 1 pixel per straw from the file',
+       ['--json', write('no_info.json', no_info), '-rear', '4.9998'], 1, {0: True, 2: False, 4: False},
+       'bank_calibration=nominal-geant4-geometry, rear detector distance 4.9998 m, 1 pixels per straw')
+
+subprocess.run(['sb_g4geoloki_writepixelfile', '-f', 'g4', '-n', '1', '-rear', '4.9998'], stdout=subprocess.DEVNULL, check=True)
+verify('--geant4 (writePixelFile, SAM-606, 4.9998 m)', ['--json', pixels, '--geant4', 'g4.txt'], 0,
+       {0: True, 2: True, 4: True}, 'Geant4 pixel positions: from the file g4.txt')
+verify('--geant4 with -t 0.00001 (the file has 4 decimals in m)', ['--json', pixels, '--geant4', 'g4.txt', '-t', '0.00001'],
+       1, {0: False, 2: False, 4: False})
+
+cad = copy.deepcopy(original)
+cad['info']['calibration'] = 'nominal-cad-geometry'
+verify('recorded nominal-cad-geometry: banks 2 and 4 are the surveyed ones (differ)', ['--json', write('cad.json', cad), '-rear', '4.9998'],
+       1, {0: True, 2: False, 4: False}, 'bank_calibration=nominal-cad-geometry')
+
+verify('wrong -s 2', ['--json', pixels, '-s', '2'], 1, {0: False, 2: False, 4: False}, "Pixel ids don't agree")
+
+shifted = copy.deepcopy(original)
+vertices = node(shifted, '/entry/instrument/loki_detector_2/pixel_shape/vertices')['config']['values']
+for vertex in vertices:  # the shape starts at the offset point (as loki.json)
+    vertex[1] += 0.25  # the vertices are along the tubes = y in the vertical bank 2; 0.25 m = half the pixel
+verify('pixel shape not centred on the offsets', ['--json', write('shifted.json', shifted), '-rear', '4.9998'], 0,
+       {0: True, 2: True, 4: True}, 'NOTE: the pixel shape is not centred on the pixel offsets')
+
+rotation = copy.deepcopy(original)
+trans = node(rotation, '/entry/instrument/loki_detector_2/transformations/trans_3')
+next(a for a in trans['attributes'] if a['name'] == 'transformation_type')['values'] = 'rotation'
+verify('a rotation in the depends_on chain', ['--json', write('rotation.json', rotation)], 1, None, 'only translations are supported')
+
+missing = copy.deepcopy(original)
+node(missing, '/entry/instrument/loki_detector_4/depends_on')['config']['values'] = '/entry/instrument/nothing'
+verify('depends_on to a missing node', ['--json', write('missing.json', missing)], 1, None, 'not found in the file')
+
+chk.finish()

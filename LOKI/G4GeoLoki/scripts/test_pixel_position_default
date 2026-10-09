@@ -4,8 +4,8 @@
 # bank calibration, 2026-September-SAM-606), 2 pixels per straw, rear bank at 5 m. The full output
 # is pinned by a checksum (its size is above the repository limit for a log file); printed: the
 # default calibration, and the first and last pixel of every bank. It must be the same as the
-# output with an explicit --bankCalibration=<the default>. (The nominal geometry is pinned in full
-# by test_pixel_position.)
+# output with --bankCalibration=2026-September-SAM-606, and differ from the nominal one. (The nominal
+# geometry is pinned in full by test_pixel_position.)
 
 import hashlib
 import subprocess
@@ -21,14 +21,15 @@ def pixel_file(*extra):
     return r.stdout.strip().splitlines()
 
 lines = pixel_file()
-explicit = pixel_file(f'--bankCalibration={LokiAim.DEFAULT_BANK_CALIBRATION}')
+explicit = pixel_file('--bankCalibration=2026-September-SAM-606')
+nominal = pixel_file('--bankCalibration=nominal-geant4-geometry')
 print(f'default bank calibration: {LokiAim.DEFAULT_BANK_CALIBRATION}')
 print(f'{len(lines)} pixels, sha256 of the output {hashlib.sha256(chr(10).join(lines).encode()).hexdigest()}')
 aim = LokiAim.AimHelper(5000.0, 2)
 for bank in range(9):
     first, last = aim.getBankPixelOffset(bank), aim.getBankPixelOffset(bank + 1) - 1
     print(f'bank {bank}: {lines[first]}  ...  {lines[last]}')
-if lines != explicit:
-    print('TEST FAILED: the default output differs from the output with the explicit default calibration')
+if lines != explicit or lines == nominal:
+    print('TEST FAILED: the default output is not the 2026-September-SAM-606 one, or it is the nominal one')
     sys.exit(1)
-print('the same as with --bankCalibration=<default>: yes')
+print('the same as with --bankCalibration=2026-September-SAM-606: yes; different from nominal-geant4-geometry: yes')

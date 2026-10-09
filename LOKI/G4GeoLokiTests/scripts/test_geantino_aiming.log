@@ -103,4 +103,4 @@ LOKI SAM-606 bank calibration, rear 10 m, beamstop, calibration slits
       first absorber crossed: BoronMask-7-* 1068, BoronMask-lokiStandard-7 599
   bank 8: 2688 targets, all crossed: yes, reached after an absorber: 2674, mean straws crossed per geantino: 8.87
       first absorber crossed: B4CPanel 41, BoronMask-5-* 264, BoronMask-7-* 256, BoronMask-8-* 108, BoronMask-lokiStandard-5 264, BoronMask-lokiStandard-7 495, BoronMask-lokiStandard-8 1050, BoronMask-triangular-5-1 196
-checks performed: 94105, failures: 0
+checks performed: 30, failures: 0

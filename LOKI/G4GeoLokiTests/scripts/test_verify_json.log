@@ -1,81 +1,12 @@
-========== verifyjson 
-pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
-Geant4 geometry: bank_calibration=2026-September-SAM-606, rear detector distance 5.0 m, 1 pixels per straw
-
-Bank id: 0
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
-  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 0.2001 mm (x 0.0000, y 0.0004, z 0.2001 mm) at pixel 1, 1568 pixels outside the tolerance.
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    1: (0.000000, 0.779861, 5.004834) (0.000000, 0.779861, 5.005034)
-    2: (0.000000, 0.773792, 5.009653) (0.000000, 0.773792, 5.009853)
-
-Bank id: 2
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00007 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2017: (0.536785, -0.001286, 3.354331) (0.536785, -0.001286, 3.354331)
-    2018: (0.543190, -0.001288, 3.358694) (0.543190, -0.001288, 3.358694)
-
-Bank id: 4
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00006 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2801: (-0.225706, -0.000852, 3.375276) (-0.225706, -0.000852, 3.375276)
-    2802: (-0.232126, -0.000851, 3.379618) (-0.232126, -0.000851, 3.379618)
-
-NOT all compared banks agree (see above).
-exit code 1
-========== verifyjson -rear 4.9998
-pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
-Geant4 geometry: bank_calibration=2026-September-SAM-606, rear detector distance 4.9998 m, 1 pixels per straw
-
-Bank id: 0
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00157 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    1: (0.000000, 0.779861, 5.004834) (0.000000, 0.779861, 5.004834)
-    2: (0.000000, 0.773792, 5.009653) (0.000000, 0.773792, 5.009653)
-
-Bank id: 2
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00007 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2017: (0.536785, -0.001286, 3.354331) (0.536785, -0.001286, 3.354331)
-    2018: (0.543190, -0.001288, 3.358694) (0.543190, -0.001288, 3.358694)
-
-Bank id: 4
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00006 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2801: (-0.225706, -0.000852, 3.375276) (-0.225706, -0.000852, 3.375276)
-    2802: (-0.232126, -0.000851, 3.379618) (-0.232126, -0.000851, 3.379618)
-
-All compared banks agree.
-exit code 0
-========== verifyjson --bankCalibration nominal-geant4-geometry -rear 4.9998
-pixels.json: banks [0, 2, 4], 1 pixels per straw, written by loki-geometry 0.1.0 with the bank calibration 2026-September-SAM-606
-Geant4 geometry: bank_calibration=nominal-geant4-geometry, rear detector distance 4.9998 m, 1 pixels per straw
-
-Bank id: 0
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (1..1568).
-  The pixel positions are equal within the given tolerance: 0.1 [mm] (largest deviation 0.00157 mm).
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    1: (0.000000, 0.779861, 5.004834) (0.000000, 0.779861, 5.004834)
-    2: (0.000000, 0.773792, 5.009653) (0.000000, 0.773792, 5.009653)
-
-Bank id: 2
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2017..2352).
-  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 33.2263 mm (x 0.3483, y 1.2883, z 33.2263 mm) at pixel 2018, 336 pixels outside the tolerance.
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2017: (0.536785, -0.001286, 3.354331) (0.536480, 0.000000, 3.321140)
-    2018: (0.543190, -0.001288, 3.358694) (0.542908, 0.000000, 3.325468)
-
-Bank id: 4
-  Pixel ids in the JSON file and in the Geant4 geometry are the same (2801..3136).
-  The pixel positions are NOT equal within the given tolerance: 0.1 [mm]: largest deviation 30.3071 mm (x 0.7152, y 1.1206, z 30.3071 mm) at pixel 2879, 336 pixels outside the tolerance.
-  First 2 pixels (detector number, JSON, Geant4 [m]):
-    2801: (-0.225706, -0.000852, 3.375276) (-0.225043, 0.000000, 3.345650)
-    2802: (-0.232126, -0.000851, 3.379618) (-0.231471, 0.000000, 3.349978)
-
-NOT all compared banks agree (see above).
-exit code 1
+recorded calibration (SAM-606), rear 5 m: exit code 1; bank 0 differs, bank 2 agrees, bank 4 agrees
+recorded calibration (SAM-606), -rear 4.9998: exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees
+--bankCalibration nominal-geant4-geometry: exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs
+no info (like loki.json): nominal Geant4 geometry, 1 pixel per straw from the file: exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs; "bank_calibration=nominal-geant4-geometry, rear detector distance 4.9998 m, 1 pixels per straw"
+--geant4 (writePixelFile, SAM-606, 4.9998 m): exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees; "Geant4 pixel positions: from the file g4.txt"
+--geant4 with -t 0.00001 (the file has 4 decimals in m): exit code 1; bank 0 differs, bank 2 differs, bank 4 differs
+recorded nominal-cad-geometry: banks 2 and 4 are the surveyed ones (differ): exit code 1; bank 0 agrees, bank 2 differs, bank 4 differs; "bank_calibration=nominal-cad-geometry"
+wrong -s 2: exit code 1; bank 0 differs, bank 2 differs, bank 4 differs; "Pixel ids don't agree"
+pixel shape not centred on the offsets: exit code 0; bank 0 agrees, bank 2 agrees, bank 4 agrees; "NOTE: the pixel shape is not centred on the pixel offsets"
+a rotation in the depends_on chain: exit code 1; "only translations are supported"
+depends_on to a missing node: exit code 1; "not found in the file"
+checks performed: 11, failures: 0

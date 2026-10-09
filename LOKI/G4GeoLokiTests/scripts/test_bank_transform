@@ -5,7 +5,8 @@
 # position in the bank frame (PixelatedBanks::getPixelId(bank, tube, straw, x, y, z),
 # used by the analysis programs).
 #
-# Checks for every bank (rear 5 m, 256 pixels per straw):
+# Checks for every bank (rear 5 m, 256 pixels per straw), for the nominal geometry and the
+# 2026-September-SAM-606 bank calibration (surveyed banks: tilted, not along the world axes):
 #   * the rotation is orthonormal with determinant +1 (a proper rotation, no
 #     reflection: the upside-down banks 1, 2, 5, 6 are rotated, not mirrored),
 #   * the bank-local z axis is the straw axis: the AimHelper pixel centres of a
@@ -23,10 +24,14 @@ chk = Checker()
 def dot(a, b):
     return sum(a[i] * b[i] for i in range(3))
 
-def run(rear_mm, N, nbanks):
-    aim = LokiAim.AimHelper(rear_mm, N) if nbanks == 9 else LokiAim.AimHelper(rear_mm, N, nbanks)
-    pc = TU.PixelCalc(rear_mm, N, nbanks)
-    print(f'--- rear={rear_mm/1000} m, {N} pixels/straw, banks={nbanks}')
+def run(rear_mm, N, nbanks, calibration=None):
+    if calibration is None:  # (the constructors without a calibration: the nominal geometry)
+        aim = LokiAim.AimHelper(rear_mm, N) if nbanks == 9 else LokiAim.AimHelper(rear_mm, N, nbanks)
+        pc = TU.PixelCalc(rear_mm, N, nbanks)
+    else:
+        aim = LokiAim.AimHelper(rear_mm, N, nbanks, calibration)
+        pc = TU.PixelCalc(rear_mm, N, nbanks, calibration)
+    print(f'--- rear={rear_mm/1000} m, {N} pixels/straw, banks={nbanks}' + (f', {calibration}' if calibration else ''))
     for b in range(nbanks):
         rows, t = pc.getBankTransform(b)
         cols = [[rows[i][j] for i in range(3)] for j in range(3)]
@@ -60,5 +65,6 @@ def run(rear_mm, N, nbanks):
               f' translation ({fmt(t[0], 6)}, {fmt(t[1], 6)}, {fmt(t[2], 6)}); {chk.nchecks - ncheck0} pixel id checks')
 
 run(5000.0, 256, 9)
+run(5000.0, 256, 9, '2026-September-SAM-606')
 
 chk.finish()

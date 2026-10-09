@@ -1,0 +1,37 @@
+Used parameters: straw_pixel_number=256 rear_detector_distance_m=5.0 nominal_source_sample_distance_meters=23.6 bank_calibration=2026-September-SAM-606
+
+Pixel number: 401408 (according to the Geant4 geometry. It corresponds to the pixelID 401409 in the ICD.)
+Pixel centre position [m] X: 0.4963 Y: 0.7105 Z: 26.4941
+Bank id: 1
+Pack id: 7
+Tube id: 0
+Straw id: 0
+InStraw id: 0
+Used parameters: straw_pixel_number=256 rear_detector_distance_m=5.0 nominal_source_sample_distance_meters=0.0 bank_calibration=nominal-geant4-geometry
+
+Pixel number: 401408 (according to the Geant4 geometry. It corresponds to the pixelID 401409 in the ICD.)
+Pixel centre position [mm] X: 498.046875 Y: 710.623697 Z: 2891.566258
+Bank id: 1
+Pack id: 7
+Tube id: 0
+Straw id: 0
+InStraw id: 0
+Used parameters: straw_pixel_number=2 rear_detector_distance_m=10.0 nominal_source_sample_distance_meters=0.0 bank_calibration=2026-September-SAM-606
+
+Pixel number: 0 (according to the Geant4 geometry. It corresponds to the pixelID 1 in the ICD.)
+Pixel centre position [m] X: 0.2500 Y: 0.7799 Z: 10.0050
+Bank id: 0
+Pack id: 0
+Tube id: 0
+Straw id: 0
+InStraw id: 0
+Used parameters: straw_pixel_number=1 rear_detector_distance_m=5.0 nominal_source_sample_distance_meters=0.0 bank_calibration=nominal-geant4-geometry
+
+Pixel number: 6271 (according to the Geant4 geometry. It corresponds to the pixelID 6272 in the ICD.)
+Pixel centre position [m] X: -1.1874 Y: 0.0500 Z: 1.5984
+Bank id: 8
+Pack id: 15
+Tube id: 127
+Straw id: 6
+InStraw id: 0
+invalid pixel id: --pixel must be 0-1605631 (with 256 pixels per straw), not 1605632

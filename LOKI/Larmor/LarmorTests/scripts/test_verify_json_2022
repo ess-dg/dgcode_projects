@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+# verifyJSON_2022 (sb_larmor_verifyjson_2022): a JSON file in the layout it reads (the bank group as the first child
+# of /entry/instrument: detector_number, pixel_shape, x/y/z_pixel_offset, transformations), made here from the
+# Larmor 2022 pixel positions (sb_larmor_writepixelfile_2022, 512 pixels per straw, the pixels of the experiment,
+# placed by a translation of 4 m along z), agrees with the Geant4 geometry; with the offsets moved by 1 mm it does not.
+
+import json
+import subprocess
+import numpy as np
+from G4GeoLokiTests.testhelpers import Checker
+
+chk = Checker()
+text = subprocess.run(['sb_larmor_writepixelfile_2022', '--print'], stdout=subprocess.PIPE, text=True, check=True).stdout
+data = np.array([[float(v) for v in line.split(',')] for line in text.strip().splitlines()])
+translation = np.array([0.0, 0.0, 4.0])
+
+def write(name, offset_shift):
+    offsets = data[:, 1:4] - translation + offset_shift
+    def dataset(name, values):
+        return {'module': 'dataset', 'config': {'name': name, 'values': values}}
+    trans = {'module': 'dataset', 'config': {'name': 'trans_1', 'values': 4.0},
+             'attributes': [{'name': 'transformation_type', 'values': 'translation'}, {'name': 'depends_on', 'values': '.'},
+                            {'name': 'units', 'values': 'm'}, {'name': 'vector', 'values': [0.0, 0.0, 1.0]}]}
+    bank = {'name': 'larmor_detector', 'children': [
+        dataset('detector_number', [int(v) for v in data[:, 0]]), {'name': 'pixel_shape', 'children': []},
+        dataset('x_pixel_offset', offsets[:, 0].tolist()), dataset('y_pixel_offset', offsets[:, 1].tolist()),
+        dataset('z_pixel_offset', offsets[:, 2].tolist()), {'name': 'transformations', 'children': [trans]}]}
+    with open(name, 'w') as f:
+        json.dump({'children': [{'name': 'entry', 'children': [{'name': 'instrument', 'children': [bank]}]}]}, f)
+    return name
+
+for name, shift, agrees in (('larmor.json', 0.0, True), ('moved.json', 0.001, False)):
+    out = subprocess.run(['sb_larmor_verifyjson_2022', '--json', write(name, shift), '--printPixelNumber', '0'],
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True).stdout
+    ids_ok = 'Pixel ids in the JSON and Geant4 files are the same.' in out
+    equal = 'The pixel positions are equal within the given tolerance' in out
+    chk.check(ids_ok and equal == agrees, f'{name}:\n{out[-2000:]}')
+    print(f'{name} (offsets moved by {shift * 1000:g} mm): {len(data)} pixels, the same ids: {ids_ok}, '
+          f'positions equal within 0.1 mm: {equal}')
+
+chk.finish()

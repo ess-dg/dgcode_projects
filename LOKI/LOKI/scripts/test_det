@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-sb_loki_sim_det -lPL_Empty |grep '^G4Launcher::Launcher'
-if [ ${PIPESTATUS[0]} == 0 ]; then
-    sb_loki_ana_det lokibcs_CountingGas_Converter.griff
-else
-    exit 1
-fi
+# The detector-only simulation (sb_loki_sim_det, no interactions) and its analysis (sb_loki_ana_det).
+# Each step must succeed (its output is in <step>.log); the log of the test is a summary of the output files
+# (LOKI.OutputSummary: histograms, detection events, mask files).
+
+run() { local name=$1; shift; "$@" > $name.log 2>&1 || { tail -40 $name.log; echo "TEST FAILED: $name"; exit 1; }; }
+run sim sb_loki_sim_det -lPL_Empty
+run ana sb_loki_ana_det lokibcs_CountingGas_Converter.griff
+python3 -m LOKI.OutputSummary

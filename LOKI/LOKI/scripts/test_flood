@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-# testing full geometry (this takes long), and the flood sim-ana workflow (but not the results)
-sb_loki_sim -t -lPL_Empty && \
-sb_loki_sim -lPL_Empty event_gen=flood |grep '^G4Launcher::Launcher'
-if [ ${PIPESTATUS[0]} == 0 ]; then
-    sb_loki_ana lokisim.griff
-else
-    exit 1
-fi
+# The geometry test and a flood source simulation (no interactions) with its analysis (sb_loki_ana).
+# Each step must succeed (its output is in <step>.log); the log of the test is a summary of the output files
+# (LOKI.OutputSummary: histograms, detection events, mask files).
+
+run() { local name=$1; shift; "$@" > $name.log 2>&1 || { tail -40 $name.log; echo "TEST FAILED: $name"; exit 1; }; }
+run geometry sb_loki_sim -t -lPL_Empty
+run sim sb_loki_sim -lPL_Empty event_gen=flood
+run ana sb_loki_ana lokisim.griff
+python3 -m LOKI.OutputSummary

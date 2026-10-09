@@ -104,7 +104,10 @@ def readBanks(filename):
 
 ######## the Geant4 pixel centres ########
 
-info, banks = readBanks(args.json)
+try:
+  info, banks = readBanks(args.json)
+except (OSError, ValueError, KeyError) as error:
+  sys.exit(f'{args.json}: {error}')
 if not banks:
   sys.exit(f'{args.json}: no loki_detector_<id> group in /entry/instrument')
 

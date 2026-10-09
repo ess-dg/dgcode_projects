@@ -1,0 +1,29 @@
+larmor_bcs.shist:
+  bank_lambda: integral 1.0, mean 8.953, 0.0
+  bank_lambda_hit: empty
+  h_neutron_pixel_hit: empty
+  mcpl_lambda_calculated: empty
+  neutron_Q_hit: empty
+  neutron_bankIncidentCounter: integral 1.0, mean 0.0
+  neutron_bankPanelConvCounter: empty
+  neutron_bankPanelHitCounter: empty
+  neutron_bankToBankIncident: empty
+  neutron_bank_Q_hit: empty
+  neutron_bank_theta_hit: empty
+  neutron_counters: count_initial_neutrons 10.0, count_neutrons_entering_aluminium 1.0, count_neutrons_converted 0.0, count_neutrons_hit 0.0
+  neutron_nonFirstBankIncident: empty
+  neutron_panelConvCounter: empty
+  neutron_panelHitCounter: empty
+  neutron_segment_number_World: integral 10.0, mean 1.5
+  neutron_theta_conv: empty
+  neutron_theta_hit: empty
+  neutron_true_theta: integral 10.0, mean 6.207
+  neutron_xy_conv: empty
+  neutron_xy_hit: empty
+  neutron_yz_conv: empty
+  neutron_yz_hit: empty
+  neutron_zx_big_conv: empty
+  neutron_zy_big_conv: empty
+  panel_lambda: integral 3.0, mean 8.953, 1.0
+  panel_neutronNr_all: integral 3.0, mean 1.0
+detectionEvents.mcpl: 0 detection events, sha256 of the pixel ids e3b0c44298fc1c14

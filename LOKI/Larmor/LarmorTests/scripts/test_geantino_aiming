@@ -78,7 +78,6 @@ def run(title, n, old, geo_args):
         elif found:
             nshadowed += 1
             shadowing[re.sub(r'^(BoronMask-\d)-\d+$', r'\1-*', found)] += 1
-    chk.nchecks += len(targets) - 1
     chk.check(nfail == 0, f'{nfail} targets not crossed by their geantino')
     print(f'  bank 0: {len(targets)} targets, all crossed: {"yes" if nfail == 0 else "NO"}, '
           f'reached after an absorber: {nshadowed}, mean straws crossed per geantino: '

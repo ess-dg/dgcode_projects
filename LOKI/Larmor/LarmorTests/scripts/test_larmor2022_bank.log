@@ -78,5 +78,5 @@ D) Checksums of all pixel centres (rounded to 1e-6 mm)
 ====================================================================================================
 E) Pixel id round trip (first/middle/last pixel of every straw, 512 pixels/straw)
 ====================================================================================================
-28224 checks done, failures: 0
-checks performed: 28721, failures: 0
+59584 checks done, failures: 0
+checks performed: 60081, failures: 0

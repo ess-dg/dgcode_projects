@@ -9,4 +9,4 @@ bank 5: 6273, 0.4019, 1.0925, 1.0342  ...  7840, -0.1976, 0.3658, 1.3537
 bank 6: 7841, 1.1924, -0.3170, 1.4866  ...  9632, 0.3226, 0.2823, 1.7430
 bank 7: 9633, 0.2077, -0.3669, 1.2547  ...  10752, -0.3914, -0.8913, 1.1934
 bank 8: 10753, -0.3257, -0.2534, 1.6454  ...  12544, -1.1887, 0.3452, 1.5814
-the same as with --bankCalibration=<default>: yes
+the same as with --bankCalibration=2026-September-SAM-606: yes; different from nominal-geant4-geometry: yes

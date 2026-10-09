@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# sb_loki_info -p: the position and the ids of a pixel, with the default (2026-September-SAM-606) and the nominal
+# bank calibration, other units, precisions, pixel numbers, rear detector and source-sample distances; an invalid
+# pixel id is an error.
+set -e
+sb_loki_info -p 401408
+sb_loki_info -p 401408 -c nominal-geant4-geometry --nominal_source_sample_distance_meters 0 --unit mm --precision 6
+sb_loki_info -p 0 -s 2 -r 10 --nominal_source_sample_distance_meters 0
+sb_loki_info -p 6271 -s 1 -c nominal-geant4-geometry --nominal_source_sample_distance_meters 0
+if sb_loki_info -p 1605632 > invalid.txt 2>&1; then echo "TEST FAILED: an invalid pixel id was accepted"; exit 1; fi
+echo "invalid pixel id: $(grep "error:" invalid.txt | sed "s/.*error: //")"

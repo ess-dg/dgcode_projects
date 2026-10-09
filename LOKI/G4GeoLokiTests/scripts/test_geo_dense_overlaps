@@ -10,7 +10,8 @@
 #
 # Also checked: 100k random surface points of every volume inside a bank (packs, boron masks,
 # calibration masks, beamstop) are inside the bank solid (for the banks 6 and 8: not in the notch);
-# printed: the smallest distance of the content of banks 6 and 8 from their notch.
+# printed: the smallest distance of the content of banks 6 and 8 from their notch. (The checks sample random
+# points: only robust numbers are printed, distances rounded down to 5 mm, depths to 10 mm.)
 #
 # Configurations: the nominal geometry and the 2026-September-SAM-606 bank calibration (with
 # and without beamstop / calibration slits).
@@ -56,8 +57,8 @@ def run(title, pars, expect_overlap=False):
     print(f'{title}: {len(TU.world_daughters())} world volumes, construction check problems: {len(problems)}, '
           f'dense check overlaps: {len(overlaps)}, bank content outside its bank: {len(outside)}'
           + (f', {"; ".join(notes)}' if notes else ''))
-    for a, b, n, depth in overlaps:
-        print(f'    {a} in {b}: {n} points, up to {depth:.1f} mm deep')
+    for a, b, n, depth in overlaps:  # (random points: only robust numbers are printed)
+        print(f'    {a} in {b}: {"many" if n > 1000 else "a few"} points, up to {10 * round(depth / 10)} mm deep (rounded)')
     for bank, daughter, n, distance in outside:
         print(f'    bank {bank}: {daughter} outside the bank: {n} points, up to {distance:.1f} mm')
     if expect_overlap:
@@ -70,7 +71,7 @@ def run(title, pars, expect_overlap=False):
         centre, half, _ = pc.getBankNotch(b)
         distance, closest = TU.bank_daughters_distance_to_box(b, list(centre), list(half), 100000)
         chk.check(distance > 0, f'{title}: bank {b}: the content touches the notch')
-        clearances.append(f'bank {b} {distance:.1f} mm ({closest.split(":")[0]})')
+        clearances.append(f'bank {b} at least {5 * int(distance // 5)} mm ({closest.split(":")[0]})')
     print('    smallest distance of the bank content from the notch: ' + ', '.join(clearances))
     return notes
 

@@ -13,7 +13,8 @@
 #     before the Larmor code was moved to the Larmor package.)
 #  D) Checksums of all pixel centres (8 and 512 pixels per straw, new and old numbering).
 #  E) Pixel id round trip for the first, middle and last pixel of every straw: getPixelId(tube, straw, x, y, z) of
-#     the pixel centre and of the points 0.49 pixel lengths from it along the straw gives the pixel id.
+#     the pixel centre, of the points 0.49 pixel lengths from it along the straw and of points 3 mm across the straw
+#     gives the pixel id; 0.51 pixel lengths away along the straw: the neighbouring pixel.
 
 import hashlib
 import Larmor.Larmor2022Bank as LB
@@ -96,9 +97,15 @@ for old in (False, True):
             for j in (0, N // 2, N - 1):
                 pid = (tube * NSTRAWS + straw) * N + j
                 x, y, z = bank.getPixelCentre(pid, old)
-                for dx in (0.0, -0.49 * pitch, 0.49 * pitch):  # the straws are along the world x axis
-                    got = bank.getPixelId(tube, straw, x + dx, y, z)
-                    chk.check(got == pid, f'pixel {pid} (old={old}): getPixelId at {dx:+.3f} mm -> {got}')
+                # the straws are along the world x axis, the pixel index increases towards -x
+                probes = [(0.0, 0, 0.0), (-0.49 * pitch, 0, 0.0), (0.49 * pitch, 0, 0.0), (0.0, 0, 3.0), (0.0, 0, -3.0)]
+                if j < N - 1:
+                    probes.append((-0.51 * pitch, 1, 0.0))
+                if j > 0:
+                    probes.append((0.51 * pitch, -1, 0.0))
+                for dx, dj, dyz in probes:
+                    got = bank.getPixelId(tube, straw, x + dx, y + dyz, z + dyz)
+                    chk.check(got == pid + dj, f'pixel {pid} (old={old}): getPixelId at {dx:+.3f} mm -> {got}')
 print(f'{chk.nchecks - n0} checks done, failures: {chk.nfail}')
 
 chk.finish()

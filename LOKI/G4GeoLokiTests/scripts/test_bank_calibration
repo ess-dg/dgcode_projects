@@ -71,7 +71,8 @@ chk.check(nominal.getBankCalibrationName() == NOMINAL and not any(nominal.isBank
           'the default is not the nominal geometry')
 explicit = LokiAim.AimHelper(REAR, 256, 9, NOMINAL)
 print(f'default bank calibration (geometry parameter and scripts): {LokiAim.DEFAULT_BANK_CALIBRATION}')
-chk.check(GEO.create().bank_calibration == LokiAim.DEFAULT_BANK_CALIBRATION, 'the geometry default is not DEFAULT_BANK_CALIBRATION')
+chk.check(LokiAim.DEFAULT_BANK_CALIBRATION == '2026-September-SAM-606', 'the default calibration changed')
+chk.check(GEO.create().bank_calibration == '2026-September-SAM-606', 'the geometry default is not 2026-September-SAM-606')
 
 
 for name in ['unknown-calibration', '', 'nominal']:
@@ -97,6 +98,13 @@ bad_files = {
     'normal towards the sample': ['loki_bank_calibration 1', 'name x', 'bank 3 0 -500 -2900 1 0 0 0 1 0 0 0 1'],
     'unknown line': ['loki_bank_calibration 1', 'name x', 'banks 3'],
     'no name': ['loki_bank_calibration 1'],
+    'no bank line': ['loki_bank_calibration 1', 'name x'],
+    'values in m': ['loki_bank_calibration 1', 'name x', 'bank 3 0 -0.5 2.9 1 0 0 0 1 0 0 0 1'],
+    'too far': ['loki_bank_calibration 1', 'name x', 'bank 3 0 -500 29000 1 0 0 0 1 0 0 0 1'],
+    'extra word, format line': ['loki_bank_calibration 1 x', 'name x', GOOD],
+    'extra word, name line': ['loki_bank_calibration 1', 'name x y', GOOD],
+    'invalid name': ['loki_bank_calibration 1', 'name x/y', GOOD],
+    'reserved name': ['loki_bank_calibration 1', f'name {NOMINAL}', GOOD],
 }
 for what, lines in bad_files.items():
     path = os.path.abspath(f'bad_{what.replace(" ", "_")}.txt')

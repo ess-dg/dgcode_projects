@@ -1,17 +1,17 @@
 nominal, defaults: 13 world volumes, construction check problems: 0, dense check overlaps: 0, bank content outside its bank: 0
-    smallest distance of the bank content from the notch: bank 6 33.1 mm (EmptyPackBox), bank 8 33.1 mm (EmptyPackBox)
+    smallest distance of the bank content from the notch: bank 6 at least 30 mm (EmptyPackBox), bank 8 at least 30 mm (EmptyPackBox)
 nominal, rear 10 m, beamstop 3, calibration slits: 13 world volumes, construction check problems: 0, dense check overlaps: 0, bank content outside its bank: 0
-    smallest distance of the bank content from the notch: bank 6 25.3 mm (CalibMaskBox), bank 8 25.3 mm (CalibMaskBox)
+    smallest distance of the bank content from the notch: bank 6 at least 25 mm (CalibMaskBox), bank 8 at least 25 mm (CalibMaskBox)
 2026-September-SAM-606, defaults: 13 world volumes, construction check problems: 0, dense check overlaps: 0, bank content outside its bank: 0
-    smallest distance of the bank content from the notch: bank 6 33.1 mm (EmptyPackBox), bank 8 33.1 mm (EmptyPackBox)
+    smallest distance of the bank content from the notch: bank 6 at least 30 mm (EmptyPackBox), bank 8 at least 30 mm (EmptyPackBox)
 2026-September-SAM-606, rear 10 m, beamstop 3, calibration slits: 13 world volumes, construction check problems: 0, dense check overlaps: 0, bank content outside its bank: 0
-    smallest distance of the bank content from the notch: bank 6 25.3 mm (CalibMaskBox), bank 8 25.3 mm (CalibMaskBox)
+    smallest distance of the bank content from the notch: bank 6 at least 25 mm (CalibMaskBox), bank 8 at least 25 mm (CalibMaskBox)
 bank 2 moved 400 mm towards bank 4 (must overlap): 13 world volumes, construction check problems: 4, dense check overlaps: 2, bank content outside its bank: 0
-    Bank:2 in Bank:4: 103780 points, up to 97.0 mm deep
-    Bank:4 in Bank:2: 103757 points, up to 97.0 mm deep
-    smallest distance of the bank content from the notch: bank 6 33.1 mm (EmptyPackBox), bank 8 33.1 mm (EmptyPackBox)
+    Bank:2 in Bank:4: many points, up to 100 mm deep (rounded)
+    Bank:4 in Bank:2: many points, up to 100 mm deep (rounded)
+    smallest distance of the bank content from the notch: bank 6 at least 30 mm (EmptyPackBox), bank 8 at least 30 mm (EmptyPackBox)
 bank 5 moved 3 mm along the beam (notch of bank 6 enlarged): 13 world volumes, construction check problems: 0, dense check overlaps: 0, bank content outside its bank: 0, bank 6: notch enlarged
-    smallest distance of the bank content from the notch: bank 6 29.6 mm (EmptyPackBox), bank 8 33.1 mm (EmptyPackBox)
+    smallest distance of the bank content from the notch: bank 6 at least 25 mm (EmptyPackBox), bank 8 at least 30 mm (EmptyPackBox)
     bank 6 notch: centre (-143.22, -36.74, -425.00) mm, half sizes (16.78, 75.26, 60.00) mm, contains the overlap region: True (margin 1.00 mm)
 bank 5 moved 60 mm along the beam: construction stopped: bank_calibration=<file>: the notch of bank 6, enlarged because bank 5 overlaps it, would cut into EmptyPackBox: the two banks collide (check the calibration)
 checks performed: 21, failures: 0

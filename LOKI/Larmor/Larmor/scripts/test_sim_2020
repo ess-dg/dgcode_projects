@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-sb_larmor_sim_2020 -t -lPL_Empty && \
-sb_larmor_sim_2020 gen_x_offset_meters=-0.040 cone_opening_deg=10.4753 withBeamstop=True event_gen=flood -lPL_Empty |grep '^G4Launcher::Launcher'
-if [ ${PIPESTATUS[0]} == 0 ]; then
-    sb_larmor_ana_2020 larmor.griff
-else
-    exit 1
-fi
+# The Larmor 2020 geometry test and a flood source simulation (no interactions) with its analysis.
+# Each step must succeed (its output is in <step>.log); the log of the test is a summary of the output files
+# (LOKI.OutputSummary: histograms, detection events, mask files).
+
+run() { local name=$1; shift; "$@" > $name.log 2>&1 || { tail -40 $name.log; echo "TEST FAILED: $name"; exit 1; }; }
+run geometry sb_larmor_sim_2020 -t -lPL_Empty
+run sim sb_larmor_sim_2020 gen_x_offset_meters=-0.040 cone_opening_deg=10.4753 withBeamstop=True event_gen=flood -lPL_Empty
+run ana sb_larmor_ana_2020 larmor.griff
+python3 -m LOKI.OutputSummary
