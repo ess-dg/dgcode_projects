@@ -115,7 +115,10 @@ if strawPixelNumber is None:  # the number of pixels of one bank in the file
 bankCalibration = args.bankCalibration or info.get('calibration') or LokiAim.NOMINAL_BANK_CALIBRATION
 print(f'{args.json}: banks {sorted(banks)}, {strawPixelNumber} pixels per straw'
       + (f', written by {info["written_by"]} with the bank calibration {info.get("calibration")}' if 'written_by' in info else ''))
-print(f'Geant4 geometry: bank_calibration={bankCalibration}, rear detector distance {args.rearDetectorDistance} m, {strawPixelNumber} pixels per straw')
+if args.geant4:
+  print(f'Geant4 pixel positions: from the file {args.geant4} (the bank calibration and rear detector distance it was made with)')
+else:
+  print(f'Geant4 geometry: bank_calibration={bankCalibration}, rear detector distance {args.rearDetectorDistance} m, {strawPixelNumber} pixels per straw')
 try:
   aimHelper = LokiAim.AimHelper(args.rearDetectorDistance * 1000, strawPixelNumber, 9, bankCalibration)
 except Exception as error:
@@ -160,7 +163,8 @@ for bankId, (jsonIds, jsonPixels, shapeCentre) in banks.items():
   if args.printPixelNumber > 0:
     print(f'  First {args.printPixelNumber} pixels (detector number, JSON, Geant4 [m]):')
   for i in range(min(args.printPixelNumber, len(jsonIds))):
-    print(f'    {jsonIds[i]}: {np.round(jsonPixels[i], 6)} {np.round(geant4Pixels[i], 6)}')
+    print(f'    {jsonIds[i]}: ({", ".join(f"{v + 0.0:.6f}" for v in np.round(jsonPixels[i], 6))}) '
+          f'({", ".join(f"{v + 0.0:.6f}" for v in np.round(geant4Pixels[i], 6))})')
 
 print('\nAll compared banks agree.' if not failed else '\nNOT all compared banks agree (see above).')
 sys.exit(1 if failed else 0)

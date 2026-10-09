@@ -101,6 +101,9 @@ def launch(geo):
       # the bank placements (also written to the detection files of the analysis, checked by the LokiMantid scripts)
       bankCalibration = launcher.getGeo().getParameterString("bank_calibration")
       launcher.setUserData("bank_calibration", bankCalibration)
+      # the text of the calibration: the analysis uses it, so that it has the placements of the simulation even if the
+      # calibration file changes or is not there
+      launcher.setUserData("bank_calibration_text", LokiAim.bankCalibrationText(bankCalibration))
       if bankCalibration != LokiAim.NOMINAL_BANK_CALIBRATION:
         print(f"NOTE: bank_calibration={bankCalibration}: the LokiMantid scripts (Mantid instrument definition) assume "
               f"the nominal geometry; use bank_calibration={LokiAim.NOMINAL_BANK_CALIBRATION} for simulations to be "

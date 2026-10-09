@@ -29,7 +29,12 @@ public:
   /// bankCalibration: the name of the bank calibration (see BankCalibration.hh), the default is the
   /// nominal geometry.
   BcsBanks(double rearBankDistance, int numberOfBanks = 9, const std::string& bankCalibration = BankCalibration::nominalName);
+  /// With a bank calibration object (e.g. BankCalibration::fromText of the calibration recorded in a simulation output).
+  BcsBanks(double rearBankDistance, int numberOfBanks, const BankCalibration& bankCalibration);
   int getNumberOfBanks() const;
+  /// Throws std::out_of_range if bankId is not 0-8 (the functions of the bank placement and of the pixel ids check
+  /// their input with it; the table accessors only assert, which release builds do not check).
+  static void checkBankId(const int bankId);
 
   ///////// Banks: dimensions, packs, tubes (BcsBanks.cc) /////////
   static double getStrawLengthByBankId(const int bankId);

@@ -97,7 +97,12 @@ int main(int argc, char**argv) {
   }
 
   // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
-  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
@@ -195,11 +200,11 @@ int main(int argc, char**argv) {
 
   DetectionFileCreator* detectionFile = nullptr;
   if (createDetectionMcplFile == true) {
-    userData["bank_calibration"] = bankCalibration; // (checked by the LokiMantid scripts)
-    if (bankCalibration != BankCalibration::nominalName)
+    userData["bank_calibration"] = bankCalibrationName; // (checked by the LokiMantid scripts)
+    if (!bankCalibration.isNominal())
       printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
              "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
-             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibration.c_str(), BankCalibration::nominalName.c_str());
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibrationName.c_str(), BankCalibration::nominalName.c_str());
     detectionFile = new DetectionFileCreator("detectionEvents.mcpl", userData);
   }
   // auto h_neutron_pixel_hit_count = hc.book1D("Number of hits in pixels (all banks)", numberOfPixels, 0, numberOfPixels, "neutron_pixel_hit_count");
@@ -460,7 +465,7 @@ int main(int argc, char**argv) {
           }
 
           h_bank_lambda_hit -> fill(lambda_hit_calculated, bankId_conv, hit.eventHitWeight());
-          h_layer_lambda_hit->fill(lambda_hit_calculated, layerNumber, hit.eventHitWeight());
+          h_layer_lambda_hit->fill(lambda_hit_calculated, layerNumber_conv, hit.eventHitWeight()); // the layer of the conversion
 
           if (createDetectionMcplFile == true && bankFilter(bankId_conv)) {
             detectionFile->addDetectionEvent(pixelId, hit.eventHitTime()/Units::ms);

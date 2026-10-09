@@ -3,15 +3,29 @@
 #include <cmath>
 #include <array>
 #include <cassert>
+#include <stdexcept>
+#include <string>
 
 // The placement of the banks in the world: BankTransform, the nominal placement from the tables and the placement
 // from a bank calibration (see BcsBanks.hh). (The tables are in BcsBanks.cc.)
 
+void BcsBanks::checkBankId(const int bankId) {
+  if (bankId < 0 || bankId > 8)
+    throw std::out_of_range("BcsBanks: no bank " + std::to_string(bankId) + " (0-8)");
+}
+
 BcsBanks::BcsBanks(double rearBankDistance, int numberOfBanks, const std::string& bankCalibration)
+  : BcsBanks(rearBankDistance, numberOfBanks, BankCalibration::load(bankCalibration))
+{
+}
+
+BcsBanks::BcsBanks(double rearBankDistance, int numberOfBanks, const BankCalibration& bankCalibration)
   : m_rearBankDistance(rearBankDistance),
     m_numberOfBanks(numberOfBanks),
-    m_bankCalibration(BankCalibration::load(bankCalibration))
+    m_bankCalibration(bankCalibration)
 {
+  if (numberOfBanks < 1 || numberOfBanks > 9)
+    throw std::out_of_range("BcsBanks: the number of banks must be 1-9, not " + std::to_string(numberOfBanks));
   for (int bankId = 0; bankId <= 8; bankId++) {
     if (!m_bankCalibration.hasBank(bankId))
       continue;
@@ -44,20 +58,20 @@ std::array<double,3> BankTransform::toLocal(const std::array<double,3>& global) 
 }
 
 BankTransform BcsBanks::getBankTransform(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
+  checkBankId(bankId);
   if (m_bankCalibration.hasBank(bankId))
     return m_calibratedTransforms[bankId];
   return getNominalBankTransform(bankId);
 }
 
 std::array<double,3> BcsBanks::getFrontFaceCentreInBank(const int bankId) {
-  assert(0 <= bankId && bankId <= 8);
+  checkBankId(bankId);
   // bank volume: local x = depth (towards the back), y = across the tubes, z = along the tubes
   return {-detectorSystemCentreOffsetInBank(bankId, 2), detectorSystemCentreOffsetInBank(bankId, 1), 0.0};
 }
 
 BankTransform BcsBanks::getNominalBankTransform(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
+  checkBankId(bankId);
   return transformFromPlacement(bankId, nominalBankPlacement(bankId));
 }
 
@@ -68,7 +82,7 @@ namespace {
 }
 
 BankCalibration::Bank BcsBanks::nominalBankPlacement(const int bankId) const {
-  assert(0 <= bankId && bankId <= 8);
+  checkBankId(bankId);
   const double distance = bankId == 0 ? m_rearBankDistance : bankDistance[bankId] *Units::mm;
   const double positionAngle = bankPositionAngle[bankId] *Units::deg;
   const double normalAngle = calcBankRotation(bankId); // between the layer normal and the beam axis

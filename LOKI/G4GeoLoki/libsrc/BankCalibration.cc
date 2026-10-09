@@ -1,6 +1,7 @@
 #include "G4GeoLoki/BankCalibration.hh"
 #include "Core/FindData.hh"
 #include "Units/Units.hh"
+#include <cctype>
 #include <cmath>
 #include <fstream>
 #include <sstream>
@@ -66,12 +67,33 @@ BankCalibration BankCalibration::loadFile(const std::string& fileName, const std
   std::ifstream file(fileName);
   if (!file)
     throw std::runtime_error("BankCalibration: can not open the bank calibration file " + fileName);
-  auto fail = [&fileName](int lineNumber, const std::string& message) {
-    throw std::runtime_error("BankCalibration: " + fileName + ":" + std::to_string(lineNumber) + ": " + message);
+  std::stringstream text;
+  text << file.rdbuf();
+  BankCalibration calibration = parse(text.str(), fileName, expectedName);
+  calibration.m_fileName = fileName;
+  return calibration;
+}
+
+BankCalibration BankCalibration::fromText(const std::string& name, const std::string& text) {
+  if (text.empty()) {
+    if (name != nominalName)
+      throw std::runtime_error("BankCalibration: no text for the bank calibration '" + name + "'");
+    return BankCalibration();
+  }
+  BankCalibration calibration = parse(text, "the recorded bank calibration '" + name + "'",
+                                      name.find('/') == std::string::npos ? name : "");
+  calibration.m_name = name;
+  return calibration;
+}
+
+BankCalibration BankCalibration::parse(const std::string& text, const std::string& source, const std::string& expectedName) {
+  std::istringstream file(text);
+  auto fail = [&source](int lineNumber, const std::string& message) {
+    throw std::runtime_error("BankCalibration: " + source + ":" + std::to_string(lineNumber) + ": " + message);
   };
 
   BankCalibration calibration;
-  calibration.m_fileName = fileName;
+  calibration.m_text = text;
   bool formatSeen = false;
   bool nameSeen = false;
   std::string line;
@@ -84,16 +106,22 @@ BankCalibration BankCalibration::loadFile(const std::string& fileName, const std
       continue; // empty or comment line
     if (!formatSeen) {
       int version = 0;
-      if (key != "loki_bank_calibration" || !(words >> version))
+      std::string extra;
+      if (key != "loki_bank_calibration" || !(words >> version) || (words >> extra))
         fail(lineNumber, "the first line must be 'loki_bank_calibration <version>'");
       if (version != 1)
         fail(lineNumber, "unsupported format version " + std::to_string(version) + " (supported: 1)");
       formatSeen = true;
     }
     else if (key == "name") {
-      std::string fileCalibrationName;
-      if (nameSeen || !(words >> fileCalibrationName))
-        fail(lineNumber, "invalid or repeated 'name' line");
+      std::string fileCalibrationName, extra;
+      if (nameSeen || !(words >> fileCalibrationName) || (words >> extra))
+        fail(lineNumber, "invalid or repeated 'name' line ('name <name>')");
+      for (const char character : fileCalibrationName)
+        if (!std::isalnum(static_cast<unsigned char>(character)) && character != '.' && character != '_' && character != '-')
+          fail(lineNumber, "invalid calibration name '" + fileCalibrationName + "' (letters, digits, '.', '_', '-')");
+      if (fileCalibrationName == nominalName)
+        fail(lineNumber, "the name '" + nominalName + "' is reserved for the built-in nominal geometry");
       if (!expectedName.empty() && fileCalibrationName != expectedName)
         fail(lineNumber, "the calibration name '" + fileCalibrationName + "' does not match the requested '" + expectedName + "'");
       nameSeen = true;
@@ -136,6 +164,10 @@ BankCalibration BankCalibration::loadFile(const std::string& fileName, const std
         fail(lineNumber, "n must be u x w (right-handed basis), got -(u x w)");
       if (dot(n, bank.frontFaceCentre) <= 0)
         fail(lineNumber, "the layer normal n must point away from the sample");
+      const double distance = std::sqrt(dot(bank.frontFaceCentre, bank.frontFaceCentre));
+      if (distance < 0.5 * Units::m || distance > 20 * Units::m)
+        fail(lineNumber, "implausible front face centre: " + std::to_string(distance / Units::mm)
+                         + " mm from the sample (0.5-20 m; the values must be in mm)");
 
       calibration.m_banks[bankId] = bank;
       calibration.m_hasBank[bankId] = true;
@@ -146,5 +178,7 @@ BankCalibration BankCalibration::loadFile(const std::string& fileName, const std
   }
   if (!formatSeen || !nameSeen)
     fail(lineNumber, "incomplete file (the 'loki_bank_calibration' and 'name' lines are required)");
+  if (calibration.isNominal())
+    fail(lineNumber, "no bank line (use '" + nominalName + "' for the nominal geometry)");
   return calibration;
 }

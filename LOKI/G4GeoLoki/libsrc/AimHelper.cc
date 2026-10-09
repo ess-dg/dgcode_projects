@@ -4,6 +4,8 @@
 #include <iostream>
 #include <array>
 #include <cassert>
+#include <stdexcept>
+#include <string>
 
 //////// Utilities for getting the centre coordinates of a pixel ////////
 std::tuple<double,double,double> AimHelper::getPixelCentreCoordinates(const int pixelId) const {
@@ -50,12 +52,14 @@ void AimHelper::coordinateRotation(double &x, double &y, const double angle) {
 }
 
 int AimHelper::getBankId(const int pixelId) const {
+  if (pixelId < 0)
+    throw std::out_of_range("Pixel id " + std::to_string(pixelId) + " is negative");
   for (int bankId = 0; bankId < getNumberOfBanks(); bankId++){
     if(pixelId < getBankPixelOffset(bankId+1)){
       return bankId;
     }
   }
-  throw std::runtime_error("Pixel id is out of the range for the banks in the geometry");
+  throw std::out_of_range("Pixel id " + std::to_string(pixelId) + " is out of the range for the banks in the geometry");
 }
 
 int AimHelper::getTubeId(const int pixelId, const int bankId) const {

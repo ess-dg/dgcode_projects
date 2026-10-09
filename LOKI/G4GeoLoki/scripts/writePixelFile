@@ -12,11 +12,18 @@ parser.add_argument('--print', action = 'store_true', help = 'Print pixel positi
 parser.add_argument('--bankCalibration', default=None, help = f'Bank placements (the bank_calibration geometry parameter): {LokiAim.NOMINAL_BANK_CALIBRATION}, the name of a bank calibration in G4GeoLoki/data (bank_calibration_<name>.txt) or the path of such a file. Default: {LokiAim.DEFAULT_BANK_CALIBRATION}.')
 
 args = parser.parse_args()
+if args.bankId is not None and not 0 <= args.bankId <= 8:
+  parser.error(f'--bankId must be 0-8, not {args.bankId}')
+if args.strawPixelNumber is not None and args.strawPixelNumber < 1:
+  parser.error(f'--strawPixelNumber must be positive, not {args.strawPixelNumber}')
 
 rearBankDistance = args.rearDetectorDistance
 strawPixelNumber = args.strawPixelNumber if args.strawPixelNumber is not None else LokiAim.DEFAULT_NUMBER_OF_PIXELS_IN_STRAW
 bankCalibration = args.bankCalibration if args.bankCalibration is not None else LokiAim.DEFAULT_BANK_CALIBRATION
-aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, 9, bankCalibration)
+try:
+  aimHelper = LokiAim.AimHelper(rearBankDistance * 1000, strawPixelNumber, 9, bankCalibration)
+except Exception as error:
+  parser.error(str(error))
 
 ssd = args.sourceSampleDistance
 

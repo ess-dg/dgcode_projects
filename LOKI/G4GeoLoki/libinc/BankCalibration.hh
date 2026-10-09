@@ -21,6 +21,7 @@
 ///   u: unit vector along the tubes, from the last pixel end to the first pixel end,
 ///   w: unit vector in the tube plane, perpendicular to the tubes, towards tube 0,
 ///   n: u x w, the layer normal, pointing away from the sample.
+/// The file must contain at least one bank line; |F| must be plausible (0.5-20 m, e.g. not in m instead of mm).
 /// All banks (0-8) can be calibrated; banks without a line keep their nominal placement. The rear
 /// bank (0) moves along the beam: its axes and the x and y of F are used, the z of F is replaced by
 /// the rear detector distance (see BcsBanks).
@@ -41,20 +42,29 @@ public:
   BankCalibration();
   /// Load a calibration by name (see above); throws std::runtime_error on any problem.
   static BankCalibration load(const std::string& name);
+  /// A calibration from the text of its file (e.g. recorded in a simulation output, so that its analysis uses the
+  /// placements of the simulation even if the file has changed or is not there): name is the bank_calibration value
+  /// it was selected with; an empty text is the nominal geometry (only for the nominal name).
+  static BankCalibration fromText(const std::string& name, const std::string& text);
 
   const std::string& name() const { return m_name; }
   bool isNominal() const;
   bool hasBank(const int bankId) const;
   const Bank& getBank(const int bankId) const;
-  /// The data file used ("" for the nominal geometry).
+  /// The data file used ("" for the nominal geometry, or a calibration from a text).
   const std::string& fileName() const { return m_fileName; }
+  /// The text of the calibration file ("" for the nominal geometry).
+  const std::string& text() const { return m_text; }
 
 private:
   std::string m_name;
   std::string m_fileName;
+  std::string m_text;
   std::array<bool,9> m_hasBank;
   std::array<Bank,9> m_banks;
   static BankCalibration loadFile(const std::string& fileName, const std::string& expectedName);
+  /// Parse the text of a calibration file (source: the file name or another label for the error messages).
+  static BankCalibration parse(const std::string& text, const std::string& source, const std::string& expectedName);
 };
 
 #endif

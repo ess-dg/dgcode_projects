@@ -58,7 +58,12 @@ int main(int argc, char**argv) {
 
   auto userData = setup->userData();
   // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
-  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   if(userData.count("analysis_straw_pixel_number")){
@@ -69,11 +74,11 @@ int main(int argc, char**argv) {
     banks = new PixelatedBanks(rearDetectorDistance, PixelatedBanks::defaultNumberOfPixelsInStraw, 9, bankCalibration);
   }
   { // the bank placements of the simulation (checked by the LokiMantid scripts)
-    mcpl_hdr_add_data(detMcpl, "bank_calibration", bankCalibration.size(), bankCalibration.c_str());
-    if (bankCalibration != BankCalibration::nominalName)
+    mcpl_hdr_add_data(detMcpl, "bank_calibration", bankCalibrationName.size(), bankCalibrationName.c_str());
+    if (!bankCalibration.isNominal())
       printf("WARNING: detectionEvents.mcpl: the simulation used bank_calibration=%s, but the LokiMantid scripts (Mantid "
              "instrument definition) assume the nominal geometry (%s): its pixel positions in Mantid would be wrong "
-             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibration.c_str(), BankCalibration::nominalName.c_str());
+             "(see LokiMantid/python/workspaceCreator.py).\n", bankCalibrationName.c_str(), BankCalibration::nominalName.c_str());
   }
 
   auto h_neutron_xy_hit = hc.book2D("Neutron xy (hit)", 2500, -1250, 1250, 2500, -1250, 1250, "neutron_xy_hit");

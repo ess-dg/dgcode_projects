@@ -66,7 +66,7 @@ GeoBCS::GeoBCS()
   addParameterString("bank_calibration", BankCalibration::defaultName);
 
   addParameterString("world_material","G4_Vacuum");
-  addParameterString("B4C_panel_material","MAT_B4C:b10_enrichment=0.95");
+  addParameterString("B4C_panel_material","MAT_B4C:b10_enrichment=0.95"); // the B4C panels behind the tubes
 }
 
 G4LogicalVolume * GeoBCS::createTubeLV(double converterThickness, double strawLength){
@@ -114,9 +114,10 @@ G4LogicalVolume *GeoBCS::createPackBoxLV(int bankId, int packNumber){
   /// Add B4C panel behind detectors in 3 parts ///
   const double B4CLengthHalf = 0.5*strawLength + BcsPack::getB4CLengthOverStrawOnOneEnd();
 
+  auto B4CPanelMaterial = getParameterMaterial("B4C_panel_material");
   for (int partId = 0; partId < 3; partId++){
     place(new G4Box("B4CPanel", 0.5*BcsPack::getB4CPartThickness(partId), 0.5*BcsPack::getB4CPartHeight(partId), B4CLengthHalf),
-          BcsPack::B4CPanelMaterial,
+          B4CPanelMaterial,
           BcsPack::getB4CPartHorizontalOffset(partId), BcsPack::getB4CPartVerticalOffset(partId), 0,
           lv_pack_box, G4Colour(0, 1, 0), -2, 0, new G4RotationMatrix());
     }

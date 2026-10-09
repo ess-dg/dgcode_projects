@@ -6,6 +6,7 @@
 # SAM-606 survey (2026): both ends of 2 front layer tubes of banks 1-8 (32 points), on the
 # tube axis at the physical tube ends (including the end electronics), in the TANK WINDOW
 # coordinate system (sample to window distance 83.11 mm). Bank 0 was not surveyed.
+# Bank 5: tube UP9 constructed parallel to UP3 (bank 5 fix).
 # Bank 0 is not in the calibration input: written from REFERENCE_BANKS_DATA (the intended geometry).
 # Frame: NeXus (x horizontal, positive to the left looking along the beam, y up,
 #   z along the beam, origin at the sample), [mm].

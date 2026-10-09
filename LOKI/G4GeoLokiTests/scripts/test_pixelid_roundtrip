@@ -13,8 +13,8 @@
 #     pixel, by +-0.51 pitch to the neighbouring pixel ids (+-1),
 #   * points displaced perpendicular to the straw (3 mm, i.e. still inside the
 #     straw, in two directions) map to the same pixel.
-# Displacements beyond the ends of the straw are reported (current behaviour:
-# no range check, the returned id spills into the neighbouring straw).
+# Displacements beyond the ends of the straw give the end pixel of the straw (the
+# pixel index is clamped to the straw: never an id of the neighbouring straw or bank).
 # Done for rear 5 m / 256 pixels per straw (all straws) and 10 m / 512 pixels
 # (all straws, fewer pixels per straw).
 
@@ -43,8 +43,8 @@ def run(rear_mm, N, inStrawList, perp):
                     for f, expect in ((0.49, pid), (-0.49, pid), (0.51, pid + 1), (-0.51, pid - 1)):
                         r = gp(add(c, u, f * pitch))
                         if (j == 0 and f < -0.5) or (j == N - 1 and f > 0.5):
-                            endspill.add(r - base)  # beyond the straw end
-                            chk.check(r == expect, f'beyond straw end pixel {pid} f={f} -> {r}')
+                            endspill.add(r - base)  # beyond the straw end: the end pixel
+                            chk.check(r == pid, f'beyond straw end pixel {pid} f={f} -> {r}')
                         else:
                             chk.check(r == expect, f'pixel {pid} displaced {f} pitch -> {r} (expected {expect})')
                     if perp:

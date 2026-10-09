@@ -1,3 +1,4 @@
+import G4GeoLoki.LokiAimHelper as LokiAim
 
 def launch(geo):
     import G4Launcher
@@ -25,6 +26,11 @@ def launch(geo):
       launcher.setUserData("analysis_straw_pixel_number", str(launcher.getParameterInt('analysis_straw_pixel_number')))
       launcher.setUserData("rear_detector_distance_m", str(launcher.getGeo().getParameterDouble("rear_detector_distance_m")))
       launcher.setUserData("aiming_bank_id", str(launcher.getParameterInt('aiming_bank_id')))
+      # the bank placements: the name and the text of the calibration (the analysis uses the recorded text, so that
+      # it has the placements of the simulation even if the calibration file changes or is not there)
+      bankCalibration = launcher.getGeo().getParameterString("bank_calibration")
+      launcher.setUserData("bank_calibration", bankCalibration)
+      launcher.setUserData("bank_calibration_text", LokiAim.bankCalibrationText(bankCalibration))
 
     launcher.addPrePreInitHook(addUserData) #add userdata when all parameters are available
 
@@ -42,7 +48,9 @@ def launch(geo):
         "BoronMask-3-0", "BoronMask-3-1", "BoronMask-3-2", "BoronMask-3-3",  "BoronMask-3-4", "BoronMask-3-5", "BoronMask-3-6", "BoronMask-3-7",
         "BoronMask-2-0", "BoronMask-2-1", "BoronMask-2-2", "BoronMask-2-3",  "BoronMask-2-4", "BoronMask-2-5", "BoronMask-2-6", "BoronMask-2-7",
         "BoronMask-1-0", "BoronMask-1-1", "BoronMask-1-2", "BoronMask-1-3",  "BoronMask-1-4", "BoronMask-1-5", "BoronMask-1-6", "BoronMask-1-7",
-        "BoronMask-0-0", "BoronMask-0-1", "BoronMask-0-2", "BoronMask-0-3",  "BoronMask-0-4", "BoronMask-0-5" ]
+        "BoronMask-0-0", "BoronMask-0-1", "BoronMask-0-2", "BoronMask-0-3",  "BoronMask-0-4", "BoronMask-0-5",
+        # the beamstop (beamstop_id) and the calibration slit masks (with_calibration_slits) absorb as well
+        "BoronMask-Beamstop", *[f"BoronMask-lokiStandard-{bankId}" for bankId in range(9)] ]
         import G4CollectFilters.StepFilterVolume
         f = G4CollectFilters.StepFilterVolume.create()
         f.volumeList = griff_output_volumes

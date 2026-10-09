@@ -31,6 +31,8 @@ PYTHON_MODULE( mod )
   mod.attr("NOMINAL_BANK_CALIBRATION") = BankCalibration::nominalName;
   mod.attr("DEFAULT_BANK_CALIBRATION") = BankCalibration::defaultName;
   mod.attr("DEFAULT_NUMBER_OF_PIXELS_IN_STRAW") = PixelatedBanks::defaultNumberOfPixelsInStraw;
+  // the text of a bank calibration file ("" for the nominal geometry); throws for an unknown name
+  mod.def("bankCalibrationText", [](const std::string& name) { return BankCalibration::load(name).text(); });
 
   py::class_<AimHelper>(mod, "AimHelper")
     .def(py::init<double>())

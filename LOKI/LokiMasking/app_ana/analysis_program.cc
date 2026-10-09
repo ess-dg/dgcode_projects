@@ -39,7 +39,12 @@ int main(int argc, char **argv) {
 
   auto userData = setup->userData();
   // bank placements used by the simulation (files from before the bank_calibration parameter: nominal)
-  const std::string bankCalibration = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  const std::string bankCalibrationName = geo.hasParameterString("bank_calibration") ? geo.getParameterString("bank_calibration") : BankCalibration::nominalName;
+  // the text of the calibration recorded by the simulation (the same placements even if the file changed or is not
+  // there); files without it: the calibration of that name
+  const BankCalibration bankCalibration = setup->userData().count("bank_calibration_text")
+    ? BankCalibration::fromText(bankCalibrationName, setup->userData().at("bank_calibration_text"))
+    : BankCalibration::load(bankCalibrationName);
   PixelatedBanks* banks;
   const double rearDetectorDistance = setup->geo().getParameterDouble("rear_detector_distance_m") *Units::m;
   int strawPixelNumber = 0;
