@@ -63,16 +63,16 @@ LOKI, rear 7.3 m, calibration slits (targets in straw 3 of every tube)
       first absorber crossed: B4CPanel 7, BoronMask-5-* 37, BoronMask-7-* 36, BoronMask-8-* 14, BoronMask-lokiStandard-5 39, BoronMask-lokiStandard-7 71, BoronMask-lokiStandard-8 152, BoronMask-triangular-5-1 28
 ==========================================================================================
 LOKI SAM-606 bank calibration, rear 5 m
-  Converter exit points (used by the masking analysis): 318926, giving a pixel outside the straw: 0
-  bank 0: 4704 targets, all crossed: yes, reached after an absorber: 3966, mean straws crossed per geantino: 11.71
-      first absorber crossed: AlPanel 3, B4CPanel 3330, BoronMask-1-* 270, BoronMask-2-* 39, BoronMask-3-* 283, BoronMask-4-* 41
-  bank 1: 1344 targets, all crossed: yes, reached after an absorber: 939, mean straws crossed per geantino: 6.63
+  Converter exit points (used by the masking analysis): 319067, giving a pixel outside the straw: 0
+  bank 0: 4704 targets, all crossed: yes, reached after an absorber: 3967, mean straws crossed per geantino: 11.78
+      first absorber crossed: AlPanel 5, B4CPanel 3329, BoronMask-1-* 274, BoronMask-2-* 36, BoronMask-3-* 285, BoronMask-4-* 38
+  bank 1: 1344 targets, all crossed: yes, reached after an absorber: 939, mean straws crossed per geantino: 6.64
       first absorber crossed: BoronMask-1-* 9, BoronMask-5-* 102, BoronMask-6-* 414, BoronMask-8-* 414
-  bank 2: 1008 targets, all crossed: yes, reached after an absorber: 707, mean straws crossed per geantino: 8.78
+  bank 2: 1008 targets, all crossed: yes, reached after an absorber: 707, mean straws crossed per geantino: 8.61
       first absorber crossed: BoronMask-1-* 12, BoronMask-2-* 574, BoronMask-3-* 79, BoronMask-6-* 42
-  bank 3: 1344 targets, all crossed: yes, reached after an absorber: 937, mean straws crossed per geantino: 6.58
+  bank 3: 1344 targets, all crossed: yes, reached after an absorber: 937, mean straws crossed per geantino: 6.57
       first absorber crossed: BoronMask-3-* 27, BoronMask-6-* 434, BoronMask-7-* 41, BoronMask-8-* 435
-  bank 4: 1008 targets, all crossed: yes, reached after an absorber: 706, mean straws crossed per geantino: 8.77
+  bank 4: 1008 targets, all crossed: yes, reached after an absorber: 706, mean straws crossed per geantino: 8.80
       first absorber crossed: BoronMask-1-* 41, BoronMask-3-* 60, BoronMask-4-* 559, BoronMask-8-* 46
   bank 5: 2352 targets, all crossed: yes, reached after an absorber: 1598, mean straws crossed per geantino: 6.59
       first absorber crossed: BoronMask-5-* 1598
@@ -84,8 +84,8 @@ LOKI SAM-606 bank calibration, rear 5 m
       first absorber crossed: AlPanel 1, B4CPanel 800, BoronMask-5-* 256, BoronMask-7-* 259, BoronMask-8-* 128, BoronMask-triangular-5-1 263
 ==========================================================================================
 LOKI SAM-606 bank calibration, rear 10 m, beamstop, calibration slits (targets in straw 3 of every tube)
-  Converter exit points (used by the masking analysis): 39212, giving a pixel outside the straw: 0
-  bank 0: 672 targets, all crossed: yes, reached after an absorber: 672, mean straws crossed per geantino: 7.16
+  Converter exit points (used by the masking analysis): 39206, giving a pixel outside the straw: 0
+  bank 0: 672 targets, all crossed: yes, reached after an absorber: 672, mean straws crossed per geantino: 7.15
       first absorber crossed: BoronMask-1-* 27, BoronMask-2-* 209, BoronMask-3-* 18, BoronMask-4-* 209, BoronMask-Beamstop 9, BoronMask-lokiStandard-0 200
   bank 1: 192 targets, all crossed: yes, reached after an absorber: 190, mean straws crossed per geantino: 6.82
       first absorber crossed: BoronMask-1-* 1, BoronMask-5-* 15, BoronMask-6-* 59, BoronMask-8-* 59, BoronMask-lokiStandard-1 56

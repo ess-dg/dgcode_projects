@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+# The Geant4 pixel centres of the 2026-September-SAM-606 bank calibration (all 9 banks surveyed) against the
+# pixel centres of loki-geometry (https://github.com/MilanKlausz/loki-geometry), which made the calibration file
+# from the survey: data/loki_geometry_SAM-606_pixel_centres.csv (written by loki-geometry, see its header: 2
+# pixels per straw, the centre straw of every tube, the rear bank front face at 5 m).
+#  1. Full precision: AimHelper pixel centres (the placement of the geometry) within 1e-6 mm of the CSV.
+#  2. The Geant4 pixel file (sb_g4geoloki_writepixelfile, detector numbers, 4 decimals in m) within its rounding.
+#  3. The bank 0 line of the calibration file changes only bank 0: banks 1-8 are identical to those of the same
+#     file without its bank 0 line (bank 0 nominal).
+
+import os
+import subprocess
+import numpy as np
+import G4GeoLoki.LokiAimHelper as LokiAim
+import G4GeoLokiTests.TestUtils as TU
+from G4GeoLokiTests.testhelpers import Checker
+from Core import FindData
+
+chk = Checker()
+SAM606 = '2026-September-SAM-606'
+N, REAR = 2, 5000.0
+
+rows = np.loadtxt(FindData('G4GeoLokiTests', 'loki_geometry_SAM-606_pixel_centres.csv'), delimiter=',', comments='#')
+detector_numbers, expected = rows[:, 0].astype(int), rows[:, 1:]
+aim = LokiAim.AimHelper(REAR, N, 9, SAM606)
+banks = np.array([aim.getBankId(int(d) - 1) for d in detector_numbers])
+print(f'loki-geometry CSV: {len(rows)} pixels ({N} per straw, centre straw of every tube), banks {sorted(set(int(b) for b in banks))}')
+
+print('1. AimHelper pixel centres (full precision) vs the CSV, per bank:')
+geant4 = np.array([aim.getPixelCentreCoordinates(int(d) - 1) for d in detector_numbers])
+for b in range(9):
+    worst = np.abs(geant4[banks == b] - expected[banks == b]).max()
+    chk.check(worst < 1e-6, f'bank {b}: Geant4 pixel centres differ from loki-geometry by {worst:.2e} mm')
+    print(f'  bank {b}: {np.sum(banks == b)} pixels, within 1e-6 mm: {worst < 1e-6}')
+
+print('2. The Geant4 pixel file (sb_g4geoloki_writepixelfile) vs the CSV:')
+subprocess.run(['sb_g4geoloki_writepixelfile', '-f', 'geant4_pixels', '-n', str(N), '-rear', str(REAR / 1000),
+                '--bankCalibration', SAM606], stdout=subprocess.DEVNULL, check=True)
+pixel_file = np.loadtxt('geant4_pixels.txt', delimiter=',')
+by_number = {int(r[0]): r[1:] * 1000.0 for r in pixel_file}  # [m] -> [mm]
+worst = max(np.abs(by_number[int(d)] - e).max() for d, e in zip(detector_numbers, expected))
+chk.check(worst <= 0.05 + 1e-9, f'the pixel file differs from loki-geometry by {worst:.4f} mm')
+print(f'  {len(pixel_file)} lines in the pixel file; at the {len(rows)} detector numbers of the CSV within its rounding '
+      f'(0.05 mm): {worst <= 0.05 + 1e-9}')
+
+print('3. Banks 1-8 do not depend on the bank 0 line of the calibration file:')
+with open(TU.PixelCalc(REAR, N, 9, SAM606).getBankCalibrationFile()) as f:
+    text = f.read()
+without_bank_0 = os.path.abspath('without_bank_0.txt')
+with open(without_bank_0, 'w') as f:
+    f.write(''.join(line for line in text.splitlines(True) if not line.startswith('bank 0 '))
+            .replace(f'name {SAM606}', 'name without-bank-0'))
+other = LokiAim.AimHelper(REAR, N, 9, without_bank_0)
+first, total = aim.getBankPixelOffset(1), aim.getTotalNumberOfPixels()
+same = all(aim.getPixelCentreCoordinates(p) == other.getPixelCentreCoordinates(p) for p in range(first, total))
+moved = any(aim.getPixelCentreCoordinates(p) != other.getPixelCentreCoordinates(p) for p in range(0, first))
+chk.check(same and moved, f'banks 1-8 identical: {same}, bank 0 changed: {moved}')
+print(f'  all {total - first} pixels of banks 1-8 identical: {same}; bank 0 differs (its own placement): {moved}')
+
+chk.finish()

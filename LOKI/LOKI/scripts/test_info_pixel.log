@@ -19,7 +19,7 @@ InStraw id: 0
 Used parameters: straw_pixel_number=2 rear_detector_distance_m=10.0 nominal_source_sample_distance_meters=0.0 bank_calibration=2026-September-SAM-606
 
 Pixel number: 0 (according to the Geant4 geometry. It corresponds to the pixelID 1 in the ICD.)
-Pixel centre position [m] X: 0.2500 Y: 0.7799 Z: 10.0050
+Pixel centre position [m] X: 0.2467 Y: 0.7806 Z: 10.0037
 Bank id: 0
 Pack id: 0
 Tube id: 0

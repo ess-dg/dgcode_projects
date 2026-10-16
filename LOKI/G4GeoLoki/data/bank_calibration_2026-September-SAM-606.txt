@@ -1,13 +1,14 @@
 # LOKI detector bank calibration for the Geant4 geometry (G4GeoLoki):
 #   bank_calibration=2026-September-SAM-606
-# Written by loki-geometry 0.1.0 (loki-calibrate --data measured).
+# Written by loki-geometry 0.3.0 (loki-calibrate --data measured).
 # Input: the survey file ESS.NSS.D03.LOKI.OB.DETECTOR_PIPE_CENTRES.TANK_WINDOW_CS.txt
-#   (content SHA-256 7195877da8cbc18f846a9ef1b381696b7c51bc6f2a334c75ef203f1d051c2202)
-# SAM-606 survey (2026): both ends of 2 front layer tubes of banks 1-8 (32 points), on the
-# tube axis at the physical tube ends (including the end electronics), in the TANK WINDOW
-# coordinate system (sample to window distance 83.11 mm). Bank 0 was not surveyed.
+#   (content SHA-256 cbdc6a9693206af3198f54d0230450c065d3e5df138e71c0ea0e6c46cfaab7d1)
+# SAM-606 survey (2026): both ends of 2 front layer tubes of each of the 9 banks (36
+# points; the bank 0 points from the revision SAM-606 Rev2), on the tube axis at the
+# physical tube ends (including the end electronics), in the TANK WINDOW coordinate system
+# (sample to window distance 83.11 mm), with the detector carriage at 5.0 m along z
+# (carriage_position 5000 mm).
 # Bank 5: tube UP9 constructed parallel to UP3 (bank 5 fix).
-# Bank 0 is not in the calibration input: written from REFERENCE_BANKS_DATA (the intended geometry).
 # Frame: NeXus (x horizontal, positive to the left looking along the beam, y up,
 #   z along the beam, origin at the sample), [mm].
 # F: front face centre; u: along the tubes (last -> first pixel end);
@@ -18,7 +19,7 @@
 loki_bank_calibration 1
 name 2026-September-SAM-606
 # bank Fx Fy Fz ux uy uz wx wy wz nx ny nz
-bank 0 0 0 4999.8000000000002 1 0 0 0 1 0 0 0 1
+bank 0 -2.7114225019785714 0.54001641379733023 4985.6532695260612 0.99999925044278093 0.0007350112507813134 -0.00097922027018185025 -0.00073643527837205654 0.99999867078305626 -0.0014546804464206152 0.00097814976209126465 0.001455400488406644 0.99999846251504854
 bank 1 -1.6534618970419845 496.64873323997062 2909.4095356735138 0.99999940422242506 0.000388608669343123 0.0010200676923677804 -0.0002874784612419932 0.99525192667546281 -0.097332008121242916 -0.0010530483983289169 0.097331656885524587 0.99525144544330579
 bank 2 379.49805388455536 -1.1791740459468654 3360.7938737778122 -0.00066139329091495763 -0.99999970985755915 0.00037794670553781127 0.99733260824994507 -0.00068721473510083753 -0.072987644552143752 0.072987883105875534 0.00032866503518702572 0.99733277340064308
 bank 3 -1.3463713799558652 -497.47796726457415 2908.7963728518525 0.99999979973502839 0.00053392393250522598 0.00033978690004813955 -0.00056470794455395113 0.99516738976620644 0.098191381754475615 -0.00028571811371318645 -0.098191553970543258 0.99516749198012378

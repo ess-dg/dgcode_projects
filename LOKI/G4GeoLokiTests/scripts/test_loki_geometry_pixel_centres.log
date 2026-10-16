@@ -1,0 +1,16 @@
+loki-geometry CSV: 1792 pixels (2 per straw, centre straw of every tube), banks [0, 1, 2, 3, 4, 5, 6, 7, 8]
+1. AimHelper pixel centres (full precision) vs the CSV, per bank:
+  bank 0: 448 pixels, within 1e-6 mm: True
+  bank 1: 128 pixels, within 1e-6 mm: True
+  bank 2: 96 pixels, within 1e-6 mm: True
+  bank 3: 128 pixels, within 1e-6 mm: True
+  bank 4: 96 pixels, within 1e-6 mm: True
+  bank 5: 224 pixels, within 1e-6 mm: True
+  bank 6: 256 pixels, within 1e-6 mm: True
+  bank 7: 160 pixels, within 1e-6 mm: True
+  bank 8: 256 pixels, within 1e-6 mm: True
+2. The Geant4 pixel file (sb_g4geoloki_writepixelfile) vs the CSV:
+  12544 lines in the pixel file; at the 1792 detector numbers of the CSV within its rounding (0.05 mm): True
+3. Banks 1-8 do not depend on the bank 0 line of the calibration file:
+  all 9408 pixels of banks 1-8 identical: True; bank 0 differs (its own placement): True
+checks performed: 11, failures: 0

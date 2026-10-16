@@ -14,7 +14,7 @@ bank 8: 3584 pixels, 1124 masked (31.4 %), detector numbers 21505..25088, file s
 bank_calibration=2026-September-SAM-606
 25088 pixels aimed at (4 per straw), rear bank at 5 m
 counter all_geantino: 25088
-counter geantino_in_mask: 4009
+counter geantino_in_mask: 4012
 bank 0: 6272 pixels, 4790 masked (76.4 %), detector numbers 1..6272, file sha256 b64c73d9a49ba1c2
 bank 1: 1792 pixels, 152 masked (8.5 %), detector numbers 6273..8064, file sha256 b89a468bc0cc8f28
 bank 2: 1344 pixels, 124 masked (9.2 %), detector numbers 8065..9408, file sha256 99443331aa9461f4

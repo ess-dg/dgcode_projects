@@ -49,7 +49,7 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
 ==========================================================================================
 4. The 2026-September-SAM-606 calibration
 2026-September-SAM-606: file bank_calibration_2026-September-SAM-606.txt, calibrated banks: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-  bank 0: front face centre F (0.000, 0.000, 5000.000) mm, bank centre moved by (0.000, 0.000, 0.000) mm, rotated by 0.000 deg from nominal
+  bank 0: front face centre F (-2.711, 0.540, 5000.000) mm, bank centre moved by (-2.617, 0.672, 0.010) mm, rotated by 0.109 deg from nominal
   bank 1: front face centre F (-1.653, 496.649, 2909.410) mm, bank centre moved by (-1.755, -0.581, 1.617) mm, rotated by 0.130 deg from nominal
   bank 2: front face centre F (379.498, -1.179, 3360.794) mm, bank centre moved by (-0.254, -1.143, 32.326) mm, rotated by 0.317 deg from nominal
   bank 3: front face centre F (-1.346, -497.478, 2908.796) mm, bank centre moved by (-1.369, -0.329, 0.990) mm, rotated by 0.074 deg from nominal
@@ -58,7 +58,7 @@ default bank calibration (geometry parameter and scripts): 2026-September-SAM-60
   bank 6: front face centre F (757.360, -17.302, 1561.837) mm, bank centre moved by (0.907, -2.432, -16.338) mm, rotated by 0.198 deg from nominal
   bank 7: front face centre F (-91.967, -622.787, 1171.495) mm, bank centre moved by (8.286, -3.395, -16.932) mm, rotated by 0.430 deg from nominal
   bank 8: front face centre F (-756.958, 45.936, 1560.456) mm, bank centre moved by (-0.688, -4.164, -17.738) mm, rotated by 0.130 deg from nominal
-  pixel centres vs loki-geometry (24 pixels, first / middle / last of banks 1-8): within 1e-6 mm: True
+  pixel centres vs loki-geometry (27 pixels of all banks): within 1e-6 mm: True
   8 pixels/straw: 50176 pixel centres -> pixel id round trip OK: True
   256 pixels/straw: 123511 pixel centres -> pixel id round trip OK: True
   BoronMask-triangular-5-0: position in its bank (-154.070, 134.477, 892.500) mm, unchanged from nominal: True

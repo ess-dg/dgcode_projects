@@ -15,8 +15,8 @@
 #  3. A calibrated rear bank (0), shifted in x / y and rotated: the z of its front face centre is
 #     the rear detector distance (not the z of the file), and the beamstop stays on the beam axis,
 #     5 cm in front of the detector front.
-#  4. The 2026-September-SAM-606 calibration (by name, all 9 banks; bank 0 from REFERENCE_BANKS_DATA,
-#     the same as nominal): the bank rotation is R = [n | s*w | -s*u] of the file's vectors (s = -1
+#  4. The 2026-September-SAM-606 calibration (by name, all 9 banks surveyed; bank 0 at the rear detector
+#     distance): the bank rotation is R = [n | s*w | -s*u] of the file's vectors (s = -1
 #     for the upside-down banks) and the front face centre is at F; the pixel centres equal the
 #     pixel positions of loki-geometry (hard-coded, computed with loki-geometry from the same
 #     survey) within 1e-6 mm; every pixel centre gives back its pixel id (3D getPixelId); the
@@ -274,8 +274,8 @@ print(f'{SAM606}: file {os.path.basename(pc_sam.getBankCalibrationFile())}, cali
       [b for b in range(NBANKS) if sam.isBankCalibrated(b)])
 chk.check([b for b in range(NBANKS) if sam.isBankCalibrated(b)] == list(range(NBANKS)), 'SAM-606: not all banks')
 R0, t0 = transform(nominal, 0)
-R0s, t0s = transform(sam, 0)  # bank 0 of SAM-606 is REFERENCE_BANKS_DATA: the nominal placement
-chk.check(np.abs(R0 - R0s).max() < 1e-12 and np.abs(t0 - t0s).max() < 1e-9, 'SAM-606: bank 0 is not nominal')
+R0s, t0s = transform(sam, 0)  # bank 0 of SAM-606 is surveyed: not the nominal placement
+chk.check(np.abs(R0 - R0s).max() > 1e-4 and np.abs(t0 - t0s).max() > 1.0, 'SAM-606: bank 0 is nominal')
 # the file values (read here independently of the C++ reader)
 fileF = {}
 with open(pc_sam.getBankCalibrationFile()) as f:
@@ -299,11 +299,13 @@ for b in range(NBANKS):
     print(f'  bank {b}: front face centre F {fmtvec(F, 3)} mm, bank centre moved by {fmtvec(t - tn, 3)} mm, '
           f'rotated by {angle:.3f} deg from nominal')
 
-# Pixel positions of loki-geometry for the same survey (256 pixels per straw), hard-coded (banks 1-8; bank 0 is
-# REFERENCE_BANKS_DATA at z = 4999.8 mm in loki-geometry, Geant4 puts it at the rear detector distance):
-# compute_instrument_pixels(Detectors(get_measured_calibration_data(SAM606.path), True).formatted_data(decimals=12))
-# (pixel id = detector number - 1)
+# Pixel positions of loki-geometry for the same survey (256 pixels per straw), hard-coded, with the rear bank at
+# the same rear detector distance as here:
+# LokiGeometry('2026-September-SAM-606', rear_detector_distance=5000.0).pixel_centre(pixel id)
 LOKI_GEOMETRY_PIXELS = [
+    (0, (494.765686, 780.773543, 5003.411976)),  # bank 0
+    (200703, (-500.142625, -773.338222, 5048.238287)),  # bank 0
+    (401407, (-500.100504, -760.701579, 5100.738892)),  # bank 0
     (401408, (496.326255, 710.454346, 2894.085240)),  # bank 1
     (458829, (195.493490, 702.948630, 2947.270502)),  # bank 1
     (516095, (-499.737467, 274.232101, 3030.251337)),  # bank 1
@@ -334,7 +336,7 @@ for p, expected in LOKI_GEOMETRY_PIXELS:
     c = np.array(sam.getPixelCentreCoordinates(p))
     worst = max(worst, np.abs(c - np.array(expected)).max())
 chk.check(worst < 1e-6, f'pixel centres differ from loki-geometry by {worst:.2e} mm')
-print(f'  pixel centres vs loki-geometry ({len(LOKI_GEOMETRY_PIXELS)} pixels, first / middle / last of banks 1-8): '
+print(f'  pixel centres vs loki-geometry ({len(LOKI_GEOMETRY_PIXELS)} pixels of all banks): '
       f'within 1e-6 mm: {worst < 1e-6}')
 
 for N in (8, 256):
