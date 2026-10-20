@@ -26,4 +26,4 @@ All detections are at the pixels of conversion points (within 0 pixel along the 
 Conversions in the target bank at the targeted pixel position (except for a few scattered neutrons): True
 Every target has detections in its bank at the targeted pixel position: True
 Detections whose conversion pixel differs from the nominal one: > 0: True, all at the calibrated pixel: True
-checks performed: 918, failures: 0
+checks performed: 922, failures: 0
