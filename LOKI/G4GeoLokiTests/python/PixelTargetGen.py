@@ -8,6 +8,9 @@ import G4GeoLoki.LokiAimHelper as LokiAim
 class PixelTargetGen(G4CustomPyGen.GenBase):
     def declare_parameters(self):
         self.addParameterString("target_pixel_ids", "0")  # comma separated pixel ids
+        # a file with the pixel ids (comma or whitespace separated) instead of target_pixel_ids: long lists exceed the
+        # length limit of a command line argument on Linux (128 kB)
+        self.addParameterString("target_pixel_ids_file", "")
         self.addParameterInt("repeat", 1)
         self.addParameterDouble("rear_detector_distance_mm", 5000.0)
         self.addParameterInt("aiming_straw_pixel_number", 256)
@@ -21,7 +24,11 @@ class PixelTargetGen(G4CustomPyGen.GenBase):
             gun.set_wavelength_angstrom(self.neutron_wavelength_aangstrom)
         gun.set_position(0, 0, 0)
         self._aim = LokiAim.AimHelper(self.rear_detector_distance_mm, self.aiming_straw_pixel_number, 9, self.aiming_bank_calibration)
-        self._targets = [int(e) for e in self.target_pixel_ids.split(',')]
+        if self.target_pixel_ids_file:
+            with open(self.target_pixel_ids_file) as f:
+                self._targets = [int(e) for e in f.read().replace(',', ' ').split()]
+        else:
+            self._targets = [int(e) for e in self.target_pixel_ids.split(',')]
         self._i = 0
 
     def generate_event(self, gun):

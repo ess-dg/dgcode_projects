@@ -79,7 +79,7 @@ print('--- maskMerger: intersection')
 write_mask('a.xml', [1, 2, 3, 5, 8, 13])
 write_mask('b.xml', [2, 3, 5, 7, 11, 13])
 write_mask('c.xml', [3, 5, 13, 21])
-r = subprocess.run(['sb_lokimasking_maskMerger', 'a.xml', 'b.xml', 'c.xml', '-s', 'merged.xml'],
+r = subprocess.run(['sb_lokimasking_maskmerger', 'a.xml', 'b.xml', 'c.xml', '-s', 'merged.xml'],
                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 if chk.check(r.returncode == 0, f'maskMerger failed:\n{r.stdout}'):
     print(r.stdout.strip())

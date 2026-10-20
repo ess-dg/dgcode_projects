@@ -57,7 +57,7 @@ def run(title, rear_m, n, geo_args, calibration=NOMINAL, straws=range(NSTRAWS)):
     with open(os.path.join(d, 'targets.txt'), 'w') as f:
         f.write(','.join(map(str, targets)))
     sim = subprocess.run(['sb_g4geolokitests_simpixeltargets', '-lPL_Empty', f'-n{len(targets)}', '-j1',
-                          f'target_pixel_ids={",".join(map(str, targets))}', 'particle=geantino',
+                          'target_pixel_ids_file=targets.txt', 'particle=geantino',
                           f'rear_detector_distance_mm={rear_m * 1000}', f'rear_detector_distance_m={rear_m}',
                           f'aiming_straw_pixel_number={n}', f'analysis_straw_pixel_number={n}'] + geo_args,
                          cwd=d, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

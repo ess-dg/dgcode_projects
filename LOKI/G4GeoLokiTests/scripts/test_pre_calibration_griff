@@ -59,7 +59,8 @@ def emulated(calibration):
 
 ana = subprocess.run(['sb_lokimasking_ana', GRIFF], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 if chk.check(ana.returncode == 0, f'analysis failed:\n{ana.stdout[-3000:]}'):
-    c = np.asarray(sh.HistCollection('bcsloki_masking.shist').hist('h_geantino_pixel_enter_masked').contents())
+    hists = sh.HistCollection('bcsloki_masking.shist')  # (kept alive: the contents are owned by the collection)
+    c = np.array(hists.hist('h_geantino_pixel_enter_masked').contents(), copy=True)
     visible = {int(straw * N + j) for j, straw in np.argwhere(c > 0)}
     nominal, sam606 = emulated('nominal-geant4-geometry'), emulated('2026-September-SAM-606')
     chk.check(len(visible) > 0, 'no visible pixels')

@@ -31,7 +31,7 @@ print('--- maskConverter_2022: full geometry (512 px/straw) -> reduced Larmor 20
 full = [1, 2, 512, 513, 3584, 3585, 400000, 802816, 802817, 900000]  # banks 0 and 1 of the full geometry
 write_mask('full.xml', full)
 for extra in ([], ['--convert_old_to_new_tube_numbering']):
-    r = subprocess.run(['sb_larmor_maskConverter_2022', 'full.xml', '-s', 'larmor.xml'] + extra,
+    r = subprocess.run(['sb_larmor_maskconverter_2022', 'full.xml', '-s', 'larmor.xml'] + extra,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if chk.check(r.returncode == 0, f'maskConverter_2022 {extra} failed:\n{r.stdout}'):
         ids = read_ids('larmor.xml')
