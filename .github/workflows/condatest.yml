@@ -19,9 +19,9 @@ jobs:
       #fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9',   bldmode: 'release'  }
-          - { os: ubuntu-latest,     CC: gcc2,     CXX: g++,        python: '3.11',  bldmode: 'debug' }
-          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.10",  bldmode: 'release' }
+          - { os: ubuntu-22.04,      CC: gcc,      CXX: g++,        python: '3.10',  bldmode: 'release' }
+          - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.14',  bldmode: 'debug' }
+          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.12",  bldmode: 'release' }
     name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}.${{ matrix.bldmode }}-bld
     runs-on: ${{ matrix.os }}
     defaults:
