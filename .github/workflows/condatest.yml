@@ -19,9 +19,9 @@ jobs:
       #fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04,      CC: gcc-10,   CXX: g++-10,     python: '3.9',   bldmode: 'release'  }
-          - { os: ubuntu-latest,     CC: gcc2,     CXX: g++,        python: '3.11',  bldmode: 'debug' }
-          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.10",  bldmode: 'release' }
+          - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.10',  bldmode: 'release' }
+          - { os: ubuntu-latest,     CC: gcc,      CXX: g++,        python: '3.14',  bldmode: 'debug' }
+          - { os: macos-latest,      CC: clang,    CXX: clang++,    python: "3.12",  bldmode: 'release' }
     name: ${{ matrix.os }}.${{ matrix.CC }}.python-${{ matrix.python }}.${{ matrix.bldmode }}-bld
     runs-on: ${{ matrix.os }}
     defaults:
@@ -35,13 +35,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: ./src_co
 
       #we need a few files from .github in the simplebuild-dgcode repo:
       - name: Checkout simplebuild-dgcode repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: mctools/simplebuild-dgcode
           path: ./src_co_sbdgcode
@@ -113,7 +113,7 @@ jobs:
           cppcheck --inline-suppr --project=cmds.json --check-level=${tmp_cppcheck_level} -j4 --cppcheck-build-dir="$PWD"/cppcheck_cache -q --suppress='*:'"$CONDA_PREFIX"'/include/*' --error-exitcode=1
 
       - name: Setup tmate session for manual debugging
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3.24
         if: always() && inputs.manual-debugging == true && (steps.build-and-test-core-only.outcome != 'success' || steps.build-and-test-release-mode.outcome != 'success' || steps.build-and-test-debug-mode.outcome != 'success')
         with:
           limit-access-to-actor: true
