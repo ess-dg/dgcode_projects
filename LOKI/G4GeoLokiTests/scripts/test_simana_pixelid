@@ -171,4 +171,6 @@ chk.check(moved and at_calibrated, f'the analysis does not use the calibration (
 print('Detections whose conversion pixel differs from the nominal one: > 0: '
       f'{len(moved) > 0}, all at the calibrated pixel: {at_calibrated}')
 
-chk.finish()
+#The number of checks depends on the number of conversions, which can differ
+#slightly between platforms (e.g. 922 on Linux vs. 900 on macOS arm64):
+chk.finish(show_count=False)

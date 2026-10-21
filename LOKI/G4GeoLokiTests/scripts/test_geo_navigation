@@ -59,7 +59,7 @@ def check_pixel(aim, pc, pid, N, verbose):
                   f'pixel {pid}: getPixelId from touchable -> {pc.getPixelId(copies[6], copies[4], copies[2], *c)}')
     if verbose:
         print(f'{pid:8} {b:4} {t:4} {s:5} {j:5}  bank/tube/straw copyNo: {copies[6]:2} {copies[4]:4} {copies[2]:2}'
-              f'  centre {fmtvec(c,4)}  local {fmtvec(loc,4)}  straw axis {fmtvec(axis,6)}')
+              f'  centre {fmtvec(c,4)}  local {fmtvec(loc,3)}  straw axis {fmtvec(axis,6)}')
 
 def run(title, geopars, rear_mm, N, nbanks):
     geopars = dict(bank_calibration=NOMINAL, **geopars) if 'bank_calibration' not in geopars else geopars

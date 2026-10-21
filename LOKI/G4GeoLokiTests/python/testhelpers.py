@@ -142,8 +142,13 @@ class Checker:
             self.nfail += 1
             print('FAILURE:', msg)
         return ok
-    def finish(self, title=''):
-        print(f'{title}checks performed: {self.nchecks}, failures: {self.nfail}')
+    def finish(self, title='', show_count=True):
+        #show_count=False is for tests where the number of checks depends on
+        #platform-dependent details (e.g. how many neutrons converted):
+        if show_count:
+            print(f'{title}checks performed: {self.nchecks}, failures: {self.nfail}')
+        else:
+            print(f'{title}failures: {self.nfail}')
         if self.nfail:
             print('TEST FAILED')
             sys.exit(1)
