@@ -2,7 +2,7 @@
 // Declaration of our geometry module: //
 /////////////////////////////////////////
 
-#include "G4Interfaces/GeoConstructPyExport.hh"
+#include "G4Interfaces/GeoConstructToPy.hh"
 #include "G4Tubs.hh"
 #include "G4Box.hh"
 #include "G4Transform3D.hh"
@@ -36,7 +36,7 @@ private:
 };
 
 // this line is necessary to be able to declare the geometry in the python simulation script
-PYTHON_MODULE( mod ) { GeoConstructPyExport::exportGeo<GeoBCS>(mod, "GeoLarmor2020"); }
+SBLDPY_MODULE( _GeoLarmor2020 ) { G4Interfaces::geoToPy<GeoBCS>( m ); }
 
 ////////////////////////////////////////////
 // Implementation of our geometry module: //

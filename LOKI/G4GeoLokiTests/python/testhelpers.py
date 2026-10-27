@@ -10,6 +10,7 @@ Conventions used by the tests:
 """
 
 import contextlib
+import decimal
 import os
 import sys
 import tempfile
@@ -18,9 +19,18 @@ NBANKS = 9
 NSTRAWS = 7
 
 def fmt(v, prec=4):
-    """Format float with fixed precision, avoiding '-0.0000'."""
-    s = f'{v:.{prec}f}'
-    if s.startswith('-') and float(s) == 0.0:
+    """Format float with fixed precision, avoiding '-0.0000'.
+
+    Many positions in the geometry (e.g. pixel centres along the straws, like
+    7.8125 mm) are exactly halfway between two values with the given
+    precision, so tiny floating point differences between platforms would
+    otherwise decide the rounding. The value is therefore first rounded to
+    prec+6 decimals (removing such differences), and then rounded half away
+    from zero."""
+    d = decimal.Decimal(repr(round(float(v), prec + 6)))
+    d = d.quantize(decimal.Decimal(1).scaleb(-prec), rounding=decimal.ROUND_HALF_UP)
+    s = f'{d:.{prec}f}'
+    if s.startswith('-') and d == 0:
         s = s[1:]
     return s
 

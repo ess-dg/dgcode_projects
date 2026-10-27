@@ -73,8 +73,8 @@ D) Checksums of all pixel centres (rounded to 1e-6 mm)
 ====================================================================================================
    8 pixels/straw, new numbering: 12544 pixels, sha256 edf5656179c8de583ef4be81c23e714c00a3404822cf725269fc4db971ca8ba1
    8 pixels/straw, old numbering: 12544 pixels, sha256 cd4174b5128d640d6876eca202885b8290ba54fa037d597ca8f08ea7f49afb22
- 512 pixels/straw, new numbering: 802816 pixels, sha256 51a4e4fe3344ecf511ddf7233553e92b7ee1caa629c99172fcf36448fdb20e9a
- 512 pixels/straw, old numbering: 802816 pixels, sha256 9fd13b7e4df28d0f3693973e461820894df29c147e81511fe4e17d5c1990fc07
+ 512 pixels/straw, new numbering: 802816 pixels, sha256 83c7daa56ae59e355a47d83875d94200d8c21357d2ced88a7da809aebcbd464a
+ 512 pixels/straw, old numbering: 802816 pixels, sha256 f3f4fa7b608e9dcc550061b432218f183b718620aa1eb8e39b84fa0d9159a68d
 ====================================================================================================
 E) Pixel id round trip (first/middle/last pixel of every straw, 512 pixels/straw)
 ====================================================================================================

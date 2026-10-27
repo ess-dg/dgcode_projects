@@ -2,7 +2,7 @@
 // Declaration of our geometry module: //
 /////////////////////////////////////////
 
-#include "G4Interfaces/GeoConstructPyExport.hh"
+#include "G4Interfaces/GeoConstructToPy.hh"
 #include "G4Para.hh"
 #include "G4Tubs.hh"
 #include "G4Box.hh"
@@ -36,7 +36,7 @@ private:
 };
 
 // this line is necessary to be able to declare the geometry in the python simulation script
-PYTHON_MODULE( mod ) { GeoConstructPyExport::exportGeo<GeoLarmor2022>(mod, "GeoLarmor2022"); }
+SBLDPY_MODULE( _GeoLarmor2022 ) { G4Interfaces::geoToPy<GeoLarmor2022>( m ); }
 
 namespace {
   // object rotation of a bank (the columns are the bank-local axes in the world)

@@ -1,4 +1,6 @@
-// Test-only helper module for the G4GeoLokiTests package.
+// Test-only helper module for the G4GeoLokiTests package (private module used
+// by the G4GeoLokiTests.TestUtils Python module, which collects the results
+// passed to the "add" callbacks below into lists).
 //
 // Exposes (read-only) internals of the G4GeoLoki library which are not
 // available through G4GeoLoki.LokiAimHelper, plus a minimal Geant4 navigation
@@ -13,9 +15,9 @@
 //
 // Nothing in here is used by production code.
 
-#include "Core/Python.hh"
-#include <pybind11/stl.h>
+#include "sbldpy/sbldpy.hh"
 #include "G4Interfaces/GeoConstructBase.hh"
+#include "G4Interfaces/ComponentHandles.hh"
 #include "G4GeoLoki/PixelatedBanks.hh"
 #include "G4GeoLoki/BcsBanks.hh"
 #include "G4GeoLoki/BcsPack.hh"
@@ -39,18 +41,22 @@
 
 namespace {
 
+  using I = std::int64_t;
+  using V3 = std::array<double,3>;
+  using M3 = std::array<V3,3>;
+  V3 v3( const G4ThreeVector& v ) { return { v.x(), v.y(), v.z() }; }
+  M3 rows( const G4RotationMatrix& r ) { return { V3{ r.xx(), r.xy(), r.xz() }, V3{ r.yx(), r.yy(), r.yz() }, V3{ r.zx(), r.zy(), r.zz() } }; }
+
   G4VPhysicalVolume* s_world = nullptr;
   std::unique_ptr<G4Navigator> s_nav;
 
-  //Calls Construct() on a geometry module instance (e.g. G4GeoLoki.GeoBCSBanks)
-  //and keeps the returned world volume for subsequent locate(..) calls. Note
+  //Calls Construct() on a geometry module instance (e.g. G4GeoLoki.GeoBCSBanks,
+  //given by its handle) and keeps the returned world volume for subsequent locate(..) calls. Note
   //that the GeoConstructBase::place(..) calls perform the standard Geant4
   //overlap check for each placement during construction (printed to G4cout).
-  int construct_world( py::object o )
+  int construct_world( I geo_handle )
   {
-    if ( !py::isinstance<G4Interfaces::GeoConstructBase>( o ) )
-      throw std::runtime_error("construct_world: object is not a geometry module");
-    auto geo = py::cast<G4Interfaces::GeoConstructBase*>( o );
+    auto geo = &G4Interfaces::getComponentAs<G4Interfaces::GeoConstructBase>( geo_handle, "geometry module" );
     s_world = geo->Construct();
     if (!s_world)
       throw std::runtime_error("construct_world: Construct() returned null");
@@ -64,43 +70,37 @@ namespace {
   }
 
   //Locates the global point (x,y,z) [mm] in the geometry previously built with
-  //construct_world. Returns a tuple:
-  //   ( [(physvolname, copynumber, logvolname), ...] from deepest volume up to the world,
-  //     (local x, local y, local z) of the point in the deepest volume,
+  //construct_world. Calls add(physvolname, copynumber, logvolname) from the
+  //deepest volume up to the world, and returns a tuple:
+  //   ( (local x, local y, local z) of the point in the deepest volume,
   //     (dx,dy,dz) global direction of the local z axis of the deepest volume,
   //     (ox,oy,oz) global position of the origin of the deepest volume )
-  py::tuple locate( double x, double y, double z )
+  std::tuple<V3,V3,V3> locate( double x, double y, double z, sbldpy::Callback<void(std::string,I,std::string)> add )
   {
     if (!s_nav)
       throw std::runtime_error("locate: call construct_world first");
     G4ThreeVector p(x,y,z);
     s_nav->LocateGlobalPointAndSetup(p, nullptr, false, true);
     std::unique_ptr<G4TouchableHistory> th(s_nav->CreateTouchableHistory());
-    py::list hist;
     for (int d = 0; d <= th->GetHistoryDepth(); ++d) {
       auto pv = th->GetVolume(d);
-      hist.append(py::make_tuple(std::string(pv->GetName()), th->GetCopyNumber(d),
-                                 std::string(pv->GetLogicalVolume()->GetName())));
+      add(std::string(pv->GetName()), th->GetCopyNumber(d), std::string(pv->GetLogicalVolume()->GetName()));
     }
     G4AffineTransform g2l = s_nav->GetGlobalToLocalTransform();
     G4AffineTransform l2g = s_nav->GetLocalToGlobalTransform();
     G4ThreeVector loc = g2l.TransformPoint(p);
     G4ThreeVector ax = l2g.TransformAxis(G4ThreeVector(0,0,1));
     G4ThreeVector org = l2g.TransformPoint(G4ThreeVector(0,0,0));
-    return py::make_tuple( hist,
-                           py::make_tuple(loc.x(),loc.y(),loc.z()),
-                           py::make_tuple(ax.x(),ax.y(),ax.z()),
-                           py::make_tuple(org.x(),org.y(),org.z()) );
+    return { v3(loc), v3(ax), v3(org) };
   }
 
   //The volumes placed directly in the world of the geometry built with construct_world:
-  //[(physvolname, copynumber, logvolname, frame rotation as 3 rows, translation (x,y,z) [mm]), ...]
+  //add(physvolname, copynumber, logvolname, frame rotation as 3 rows, translation (x,y,z) [mm]) for each
   //(the frame rotation is what G4PVPlacement stores: the inverse of the object rotation).
-  py::list world_daughters()
+  void world_daughters( sbldpy::Callback<void(std::string,I,std::string,M3,V3)> add )
   {
     if (!s_world)
       throw std::runtime_error("world_daughters: call construct_world first");
-    py::list out;
     auto lv = s_world->GetLogicalVolume();
     for (size_t i = 0; i < lv->GetNoDaughters(); ++i) {
       auto pv = lv->GetDaughter(i);
@@ -108,22 +108,17 @@ namespace {
       G4RotationMatrix identity;
       if (!r) r = &identity;
       const G4ThreeVector t = pv->GetTranslation();
-      out.append(py::make_tuple(std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()),
-                                py::make_tuple(py::make_tuple(r->xx(), r->xy(), r->xz()),
-                                               py::make_tuple(r->yx(), r->yy(), r->yz()),
-                                               py::make_tuple(r->zx(), r->zy(), r->zz())),
-                                py::make_tuple(t.x(), t.y(), t.z())));
+      add(std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()), rows(*r), v3(t));
     }
-    return out;
   }
 
   //Dense overlap check of the volumes placed directly in the world (much denser than the
   //construction-time check, and it also reports the overlap depth): npoints random surface
   //points of each world daughter (G4VSolid::GetPointOnSurface) are tested against every other
   //world daughter. A point counts if it is inside the other volume by more than tolerance
-  //(DistanceToOut). [(volume, other volume, number of points, max depth [mm]), ...] for the pairs
+  //(DistanceToOut). add(volume, other volume, number of points, max depth [mm]) for the pairs
   //with any such point (volume = "physvolname:copynumber").
-  py::list dense_world_overlaps(int npoints, double tolerance)
+  void dense_world_overlaps(I npoints, double tolerance, sbldpy::Callback<void(std::string,std::string,I,double)> add)
   {
     if (!s_world)
       throw std::runtime_error("dense_world_overlaps: call construct_world first");
@@ -140,7 +135,6 @@ namespace {
       auto pv = lv->GetDaughter(i);
       return std::string(pv->GetName()) + ":" + std::to_string(pv->GetCopyNo());
     };
-    py::list out;
     for (size_t a = 0; a < n; ++a) {
       const G4VSolid* solidA = lv->GetDaughter(a)->GetLogicalVolume()->GetSolid();
       std::vector<G4ThreeVector> points(npoints);
@@ -164,21 +158,19 @@ namespace {
           maxDepth = std::max(maxDepth, depth);
         }
         if (count)
-          out.append(py::make_tuple(label(a), label(b), count, maxDepth));
+          add(label(a), label(b), count, maxDepth);
       }
     }
-    return out;
   }
 
   //Dense containment check of the volumes inside the banks (packs, boron masks, calibration masks...):
   //npoints random surface points of each daughter of every bank must be inside its bank solid (which
-  //for the banks 6 and 8 has the notch cut out). [(bank copy number, "daughter:copy", number of points
-  //outside by more than tolerance, max distance [mm]), ...] for the daughters with such points.
-  py::list dense_bank_containment(int npoints, double tolerance)
+  //for the banks 6 and 8 has the notch cut out). add(bank copy number, "daughter:copy", number of points
+  //outside by more than tolerance, max distance [mm]) for the daughters with such points.
+  void dense_bank_containment(I npoints, double tolerance, sbldpy::Callback<void(I,std::string,I,double)> add)
   {
     if (!s_world)
       throw std::runtime_error("dense_bank_containment: call construct_world first");
-    py::list out;
     auto world = s_world->GetLogicalVolume();
     for (size_t i = 0; i < world->GetNoDaughters(); ++i) {
       auto bankPV = world->GetDaughter(i);
@@ -204,15 +196,14 @@ namespace {
           maxDistance = std::max(maxDistance, distance);
         }
         if (count)
-          out.append(py::make_tuple(bankPV->GetCopyNo(), std::string(pv->GetName()) + ":" + std::to_string(pv->GetCopyNo()), count, maxDistance));
+          add(bankPV->GetCopyNo(), std::string(pv->GetName()) + ":" + std::to_string(pv->GetCopyNo()), count, maxDistance);
       }
     }
-    return out;
   }
 
   //Smallest distance [mm] of the daughters of a bank (packs, masks) from a box given in the bank frame
   //(e.g. the notch): npoints random surface points per daughter. (distance, "daughter:copy" of the closest).
-  py::tuple bank_daughters_distance_to_box(int bankCopyNo, std::array<double,3> centre, std::array<double,3> halfSize, int npoints)
+  std::tuple<double,std::string> bank_daughters_distance_to_box(I bankCopyNo, V3 centre, V3 halfSize, I npoints)
   {
     if (!s_world)
       throw std::runtime_error("bank_daughters_distance_to_box: call construct_world first");
@@ -241,139 +232,131 @@ namespace {
         }
       }
     }
-    return py::make_tuple(minDistance, closest);
+    return { minDistance, closest };
   }
 
   //Every physical volume of the geometry built with construct_world, depth first:
-  //[(depth, physvolname, copynumber, logvolname, global translation (x,y,z) [mm],
-  //  global object rotation as 3 rows), ...] (depth 0 = the world).
-  void addTree(py::list& out, const G4VPhysicalVolume* pv, int depth, const G4RotationMatrix& Rp, const G4ThreeVector& tp)
+  //add(depth, physvolname, copynumber, logvolname, global translation (x,y,z) [mm],
+  //  global object rotation as 3 rows) for each (depth 0 = the world).
+  using TreeAdd = sbldpy::Callback<void(I,std::string,I,std::string,V3,M3)>;
+  void addTree(TreeAdd& add, const G4VPhysicalVolume* pv, int depth, const G4RotationMatrix& Rp, const G4ThreeVector& tp)
   {
     const G4RotationMatrix R = Rp * pv->GetObjectRotationValue();
     const G4ThreeVector t = tp + Rp * pv->GetObjectTranslation();
-    out.append(py::make_tuple(depth, std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()),
-                              py::make_tuple(t.x(), t.y(), t.z()),
-                              py::make_tuple(py::make_tuple(R.xx(), R.xy(), R.xz()),
-                                             py::make_tuple(R.yx(), R.yy(), R.yz()),
-                                             py::make_tuple(R.zx(), R.zy(), R.zz()))));
+    add(depth, std::string(pv->GetName()), pv->GetCopyNo(), std::string(pv->GetLogicalVolume()->GetName()), v3(t), rows(R));
     auto lv = pv->GetLogicalVolume();
     for (size_t i = 0; i < lv->GetNoDaughters(); ++i)
-      addTree(out, lv->GetDaughter(i), depth + 1, R, t);
+      addTree(add, lv->GetDaughter(i), depth + 1, R, t);
   }
-  py::list world_tree()
+  void world_tree( TreeAdd add )
   {
     if (!s_world)
       throw std::runtime_error("world_tree: call construct_world first");
-    py::list out;
-    addTree(out, s_world, 0, G4RotationMatrix(), G4ThreeVector());
-    return out;
+    addTree(add, s_world, 0, G4RotationMatrix(), G4ThreeVector());
   }
 
   //Thin wrapper around PixelatedBanks (the class used by the analysis programs
   //to convert hits to pixel ids).
   struct PixelCalc {
     PixelatedBanks pb;
-    PixelCalc(double rear, int n, int nbanks) : pb(rear, n, nbanks) {}
-    PixelCalc(double rear, int n, int nbanks, const std::string& bankCalibration) : pb(rear, n, nbanks, bankCalibration) {}
-    int getPixelId(int bank, int tube, int straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
+    PixelCalc(double rear, I n, I nbanks, const std::string& bankCalibration) : pb(rear, n, nbanks, bankCalibration) {}
+    I getPixelId(I bank, I tube, I straw, double x, double y, double z) const { return pb.getPixelId(bank,tube,straw,x,y,z); }
     //bank transform: (rotation as 3 rows, translation)
-    py::tuple getBankTransform(int bank) const {
+    std::pair<M3,V3> getBankTransform(I bank) const {
       const BankTransform t = pb.getBankTransform(bank);
-      const auto& R = t.rotation;
-      return py::make_tuple( py::make_tuple( py::make_tuple(R[0][0],R[0][1],R[0][2]),
-                                             py::make_tuple(R[1][0],R[1][1],R[1][2]),
-                                             py::make_tuple(R[2][0],R[2][1],R[2][2]) ),
-                             py::make_tuple(t.translation[0],t.translation[1],t.translation[2]) );
+      return { t.rotation, t.translation };
     }
-    py::tuple getNominalBankTransform(int bank) const {
+    std::pair<M3,V3> getNominalBankTransform(I bank) const {
       const BankTransform t = pb.getNominalBankTransform(bank);
-      const auto& R = t.rotation;
-      return py::make_tuple( py::make_tuple( py::make_tuple(R[0][0],R[0][1],R[0][2]),
-                                             py::make_tuple(R[1][0],R[1][1],R[1][2]),
-                                             py::make_tuple(R[2][0],R[2][1],R[2][2]) ),
-                             py::make_tuple(t.translation[0],t.translation[1],t.translation[2]) );
+      return { t.rotation, t.translation };
     }
     //the notch of bank 6 / 8: (centre, half sizes, isNominal)
-    py::tuple getBankNotch(int bank) const {
+    std::tuple<V3,V3,bool> getBankNotch(I bank) const {
       const auto notch = pb.getBankNotch(bank);
-      return py::make_tuple(py::make_tuple(notch.centre[0], notch.centre[1], notch.centre[2]),
-                            py::make_tuple(notch.halfSize[0], notch.halfSize[1], notch.halfSize[2]), notch.isNominal);
+      return { notch.centre, notch.halfSize, notch.isNominal };
     }
-    //the points spanning the overlap region of two bank boxes, in the frame of the first bank
-    py::list getBankBoxOverlapPoints(int bank, int otherBank) const {
-      py::list out;
+    //the points spanning the overlap region of two bank boxes, in the frame of
+    //the first bank (as a flat array, x0,y0,z0,x1,...)
+    sbldpy::NumpyCopy<double> getBankBoxOverlapPoints(I bank, I otherBank) const {
+      std::vector<double> v;
       for (const auto& p : pb.getBankBoxOverlapPoints(bank, otherBank))
-        out.append(py::make_tuple(p[0], p[1], p[2]));
-      return out;
+        v.insert(v.end(), p.begin(), p.end());
+      return sbldpy::NumpyCopy<double>( std::move( v ) );
     }
-    bool isBankCalibrated(int bank) const { return pb.isBankCalibrated(bank); }
+    bool isBankCalibrated(I bank) const { return pb.isBankCalibrated(bank); }
     std::string getBankCalibrationName() const { return pb.getBankCalibration().name(); }
     std::string getBankCalibrationFile() const { return pb.getBankCalibration().fileName(); }
-    int getTotalNumberOfPixels() { return pb.getTotalNumberOfPixels(); }
-    int getNumberOfBanks() const { return pb.getNumberOfBanks(); }
+    I getTotalNumberOfPixels() const { return pb.getTotalNumberOfPixels(); }
+    I getNumberOfBanks() const { return pb.getNumberOfBanks(); }
+  };
+
+  //The mask file writer of the masking analysis (LokiMasking), with the bank
+  //pixel limits given as a numpy array:
+  struct MaskFileCreatorImpl {
+    MaskFileCreator mfc;
+    MaskFileCreatorImpl( const std::string& fileName, I indexOffset, sbldpy::NumpyView<const std::int64_t> bankPixelLimits, I aimingBankId )
+      : mfc( fileName.c_str(), indexOffset, std::vector<int>( bankPixelLimits.begin(), bankPixelLimits.end() ), aimingBankId ) {}
   };
 }
 
-PYTHON_MODULE( mod )
+SBLDPY_MODULE( _TestUtils )
 {
-  pyextra::pyimport("G4Interfaces");
+  m.def("construct_world", &construct_world, { "geo_handle" });
+  m.def("locate", &locate, { "x", "y", "z", "add" });
+  m.def("world_daughters", &world_daughters, { "add" });
+  m.def("world_tree", &world_tree, { "add" });
+  m.def("dense_world_overlaps", &dense_world_overlaps, { "npoints", "tolerance", "add" });
+  m.def("dense_bank_containment", &dense_bank_containment, { "npoints", "tolerance", "add" });
+  m.def("bank_daughters_distance_to_box", &bank_daughters_distance_to_box, { "bankCopyNo", "centre", "halfSize", "npoints" });
 
-  mod.def("construct_world", &construct_world);
-  mod.def("locate", &locate);
-  mod.def("world_daughters", &world_daughters);
-  mod.def("world_tree", &world_tree);
-  mod.def("dense_world_overlaps", &dense_world_overlaps, py::arg("npoints"), py::arg("tolerance"));
-  mod.def("dense_bank_containment", &dense_bank_containment, py::arg("npoints"), py::arg("tolerance"));
-  mod.def("bank_daughters_distance_to_box", &bank_daughters_distance_to_box);
+  using MFC = MaskFileCreatorImpl;
+  m.add_class<MFC>("MaskFileCreator")
+    .def_init<std::string, I, sbldpy::NumpyView<const std::int64_t>, I>( { "fileName", "indexOffset", "bankPixelLimits", "aimingBankId" } )
+    .def("isPixelEntered", []( const MFC& o, I pixel ) { return o.mfc.isPixelEntered( pixel ); }, { "pixelNumber" })
+    .def("setPixelEntered", []( MFC& o, I pixel ) { o.mfc.setPixelEntered( pixel ); }, { "pixelNumber" })
+    .def("isPixelEnteredAimingCheck", []( const MFC& o, I pixel ) { return o.mfc.isPixelEnteredAimingCheck( pixel ); }, { "pixelNumber" })
+    .def("setPixelEnteredAimingCheck", []( MFC& o, I pixel ) { o.mfc.setPixelEnteredAimingCheck( pixel ); }, { "pixelNumber" })
+    .def("createMaskFile", []( const MFC& o ) { o.mfc.createMaskFile(); });
 
-  //the mask file writer of the masking analysis (LokiMasking)
-  py::class_<MaskFileCreator>(mod, "MaskFileCreator")
-    .def(py::init([](const std::string& fileName, int indexOffset, const std::vector<int>& bankPixelLimits, int aimingBankId) {
-      return new MaskFileCreator(fileName.c_str(), indexOffset, bankPixelLimits, aimingBankId); }))
-    .def("isPixelEntered", &MaskFileCreator::isPixelEntered)
-    .def("setPixelEntered", &MaskFileCreator::setPixelEntered)
-    .def("isPixelEnteredAimingCheck", &MaskFileCreator::isPixelEnteredAimingCheck)
-    .def("setPixelEnteredAimingCheck", &MaskFileCreator::setPixelEnteredAimingCheck)
-    .def("createMaskFile", &MaskFileCreator::createMaskFile);
-
-  py::class_<PixelCalc>(mod, "PixelCalc")
-    .def(py::init<double,int,int>())
-    .def(py::init<double,int,int,std::string>())
-    .def("getPixelId", &PixelCalc::getPixelId)
-    .def("getBankTransform", &PixelCalc::getBankTransform)
-    .def("getNominalBankTransform", &PixelCalc::getNominalBankTransform)
-    .def("getBankNotch", &PixelCalc::getBankNotch)
-    .def("getBankBoxOverlapPoints", &PixelCalc::getBankBoxOverlapPoints)
-    .def("isBankCalibrated", &PixelCalc::isBankCalibrated)
+  m.add_class<PixelCalc>("PixelCalc")
+    .def_init<double,I,I,std::string>( { "rear", "n", "nbanks", "bankCalibration" } )
+    .def("getPixelId", &PixelCalc::getPixelId, { "bank", "tube", "straw", "x", "y", "z" })
+    .def("getBankTransform", &PixelCalc::getBankTransform, { "bank" })
+    .def("getNominalBankTransform", &PixelCalc::getNominalBankTransform, { "bank" })
+    .def("getBankNotch", &PixelCalc::getBankNotch, { "bank" })
+    .def("getBankBoxOverlapPoints", &PixelCalc::getBankBoxOverlapPoints, { "bank", "otherBank" })
+    .def("isBankCalibrated", &PixelCalc::isBankCalibrated, { "bank" })
     .def("getBankCalibrationName", &PixelCalc::getBankCalibrationName)
     .def("getBankCalibrationFile", &PixelCalc::getBankCalibrationFile)
     .def("getTotalNumberOfPixels", &PixelCalc::getTotalNumberOfPixels)
-    .def("getNumberOfBanks", &PixelCalc::getNumberOfBanks)
-    ;
+    .def("getNumberOfBanks", &PixelCalc::getNumberOfBanks);
 
   //static getters (PixelatedBanks / BcsBanks):
-  mod.def("getTubeLayerId", &BcsBanks::getTubeLayerId);
-  mod.def("getTubeIdInBank", &BcsBanks::getTubeIdInBank);
-  mod.def("getPackId", &BcsBanks::getPackId);
-  mod.def("getInPackTubeId", &BcsBanks::getInPackTubeId);
-  mod.def("getBankSize", &BcsBanks::getBankSize);
-  mod.def("getStrawLengthByBankId", &BcsBanks::getStrawLengthByBankId);
-  mod.def("getNumberOfPacksByBankId", &BcsBanks::getNumberOfPacksByBankId);
-  mod.def("getNumberOfTubes", &BcsBanks::getNumberOfTubes);
-  mod.def("getPackPositionInBank", &BcsBanks::getPackPositionInBank);
-  mod.def("getPackRotation", &BcsBanks::getPackRotation);
-  mod.def("getPackPackDistance", &BcsBanks::getPackPackDistance);
-  mod.def("detectorSystemFrontDistanceFromBankFront", &BcsBanks::detectorSystemFrontDistanceFromBankFront);
-  mod.def("isVertical", &BcsBanks::isVertical);
-  mod.def("areTubesInverselyNumbered", &BcsBanks::areTubesInverselyNumbered);
-  mod.def("getBeamstopSize", &BcsBanks::getBeamstopSize);
-  mod.def("getFrontFaceCentreInBank", &BcsBanks::getFrontFaceCentreInBank);
+  m.def("getTubeLayerId", []( I bank, I tube ) { return BcsBanks::getTubeLayerId( bank, tube ); }, { "bankId", "tubeId" });
+  m.def("getTubeIdInBank", []( I bank, I pack, I inPackTube ) { return BcsBanks::getTubeIdInBank( bank, pack, inPackTube ); },
+        { "bankId", "packId", "inPackTubeId" });
+  m.def("getPackId", []( I bank, I tube ) { return BcsBanks::getPackId( bank, tube ); }, { "bankId", "tubeId" });
+  m.def("getInPackTubeId", []( I bank, I tube ) { return BcsBanks::getInPackTubeId( bank, tube ); }, { "bankId", "tubeId" });
+  m.def("getBankSize", []( I bank, I axis ) { return BcsBanks::getBankSize( bank, axis ); }, { "bankId", "axisIndex" });
+  m.def("getStrawLengthByBankId", []( I bank ) { return BcsBanks::getStrawLengthByBankId( bank ); }, { "bankId" });
+  m.def("getNumberOfPacksByBankId", []( I bank ) { return BcsBanks::getNumberOfPacksByBankId( bank ); }, { "bankId" });
+  m.def("getNumberOfTubes", []( I bank ) { return BcsBanks::getNumberOfTubes( bank ); }, { "bankId" });
+  m.def("getPackPositionInBank", []( I bank, I pack, I axis ) { return BcsBanks::getPackPositionInBank( bank, pack, axis ); },
+        { "bankId", "packNumber", "axisIndex" });
+  m.def("getPackRotation", &BcsBanks::getPackRotation);
+  m.def("getPackPackDistance", &BcsBanks::getPackPackDistance);
+  m.def("detectorSystemFrontDistanceFromBankFront", []( I bank ) { return BcsBanks::detectorSystemFrontDistanceFromBankFront( bank ); },
+        { "bankId" });
+  m.def("isVertical", []( I bank ) { return BcsBanks::isVertical( bank ); }, { "bankId" });
+  m.def("areTubesInverselyNumbered", []( I bank ) { return BcsBanks::areTubesInverselyNumbered( bank ); }, { "bankId" });
+  m.def("getBeamstopSize", []( I beamstop, I axis ) { return BcsBanks::getBeamstopSize( beamstop, axis ); }, { "beamstopId", "axisIndex" });
+  m.def("getFrontFaceCentreInBank", []( I bank ) { return BcsBanks::getFrontFaceCentreInBank( bank ); }, { "bankId" });
   //BcsPack / BcsTube:
-  mod.def("getTubeRotation", &BcsPack::getTubeRotation);
-  mod.def("getHorizontalTubeOffset", &BcsPack::getHorizontalTubeOffset);
-  mod.def("getVerticalTubeOffset", &BcsPack::getVerticalTubeOffset);
-  mod.def("getStrawPositionX", &BcsTube::getStrawPositionX);
-  mod.def("getStrawPositionY", &BcsTube::getStrawPositionY);
-  mod.def("getTubeOuterRadius", &BcsTube::getTubeOuterRadius);
-  mod.def("getStrawInnerRadius", &BcsTube::getStrawInnerRadius);
+  m.def("getTubeRotation", &BcsPack::getTubeRotation);
+  m.def("getHorizontalTubeOffset", []( I tube ) { return BcsPack::getHorizontalTubeOffset( tube ); }, { "inPackTubeId" });
+  m.def("getVerticalTubeOffset", []( I tube ) { return BcsPack::getVerticalTubeOffset( tube ); }, { "inPackTubeId" });
+  m.def("getStrawPositionX", []( I straw ) { return BcsTube::getStrawPositionX( straw ); }, { "strawId" });
+  m.def("getStrawPositionY", []( I straw ) { return BcsTube::getStrawPositionY( straw ); }, { "strawId" });
+  m.def("getTubeOuterRadius", &BcsTube::getTubeOuterRadius);
+  m.def("getStrawInnerRadius", &BcsTube::getStrawInnerRadius);
 }
